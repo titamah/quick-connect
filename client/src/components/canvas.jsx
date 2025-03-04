@@ -76,7 +76,8 @@ function Canvas({ isOpen }) {
   }
 
   return (
-    <div className="w-screen h-screen">
+    <div className="w-screen h-screen
+    ">
       <div
         id="Canvas"
         ref={canvasRef}
@@ -86,10 +87,9 @@ function Canvas({ isOpen }) {
           z-0
           max-sm:w-full
           duration-300 ease-in-ease-out
-          place-self-end
-          right-0
+          ml-auto
           h-[calc(100%-52px)] 
-    items-center 
+          items-center 
           justify-center
           bg-white dark:bg-neutral-900 
           bg-[image:repeating-linear-gradient(315deg,var(--pattern-fg)_0,var(--pattern-fg)_1px,transparent_0,transparent_50%)] 
