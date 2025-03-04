@@ -11,15 +11,15 @@ function Header() {
 
   return (
     <>
-      <header className="relative flex flex-wrap sm:justify-start sm:flex-nowrap w-full bg-white shadow-md z-100 text-sm py-3 dark:bg-neutral-800">
-        <nav className="max-w-[85rem] w-full mx-auto px-4 sm:flex sm:items-center sm:justify-between">
+      <header className=" z-500 relative flex flex-wrap sm:justify-start sm:flex-nowrap w-full bg-white shadow-md z-100 text-sm py-3 dark:bg-neutral-800">
+        <nav className="w-full px-4 sm:flex sm:items-center sm:justify-between">
           <div className="flex items-center justify-between">
             <a
               className="flex-none text-xl font-semibold dark:text-white focus:outline-none focus:opacity-80"
               href="#"
               aria-label="Brand"
             >
-              Brand
+              Quick Connect
             </a>
             <div className="sm:hidden">
               <button

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import "preline/preline";
-import image from "../assets/example2.jpg";
+import image from "../assets/example.jpg";
 import { zoom, select, zoomIdentity } from "d3";
 
 function Canvas({ isOpen }) {
@@ -29,6 +29,26 @@ function Canvas({ isOpen }) {
     canvasElement.call(zoomBehavior);
     canvasElement.on("dblclick.zoom", null);
 
+    function detectDoubleTap(element, callback) {
+      let lastTap = 0;
+      element.on("touchend", (event) => {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        if (tapLength < 500 && tapLength > 0) {
+          event.preventDefault();
+          callback();
+        }
+        lastTap = currentTime;
+      });
+    }
+    detectDoubleTap(canvasElement, () => {
+      canvasElement
+        .transition()
+        .duration(750)
+        .call(zoomBehavior.transform, zoomIdentity);
+    });
+    
+
     canvasElement.on("dblclick", () => {
       canvasElement
         .transition()
@@ -45,6 +65,16 @@ function Canvas({ isOpen }) {
     setIsLoading(false);
   }, [isOpen]);
 
+  const handleLoad = ()=>{
+    setIsLoading(false);
+    // Force a reflow of the preview element
+    if (previewRef.current) {
+      previewRef.current.style.display = 'none';
+      previewRef.current.offsetHeight; // Trigger reflow
+      previewRef.current.style.display = '';
+    }
+  }
+
   return (
     <div className="w-screen h-screen">
       <div
@@ -57,6 +87,7 @@ function Canvas({ isOpen }) {
           max-sm:w-full
           duration-300 ease-in-ease-out
           place-self-end
+          right-0
           h-[calc(100%-52px)] 
     items-center 
           justify-center
@@ -68,7 +99,8 @@ function Canvas({ isOpen }) {
           dark:[--pattern-fg:theme(colors.neutral.500/0.1)]
         `}
       >
-        <figure
+
+<figure
           ref={previewRef}
 
           className="z-1 transition-all duration-150 ease-linear p-15 w-full h-full flex items-center justify-center p-4"        >
@@ -85,7 +117,8 @@ function Canvas({ isOpen }) {
               </div>
             ) : (
               <img
-        className="rounded-[1.25rem] max-h-full max-w-full"
+        className="rounded-[1.25rem] max-h-full max-w-full h-auto w-auto object-contain"
+        onLoad={handleLoad}
                 src={image}
                 alt="Mobile Placeholder"
               />
