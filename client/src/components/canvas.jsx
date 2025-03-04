@@ -116,11 +116,11 @@ function Canvas({ isOpen, panelSize }) {
             {isLoading ? (
               <div className=" h-[874px] w-[402px] bg-gray-300  rounded-[1.25rem]">
                 <div
-                  class="animate-spin inline-block m-auto size-20 border-[6px] border-current border-t-transparent text-blue-600 rounded-full dark:text-blue-500"
+                   className="animate-spin inline-block m-auto size-20 border-[6px] border-current border-t-transparent text-blue-600 rounded-full dark:text-blue-500"
                   role="status"
                   aria-label="loading"
                 >
-                  <span class="sr-only">Loading...</span>
+                  <span  className="sr-only">Loading...</span>
                 </div>
               </div>
             ) : (
