@@ -3,7 +3,7 @@ import "preline/preline";
 import { IStaticMethods } from "preline/preline";
 import './styles.css';
 
-function Panel({isOpen, setIsOpen}) {
+function Panel({isOpen, setIsOpen, panelSize, setPanelSize}) {
   useEffect(() => {
     import("preline/preline").then((module) => {
       module.HSStaticMethods.autoInit();
@@ -19,8 +19,9 @@ function Panel({isOpen, setIsOpen}) {
     <>
     <div
           id="side-panel"
-          className={`hs-overlay fixed max-sm:hidden [--body-scroll:true] transition-all duration-300 transform h-full w-xs z-100 bg-white shadow-[3px_0_8px_1px_rgba(0,0,0,0.075)] dark:bg-neutral-800 dark:border-neutral-700  ${isOpen ? "left-0" : "-left-[20rem]"
-          }`}
+          className={`hs-overlay fixed max-sm:hidden [--body-scroll:true] transition-all duration-300 transform h-full z-100 bg-white shadow-[3px_0_8px_1px_rgba(0,0,0,0.075)] dark:bg-neutral-800 dark:border-neutral-700`}
+          style={{ left: isOpen ? 0 : `${panelSize.width * -1}px`,
+          width: `${panelSize.width}px` }}
           role="dialog"
           aria-labelledby="hs-offcanvas-example-label"
         >
@@ -70,10 +71,10 @@ function Panel({isOpen, setIsOpen}) {
 
         <div
           id="bottom-panel"
-          className={`hs-overlay min-sm:hidden fixed [--body-scroll:true] transition-all duration-300 transform h-1/2 w-screen z-100 bg-white shadow-[0_-1px_5px_0px_rgba(0,0,0,0.1)] rounded-t-2xl
-dark:bg-neutral-800 dark:border-neutral-700 ${
-            isOpen ? "bottom-0" : "-bottom-1/2"
-          }`}
+          className={`hs-overlay min-sm:hidden fixed [--body-scroll:true] transition-all duration-300 transform w-screen z-100 bg-white shadow-[0_-1px_5px_0px_rgba(0,0,0,0.1)] rounded-t-2xl
+dark:bg-neutral-800 dark:border-neutral-700`}
+          style={{ bottom: isOpen ? 0 : `${panelSize.height * -1}px`,
+          height: `${panelSize.height}px`}}
           role="dialog"
           aria-labelledby="hs-offcanvas-example-label"
         >

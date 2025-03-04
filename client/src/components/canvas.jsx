@@ -3,7 +3,7 @@ import "preline/preline";
 import image from "../assets/example.jpg";
 import { zoom, select, zoomIdentity } from "d3";
 
-function Canvas({ isOpen }) {
+function Canvas({ isOpen, panelSize }) {
   const previewRef = useRef(null);
   const canvasRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -65,6 +65,11 @@ function Canvas({ isOpen }) {
     setIsLoading(false);
   }, [isOpen]);
 
+  useEffect(() => {
+    document.documentElement.style.setProperty('--panel-width', `${panelSize.width}px`); 
+    document.documentElement.style.setProperty('--panel-height', `${panelSize.height}px`);
+  }, [panelSize]);
+
   const handleLoad = ()=>{
     setIsLoading(false);
     // Force a reflow of the preview element
@@ -76,27 +81,30 @@ function Canvas({ isOpen }) {
   }
 
   return (
-    <div className="w-screen h-screen
-    ">
-      <div
-        id="Canvas"
-        ref={canvasRef}
-        className={`
-          ${isOpen ? "w-[calc(100%-20rem)]" : "w-full"}
-          flex
-          z-0
-          max-sm:w-full
-          duration-300 ease-in-ease-out
-          ml-auto
-          h-[calc(100%-52px)] 
-          items-center 
-          justify-center
+    <div className="w-screen h-[calc(100%-52px)] p-10
           bg-white dark:bg-neutral-900 
           bg-[image:repeating-linear-gradient(315deg,var(--pattern-fg)_0,var(--pattern-fg)_1px,transparent_0,transparent_50%)] 
           bg-[size:10px_10px] 
           bg-fixed 
           [--pattern-fg:theme(colors.gray.950/0.05)] 
           dark:[--pattern-fg:theme(colors.neutral.500/0.1)]
+    ">
+      <div
+        id="Canvas"
+        ref={canvasRef}
+        className={`
+          ${isOpen 
+            ? 'w-[calc(100%-var(--panel-width))] h-[calc(100%-var(--panel-height))]' 
+            : 'w-full h-full'
+          }
+          flex
+          z-0
+          min-md:h-full
+          max-sm:w-full
+          duration-300 ease-in-ease-out
+          ml-auto
+          items-center 
+          justify-center
         `}
       >
 

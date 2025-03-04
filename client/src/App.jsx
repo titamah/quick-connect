@@ -7,6 +7,7 @@ import Canvas from "./components/canvas";
 
 function App() {
   const [isOpen, setIsOpen] = useState(true);
+  const [panelSize, setPanelSize] = useState({width: 200, height:200});
 
   // const togglePanel = () => {
   //   setIsOpen(!isOpen);
@@ -15,8 +16,8 @@ function App() {
   return (
     <>
       <Header />
-      <Panel setIsOpen={setIsOpen} isOpen={isOpen}/>
-      <Canvas  isOpen={isOpen}/>
+      <Panel setIsOpen={setIsOpen} isOpen={isOpen} panelSize={panelSize} setPanelSize={setPanelSize}/>
+      <Canvas  isOpen={isOpen}  panelSize={panelSize}/>
     </>
   );
 }
