@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import "preline/preline";
-import image from "../assets/example2.jpg";
+import image from "../assets/example.jpg";
 import { zoom, select, zoomIdentity } from "d3";
 
 function Canvas({ isOpen, panelSize }) {
@@ -110,8 +110,7 @@ function Canvas({ isOpen, panelSize }) {
 
 <figure
           ref={previewRef}
-
-          className="z-1 transition-all duration-150 ease-linear p-15 w-full h-full flex items-center justify-center p-4"        >
+          className="z-1 transition-all duration-150 ease-linear w-full h-full min-w-[50vw] min-h-[50vh] flex items-center justify-center"        >
           <div id="preview" className="max-w-full max-h-fit h-full p-2 bg-gray-800 shadow-[0_2.75rem_5.5rem_-3.5rem_rgb(45_55_75_/_20%),_0_2rem_4rem_-2rem_rgb(45_55_75_/_30%),_inset_0_-0.1875rem_0.3125rem_0_rgb(45_55_75_/_20%)] dark:bg-neutral-600 dark:shadow-[0_2.75rem_5.5rem_-3.5rem_rgb(0_0_0_/_20%),_0_2rem_4rem_-2rem_rgb(0_0_0_/_30%),_inset_0_-0.1875rem_0.3125rem_0_rgb(0_0_0_/_20%)] rounded-3xl">
             {isLoading ? (
               <div className=" h-[874px] w-[402px] bg-gray-300  rounded-[1.25rem]">
