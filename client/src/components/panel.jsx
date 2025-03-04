@@ -7,6 +7,7 @@ import { Resizable } from 'react-resizable';
 
 function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
 const panelRef = useRef(null);
+const [maxHeight, setMaxHeight] = useState(0);
 
 const onResize = (event, {size}) => {
   setPanelSize({width:size.width, height:size.height});
@@ -16,11 +17,16 @@ const onResize = (event, {size}) => {
     import("preline/preline").then((module) => {
       module.HSStaticMethods.autoInit();
     });
+    const canvas = document.getElementById("Canvas");
+    setMaxHeight(canvas.clientHeight);
+    console.log(maxHeight);
   }, []);
 
   const togglePanel = () => {
     setIsOpen(!isOpen);
-    console.log("toggled");
+    const canvas = document.getElementById("Canvas");
+    setMaxHeight(canvas.clientHeight);
+    console.log(maxHeight);
   };
 
   return (
@@ -93,6 +99,7 @@ const onResize = (event, {size}) => {
     width={0}
     height={panelSize.height}
     minConstraints={[0,100]}
+    maxConstraints={[0,maxHeight]}
     onResize={onResize}
     resizeHandles={['n']}
     handle={
