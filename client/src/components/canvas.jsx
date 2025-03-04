@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import "preline/preline";
-import image from "../assets/example.jpg";
+import image from "../assets/example2.jpg";
 import { zoom, select, zoomIdentity } from "d3";
 
 function Canvas({ isOpen, panelSize }) {
