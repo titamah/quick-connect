@@ -9,8 +9,11 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
 const panelRef = useRef(null);
 const [maxHeight, setMaxHeight] = useState(0);
 
-const onResize = (event, {size}) => {
-  setPanelSize({width:size.width, height:size.height});
+const onResizeSide = (event, {size}) => {
+  setPanelSize({width:size.width, height:panelSize.height});
+};
+const onResizeBottom = (event, {size}) => {
+  setPanelSize({width:panelSize.width, height:size.height});
 };
 
   useEffect(() => {
@@ -36,7 +39,7 @@ const onResize = (event, {size}) => {
     width={panelSize.width}
     height={0}
     minConstraints={[100,0]}
-    onResize={onResize}
+    onResize={onResizeSide}
     resizeHandles={['e']}
     handle={
       <div className="fixed z-150 right-0 top-0 h-full w-[10px] cursor-col-resize">
@@ -100,7 +103,7 @@ const onResize = (event, {size}) => {
     height={panelSize.height}
     minConstraints={[0,100]}
     maxConstraints={[0,maxHeight]}
-    onResize={onResize}
+    onResize={onResizeBottom}
     resizeHandles={['n']}
     handle={
       <div className="fixed z-150 right-0 top-0 h-[10px] w-full cursor-row-resize"> 
