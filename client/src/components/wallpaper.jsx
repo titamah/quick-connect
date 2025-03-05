@@ -1,11 +1,19 @@
 import { Stage, Rect, Layer, Circle } from "react-konva";
-import React, { forwardRef } from "react";
+import React, { forwardRef, useEffect } from "react";
 
-const Wallpaper = forwardRef((props, ref) => {
+const Wallpaper = forwardRef(({ device }, ref) => {
   return (
-    <Stage width={2778} height={1284} ref={ref}>
+    <Stage 
+      width={device.size.x} 
+      height={device.size.y} 
+      ref={ref}
+    >
       <Layer>
-        <Rect width={1284} height={2778} fill="red" />
+        <Rect 
+          width={device.size.x} 
+          height={device.size.y} 
+          fill={device.bg} 
+        />
         <Circle x={200} y={100} stroke="black" radius={50} />
       </Layer>
     </Stage>

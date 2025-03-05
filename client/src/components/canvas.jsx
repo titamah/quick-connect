@@ -4,7 +4,7 @@ import image from "../assets/example.jpg";
 import { zoom, select, zoomIdentity } from "d3";
 import Wallpaper from "./wallpaper";
 
-function Canvas({ isOpen, panelSize, wallpaper }) {
+function Canvas({ isOpen, panelSize, device }) {
   const previewRef = useRef(null);
   const canvasRef = useRef(null);
   const wallpaperRef = useRef(null);
@@ -158,7 +158,7 @@ function Canvas({ isOpen, panelSize, wallpaper }) {
               />
             )}
             <div className="hidden">
-              <Wallpaper ref={wallpaperRef} />
+              <Wallpaper ref={wallpaperRef} device={device} />
             </div>
           </div>
         </figure>

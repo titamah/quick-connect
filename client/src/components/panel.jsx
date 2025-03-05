@@ -1,20 +1,66 @@
 import { useState, useEffect, useRef } from "react";
 import "preline/preline";
-import { IStaticMethods } from "preline/preline";
 import "./styles.css";
-import { Resizable } from 'react-resizable';
+import { Resizable } from "react-resizable";
 
+function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, device, setDevice}) {
+  // Panel Contents
+  const [deviceName, setDeviceName] = useState(device.name);
+  const [deviceSize, setDeviceSize] = useState(device.size);
 
-function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
-const panelRef = useRef(null);
-const [maxHeight, setMaxHeight] = useState(0);
+  const showDeviceMenu = (event) => {
+    const menu = event.target.children(1);
+    menu.classList.remove("hidden");
+  };
 
-const onResizeSide = (event, {size}) => {
-  setPanelSize({width:size.width, height:panelSize.height});
-};
-const onResizeBottom = (event, {size}) => {
-  setPanelSize({width:panelSize.width, height:size.height});
-};
+  const devicesSizes = [
+    { name: "iPhone 14 Pro Max", size: { x: 1284, y: 2778 } },
+    { name: "iPhone 16 Pro", size: { x: 1179, y: 2556 } },
+    { name: "iPhone 16 Pro Max", size: { x: 1290, y: 2796 } },
+    { name: "Samsung Galaxy S23 Ultra", size: { x: 1440, y: 3088 } },
+    { name: "Samsung Galaxy S24 Ultra", size: { x: 1440, y: 3120 } },
+    { name: "Samsung Galaxy S25", size: { x: 1179, y: 2556 } },
+    { name: "Samsung Galaxy Z Flip 5", size: { x: 1080, y: 2640 } },
+    { name: "Google Pixel 8a", size: { x: 1080, y: 2400 } },
+    { name: "Google Pixel 9", size: { x: 1080, y: 2340 } },
+    { name: "Google Pixel 9 Pro", size: { x: 1344, y: 2992 } },
+    { name: "OnePlus 12", size: { x: 1440, y: 3168 } },
+    { name: "Sony Xperia 5 V", size: { x: 1080, y: 2520 } },
+    { name: "Xiaomi 14 Ultra", size: { x: 1440, y: 3200 } }
+    ];
+
+  function deviceList() {
+    const updateDevice = (e) => {
+      const i = e.device;
+      console.log(e)
+      setDeviceName(i.name);
+      setDeviceSize(i.deviceSize);
+    }
+    const deviceSizeOptions = devicesSizes.map((i) => {
+      return (
+        <div 
+        onClick={()=>{updateDevice(i)}}
+        device={i}
+         className="flex justify-between text-sm w-full h-fit items-center gap-x-3.5 py-2 px-3 rounded-lg text-gray-800 hover:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-700">
+          <span>{`${i.name} `}</span>
+          <span className="font-thin text-xs">{`(${i.size.x} x ${i.size.y})`}</span>
+        </div>
+      );
+    });
+    return <div className="p-1 w-max max-h-[40vh] overflow-y-scroll space-y-0.5">{deviceSizeOptions}</div>;
+  }
+  
+
+  // Panel Box
+  const panelRef = useRef(null);
+  const [maxHeight, setMaxHeight] = useState(0);
+
+  const onResizeSide = (event, { size }) => {
+    setPanelSize({ width: size.width, height: panelSize.height });
+  };
+  const onResizeBottom = (event, { size }) => {
+    setPanelSize({ width: panelSize.width, height: size.height });
+  };
 
   useEffect(() => {
     import("preline/preline").then((module) => {
@@ -34,132 +80,173 @@ const onResizeBottom = (event, {size}) => {
 
   return (
     <>
-  <Resizable
-  className="duration-100"
-    width={panelSize.width}
-    height={0}
-    minConstraints={[100,0]}
-    onResize={onResizeSide}
-    resizeHandles={['e']}
-    handle={
-      <div className="fixed z-150 right-0 top-0 h-full w-[10px] cursor-col-resize">
-        <div className="fixed right-0 top-1/2 cursor-pointer z-200">
-            <span className="absolute start-1/2 -translate-x-1/2 block w-5 h-7 flex items-center bg-white border border-gray-200 text-gray-400 rounded-md  hover:bg-gray-100 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-600 dark:hover:bg-neutral-900"
-            onClick={togglePanel}
-            >
-              <svg
-                className="shrink-0 size-4.5"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+      <Resizable
+        className="duration-100"
+        width={panelSize.width}
+        height={0}
+        minConstraints={[100, 0]}
+        onResize={onResizeSide}
+        resizeHandles={["e"]}
+        handle={
+          <div className="fixed z-150 right-0 top-0 h-full w-[10px] cursor-col-resize">
+            <div className="fixed right-0 top-1/2 cursor-pointer z-200">
+              <span
+                className="absolute start-1/2 -translate-x-1/2 block w-5 h-7 flex items-center bg-white border border-gray-200 text-gray-400 rounded-md  hover:bg-gray-100 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-600 dark:hover:bg-neutral-900"
+                onClick={togglePanel}
               >
-                <circle cx="8" cy="12" r="1" />
-                <circle cx="8" cy="5" r="1" />
-                <circle cx="8" cy="19" r="1" />
-                <circle cx="16" cy="12" r="1" />
-                <circle cx="16" cy="5" r="1" />
-                <circle cx="16" cy="19" r="1" />
-              </svg>
-            </span>
+                <svg
+                  className="shrink-0 size-4.5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="8" cy="12" r="1" />
+                  <circle cx="8" cy="5" r="1" />
+                  <circle cx="8" cy="19" r="1" />
+                  <circle cx="16" cy="12" r="1" />
+                  <circle cx="16" cy="5" r="1" />
+                  <circle cx="16" cy="19" r="1" />
+                </svg>
+              </span>
+            </div>
           </div>
-      </div>
-    }>
-      <div
-        id="side-panel"
-        ref={panelRef}
-        className={`hs-overlay fixed max-sm:hidden [--body-scroll:true] transition-[left] duration-350 transform h-full z-100 bg-white shadow-[3px_0_8px_1px_rgba(0,0,0,0.075)] dark:bg-neutral-800 dark:border-neutral-700`}
-        style={{
-          left: isOpen ? 0 : `${panelSize.width * -1}px`,
-          width: `${panelSize.width}px`,
-        }}
-        role="dialog"
-        aria-labelledby="hs-offcanvas-example-label"
+        }
       >
-        <div className="flex justify-between items-center py-3 px-4 border-b dark:border-neutral-700">
-          <h3
-            id="hs-offcanvas-example-label"
-            className="font-bold text-gray-800 dark:text-white"
-          >
-            Offcanvas title
-          </h3>
-        </div>
-        <div className="p-4">
-          <p className="text-gray-800 dark:text-neutral-400">
-            Some text as placeholder. In real life you can have the elements you
-            have chosen. Like, text, images, lists, etc.
-          </p>
-        </div>
-      </div>
-      </Resizable>
-  <Resizable
-  className="duration-100"
-    width={0}
-    height={panelSize.height}
-    minConstraints={[0,100]}
-    maxConstraints={[0,maxHeight]}
-    onResize={onResizeBottom}
-    resizeHandles={['n']}
-    handle={
-      <div className="fixed z-150 right-0 top-0 h-[10px] w-full cursor-row-resize"> 
-      <div className="cursor-pointer z-200"
-          onClick={togglePanel}>
-      <span className="absolute start-1/2 -translate-x-1/2 -translate-y-1/2 block w-7 h-5 flex justify-center items-center bg-white border border-gray-200 text-gray-400 rounded-md hover:bg-gray-100 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-600 dark:hover:bg-neutral-900">
-        <svg
-          className="shrink-0 size-4.5"
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+        <div
+          id="side-panel"
+          ref={panelRef}
+          className={` px-4 hs-overlay fixed max-sm:hidden [--body-scroll:true] transition-[left] duration-350 transform h-full z-100 bg-white shadow-[3px_0_8px_1px_rgba(0,0,0,0.075)] dark:bg-neutral-800 dark:border-neutral-700`}
+          style={{
+            left: isOpen ? 0 : `${panelSize.width * -1}px`,
+            width: `${panelSize.width}px`,
+          }}
+          role="dialog"
+          aria-labelledby="hs-offcanvas-example-label"
         >
-          <circle cx="5" cy="8" r="1" />
-          <circle cx="12" cy="8" r="1" />
-          <circle cx="19" cy="8" r="1" />
-          <circle cx="5" cy="16" r="1" />
-          <circle cx="12" cy="16" r="1" />
-          <circle cx="19" cy="16" r="1" />
-        </svg>
-      </span>
-    </div>
-    </div>
-    }
-    >
-      <div
-        id="bottom-panel"
-        className={`hs-overlay min-sm:hidden fixed [--body-scroll:true] transition-bottom duration-375 transform w-screen z-100 bg-white shadow-[0_-1px_5px_0px_rgba(0,0,0,0.1)] rounded-t-2xl
-dark:bg-neutral-800 dark:border-neutral-700`}
-        style={{
-          bottom: isOpen ? 0 : `${panelSize.height * -1}px`,
-          height: `${panelSize.height}px`,
-        }}
-        role="dialog"
-        aria-labelledby="hs-offcanvas-example-label"
+          <div className="flex-col justify-between items-center py-1">
+            <h3 className="font-bold text-gray-800 dark:text-white block">
+              <input
+                type="text"
+                class="text-xl w-full py-[5px] border-b-2 dark:border-neutral-700 dark:text-neutral-400 "
+              />
+            </h3>
+            <div className="hs-dropdown relative -mx-1 py-2 ">
+              <button
+                // onClick={showDeviceMenu}
+                id="hs-dropdown-custom-trigger"
+                type="button"
+                className="hs-dropdown-toggle max-w-full py-1 px-2 inline-flex items-center gap-x-2 text-sm font-medium rounded-full border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-800 dark:focus:bg-neutral-800"
+                aria-haspopup="menu"
+                aria-expanded="false"
+                aria-label="Dropdown"
+              >
+                <span className="text-gray-600 text-xs truncate  dark:text-neutral-400">
+                  {`${deviceName} `}
+                  {
+                    <span className="font-thin">{`(${deviceSize.x} x ${deviceSize.y})`}</span>
+                  }
+                </span>
+                <svg
+                  className="hs-dropdown-open:rotate-180 size-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+              <div
+                className="hs-dropdown-menu -translate-y-[12.5px] transition-[opacity,margin] duration hidden min-w-60 min-w-60 bg-white shadow-md rounded-lg mt-2 dark:bg-neutral-800 dark:border dark:border-neutral-700"
+                role="menu"
+                aria-orientation="vertical"
+                aria-labelledby="hs-dropdown-custom-trigger"
+              >
+                {deviceList()}
+              </div>
+            </div>
+          </div>
+          <div className="">
+            <p className="text-gray-800 dark:text-neutral-400">
+              Some text as placeholder. In real life you can have the elements
+              you have chosen. Like, text, images, lists, etc.
+            </p>
+          </div>
+        </div>
+      </Resizable>
+      <Resizable
+        className="duration-100"
+        width={0}
+        height={panelSize.height}
+        minConstraints={[0, 100]}
+        maxConstraints={[0, maxHeight]}
+        onResize={onResizeBottom}
+        resizeHandles={["n"]}
+        handle={
+          <div className="fixed z-150 right-0 top-0 h-[10px] w-full cursor-row-resize">
+            <div className="cursor-pointer z-200" onClick={togglePanel}>
+              <span className="absolute start-1/2 -translate-x-1/2 -translate-y-1/2 block w-7 h-5 flex justify-center items-center bg-white border border-gray-200 text-gray-400 rounded-md hover:bg-gray-100 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-600 dark:hover:bg-neutral-900">
+                <svg
+                  className="shrink-0 size-4.5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="5" cy="8" r="1" />
+                  <circle cx="12" cy="8" r="1" />
+                  <circle cx="19" cy="8" r="1" />
+                  <circle cx="5" cy="16" r="1" />
+                  <circle cx="12" cy="16" r="1" />
+                  <circle cx="19" cy="16" r="1" />
+                </svg>
+              </span>
+            </div>
+          </div>
+        }
       >
-        <div className="flex justify-between items-center py-3 px-4 border-b dark:border-neutral-700">
-          <h3
-            id="hs-offcanvas-example-label"
-            className="font-bold text-gray-800 dark:text-white"
-          >
-            Offcanvas title
-          </h3>
+        <div
+          id="bottom-panel"
+          className={`hs-overlay min-sm:hidden fixed [--body-scroll:true] transition-bottom duration-375 transform w-screen z-100 bg-white shadow-[0_-1px_5px_0px_rgba(0,0,0,0.1)] rounded-t-2xl
+dark:bg-neutral-800 dark:border-neutral-700`}
+          style={{
+            bottom: isOpen ? 0 : `${panelSize.height * -1}px`,
+            height: `${panelSize.height}px`,
+          }}
+          role="dialog"
+          aria-labelledby="hs-offcanvas-example-label"
+        >
+          <div className="flex justify-between items-center py-3 px-4 border-b dark:border-neutral-700">
+            <h3
+              id="hs-offcanvas-example-label"
+              className="font-bold text-gray-800 dark:text-white"
+            >
+              Offcanvas title
+            </h3>
+          </div>
+          <div className="p-4">
+            <p className="text-gray-800 dark:text-neutral-400">
+              Some text as placeholder. In real life you can have the elements
+              you have chosen. Like, text, images, lists, etc.
+            </p>
+          </div>
         </div>
-        <div className="p-4">
-          <p className="text-gray-800 dark:text-neutral-400">
-            Some text as placeholder. In real life you can have the elements you
-            have chosen. Like, text, images, lists, etc.
-          </p>
-        </div>
-      </div>
       </Resizable>
     </>
   );

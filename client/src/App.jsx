@@ -1,21 +1,36 @@
 import "./App.css";
 import "preline/preline";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "./components/header";
 import Panel from "./components/panel";
 import Canvas from "./components/canvas";
-import Wallpaper from "./components/wallpaper";
 
 function App() {
   const [isOpen, setIsOpen] = useState(true);
-  const [panelSize, setPanelSize] = useState({width: 200, height:200});
-  const [wallpaper, updateWallpaper] = useState(Wallpaper);
+  const [panelSize, setPanelSize] = useState({ width: 200, height: 200 });
+  const [device, setDevice] = useState({
+    name: "iPhone 12 Pro Max",
+    size: { x: 1284, y: 2778 },
+    bg: "blue",
+    qr: "https://www.linkedin.com/in/titamah",
+  });
 
   return (
     <>
       <Header />
-      <Panel setIsOpen={setIsOpen} isOpen={isOpen} panelSize={panelSize} setPanelSize={setPanelSize}/>
-      <Canvas  isOpen={isOpen}  panelSize={panelSize} wallpaper={wallpaper} />
+      <Panel
+        setIsOpen={setIsOpen}
+        isOpen={isOpen}
+        panelSize={panelSize}
+        setPanelSize={setPanelSize}
+        device={device}
+        setDevice={setDevice}
+      />
+      <Canvas
+        isOpen={isOpen}
+        panelSize={panelSize}
+        device={device}
+      />
     </>
   );
 }
