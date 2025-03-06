@@ -12,12 +12,12 @@ function App() {
   const [isOpen, setIsOpen] = useState(true);
   const [panelSize, setPanelSize] = useState({ width: screenSize.x / 4, height: screenSize.y / 4 });
   const [device, setDevice] = useState({
-    name: "iPhone 12 Pro Max",
+    name: "Sample iPhone Wallpaper",
     type: "iPhone 12 Pro Max",
-    size: { x: 4000, y: 1000 },
+    size: { x: 1284, y: 2778 },
     isUpload: true,
     color: "blue",
-    bg: "https://i.redd.it/mv5ftn8czwh91.jpg",
+    bg: "https://static1.squarespace.com/static/5e949a92e17d55230cd1d44f/t/61bbb7e2c6affb5f678b608d/1639692260743/Rainbow+Pro+Max.png",
     qr: "https://www.linkedin.com/in/titamah",
   });
 

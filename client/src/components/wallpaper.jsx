@@ -1,5 +1,6 @@
 import { Stage, Rect, Layer } from "react-konva";
 import React, { forwardRef, useEffect, useState } from "react";
+import { color } from "d3";
 
 const Wallpaper = forwardRef(
   ({ device, panelSize, locked, setIsZoomEnabled }, ref) => {
@@ -8,10 +9,48 @@ const Wallpaper = forwardRef(
     const [stageScale, setStageScale] = useState({ x: 1, y: 1 });
     const [isDraggable, setIsDraggable] = useState(false);
     const [isImageLoaded, setIsImageLoaded] = useState(false);
+    const [qr, setQR] = useState(null);
+    const [qrImg, setQRImg] = useState(null);
+    const [isQRLoaded, setIsQRLoaded] = useState(false);
+    const [qrSize, setQRSize] = useState(Math.min(device.size.x, device.size.y) / 2);
 
     useEffect(() => {
       setIsDraggable(locked);
     }, [locked]);
+
+    useEffect(() => {
+      const fetchQRCode = async () => {
+        try {
+          const response = await fetch(`http://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(device.qr)}&size=${qrSize}x${qrSize}&color=550022&bgcolor=ffffff&margin=10`);
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const qrBlob = await response.blob();
+          const qrUrl = URL.createObjectURL(qrBlob);
+          setQR(qrUrl);
+        } catch (error) {
+          console.error('Error fetching QR code:', error);
+        }
+      };
+
+      if (device.qr) {
+        fetchQRCode();
+      }
+    }, [device.qr, qrSize]);
+
+    useEffect(() => {
+      if (qr) {
+        const qrImage = new Image();
+// qrImage.src = `http://api.qrserver.com/v1/create-qr-code/?data=HelloWorld!&size=${qrSize}x${qrSize}`; 
+        qrImage.src = qr;
+        qrImage.onload = () => {
+          setQRImg(qrImage);
+          setIsQRLoaded(true);
+        };
+      }
+    }, [qr]);
 
     useEffect(() => {
       if (device.isUpload && device.bg) {
@@ -50,21 +89,21 @@ const Wallpaper = forwardRef(
 
     const getImageSize = () => {
       return {
-      x: imageSize.width * getScaleFactors().x,
-      y: imageSize.height * getScaleFactors().y
-    }
-    }
+        x: imageSize.width * getScaleFactors().x,
+        y: imageSize.height * getScaleFactors().y,
+      };
+    };
 
     const rectProps = device.isUpload
       ? {
-        fillPatternImage: patternImage,
-        fillPatternScale: getScaleFactors(),
-        width: getImageSize().x,
-        height: getImageSize().y,
-        x: (device.size.x -  getImageSize().x) / 2,
-        y: (device.size.y -  getImageSize().y) / 2,
-        fillPatternRepeat: "no-repeat",
-      }
+          fillPatternImage: patternImage,
+          fillPatternScale: getScaleFactors(),
+          width: getImageSize().x,
+          height: getImageSize().y,
+          x: (device.size.x - getImageSize().x) / 2,
+          y: (device.size.y - getImageSize().y) / 2,
+          fillPatternRepeat: "no-repeat",
+        }
       : {
           fill: device.color,
           width: device.size.x,
@@ -114,19 +153,16 @@ const Wallpaper = forwardRef(
           outline: "10px solid black",
           backgroundColor: "rgba(0,0,0,0)",
           overflow: "hidden",
+          borderRadius: "24px",
         }}
         className="
-        bg-gray-800 shadow-[0_2.75rem_5.5rem_-3.5rem_rgb(45_55_75_/_20%),_0_2rem_4rem_-2rem_rgb(45_55_75_/_30%),_inset_0_-0.1875rem_0.3125rem_0_rgb(45_55_75_/_20%)] dark:bg-neutral-600 dark:shadow-[0_2.75rem_5.5rem_-3.5rem_rgb(0_0_0_/_20%),_0_2rem_4rem_-2rem_rgb(0_0_0_/_30%),_inset_0_-0.1875rem_0.3125rem_0_rgb(0_0_0_/_20%)]
-rounded-4xl"
+        bg-gray-800 shadow-[0_2.75rem_5.5rem_-3.5rem_rgb(45_55_75_/_20%),_0_2rem_4rem_-2rem_rgb(45_55_75_/_30%),_inset_0_-0.1875rem_0.3125rem_0_rgb(45_55_75_/_20%)] dark:bg-neutral-600 dark:shadow-[0_2.75rem_5.5rem_-3.5rem_rgb(0_0_0_/_20%),_0_2rem_4rem_-2rem_rgb(0_0_0_/_30%),_inset_0_-0.1875rem_0.3125rem_0_rgb(0_0_0_/_20%)]"
       >
         <Stage
           width={device.size.x}
           height={device.size.y}
           style={{
             transform: `scale(${stageScale})`,
-            // transformOrigin: "center center",
-            // top: "0",
-            // left: "0",
             pointerEvents: "auto",
           }}
           ref={ref}
@@ -136,7 +172,7 @@ rounded-4xl"
             <Rect
               x={device.size.x / 4}
               y={device.size.y / 1.75}
-              fill="red"
+              fillPatternImage={qrImg}
               stroke="black"
               height={Math.min(device.size.x, device.size.y) / 2}
               width={Math.min(device.size.x, device.size.y) / 2}
