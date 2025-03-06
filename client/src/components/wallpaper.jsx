@@ -48,14 +48,23 @@ const Wallpaper = forwardRef(
       return { x: scale, y: scale };
     };
 
+    const getImageSize = () => {
+      return {
+      x: imageSize.width * getScaleFactors().x,
+      y: imageSize.height * getScaleFactors().y
+    }
+    }
+
     const rectProps = device.isUpload
       ? {
-          fillPatternImage: patternImage,
-          fillPatternScale: getScaleFactors(),
-          width: device.size.x,
-          height: device.size.y,
-          fillPatternRepeat: "no-repeat",
-        }
+        fillPatternImage: patternImage,
+        fillPatternScale: getScaleFactors(),
+        width: getImageSize().x,
+        height: getImageSize().y,
+        x: (device.size.x -  getImageSize().x) / 2,
+        y: (device.size.y -  getImageSize().y) / 2,
+        fillPatternRepeat: "no-repeat",
+      }
       : {
           fill: device.color,
           width: device.size.x,
