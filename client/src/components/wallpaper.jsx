@@ -7,6 +7,7 @@ const Wallpaper = forwardRef(
     const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
     const [stageScale, setStageScale] = useState({ x: 1, y: 1 });
     const [isDraggable, setIsDraggable] = useState(false);
+    const [isImageLoaded, setIsImageLoaded] = useState(false);
 
     useEffect(() => {
       setIsDraggable(locked);
@@ -22,6 +23,7 @@ const Wallpaper = forwardRef(
             width: img.naturalWidth,
             height: img.naturalHeight,
           });
+          setIsImageLoaded(true); // Set image loaded status to true
         };
       }
     }, [device.isUpload, device.bg]);
@@ -33,7 +35,7 @@ const Wallpaper = forwardRef(
         (0.95 * window.innerHeight - panelSize.height) / device.size.y;
       const scale = Math.min(scaleX, scaleY);
       setStageScale(scale);
-    }, [device.size.x, device.size.y]);
+    }, [device.size.x, device.size.y, panelSize.width, panelSize.height]);
 
     const getScaleFactors = () => {
       if (!imageSize.width || !imageSize.height) return { x: 1, y: 1 };
@@ -52,6 +54,7 @@ const Wallpaper = forwardRef(
           fillPatternScale: getScaleFactors(),
           width: device.size.x,
           height: device.size.y,
+          fillPatternRepeat: "no-repeat",
           fillPatternOffset: {
             x: (imageSize.width * getScaleFactors().x - device.size.x) / 2,
             y: (imageSize.height * getScaleFactors().y - device.size.y) / 2,
@@ -124,7 +127,7 @@ rounded-4xl"
           ref={ref}
         >
           <Layer>
-            <Rect {...rectProps} />
+            {isImageLoaded && <Rect {...rectProps} />}
             <Rect
               x={device.size.x / 4}
               y={device.size.y / 1.75}
@@ -141,6 +144,7 @@ rounded-4xl"
               }}
               onClick={(e) => {
                 console.log(e.target.x());
+                console.log(device);
                 setTimeout(() => {
                   setIsZoomEnabled(false);
                 }, 50);

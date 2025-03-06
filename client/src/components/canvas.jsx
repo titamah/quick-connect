@@ -1,9 +1,12 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useContext } from "react";
 import "preline/preline";
 import { zoom, select, zoomIdentity } from "d3";
+import { Resizable } from "react-resizable";
+import { DeviceContext } from "../App";
 import Wallpaper from "./wallpaper";
 
-function Canvas({ isOpen, panelSize, device }) {
+function Canvas({ isOpen, panelSize }) {
+  const { device } = useContext(DeviceContext);
   const previewRef = useRef(null);
   const canvasRef = useRef(null);
   const wallpaperRef = useRef(null);
@@ -66,14 +69,14 @@ function Canvas({ isOpen, panelSize, device }) {
     });
 
     document.addEventListener("click", (event) => {
-      if (isZoomEnabled && !previewRef.current.contains(event.target)) {
+      if (isZoomEnabled && !previewRef?.current.contains(event.target)) {
         setIsZoomEnabled(false);
       }
     });
 
     updatePanelSize();
 
-  }, [isOpen, isZoomEnabled, panelSize]);
+  }, [isOpen, isZoomEnabled, panelSize, device]);
 
   return (
     <div

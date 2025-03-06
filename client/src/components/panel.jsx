@@ -1,16 +1,25 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import "preline/preline";
 import "./styles.css";
 import { Resizable } from "react-resizable";
+import { DeviceContext } from "../App";
 
-function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, device, setDevice}) {
-  // Panel Contents
+function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
+  const { device, setDevice } = useContext(DeviceContext);
   const [deviceName, setDeviceName] = useState(device.name);
   const [deviceSize, setDeviceSize] = useState(device.size);
 
-  const showDeviceMenu = (event) => {
-    const menu = event.target.children(1);
-    menu.classList.remove("hidden");
+  const handleNameChange = (event) => {
+    setDevice((prevDevice) => ({
+      ...prevDevice,
+      name: event.target.value,
+    }));
+  };
+  const handleQrChange = (event) => {
+    setDevice((prevDevice) => ({
+      ...prevDevice,
+      qr: event.target.value,
+    }));
   };
 
   const devicesSizes = [
@@ -27,29 +36,35 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, device, setDevice})
     { name: "OnePlus 12", size: { x: 1440, y: 3168 } },
     { name: "Sony Xperia 5 V", size: { x: 1080, y: 2520 } },
     { name: "Xiaomi 14 Ultra", size: { x: 1440, y: 3200 } }
-    ];
+  ];
 
   function deviceList() {
-    const updateDevice = (e) => {
-      const i = e.device;
-      console.log(e)
+    const updateDevice = (i) => {
       setDeviceName(i.name);
-      setDeviceSize(i.deviceSize);
-    }
+      setDeviceSize(i.size);
+      setDevice((prevDevice) => ({
+        ...prevDevice,
+        name: i.name,
+        type: i.name,
+        size: i.size,
+      }));
+    };
+
+    let deviceCount = devicesSizes.length;
     const deviceSizeOptions = devicesSizes.map((i) => {
       return (
         <div 
-        onClick={()=>{updateDevice(i)}}
-        device={i}
-         className="flex justify-between text-sm w-full h-fit items-center gap-x-3.5 py-2 px-3 rounded-lg text-gray-800 hover:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-700">
+          key={deviceCount--}
+          onClick={() => updateDevice(i)}
+          className="flex justify-between text-xs w-full h-fit items-center gap-x-3.5 py-[7.5px] px-[5px] rounded-lg text-gray-800 hover:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-700"
+        >
           <span>{`${i.name} `}</span>
-          <span className="font-thin text-xs">{`(${i.size.x} x ${i.size.y})`}</span>
+          <span className="font-thin text-xs italic">{`(${i.size.x} x ${i.size.y})`}</span>
         </div>
       );
     });
     return <div className="p-1 w-max max-h-[40vh] overflow-y-scroll space-y-0.5">{deviceSizeOptions}</div>;
   }
-  
 
   // Panel Box
   const panelRef = useRef(null);
@@ -133,7 +148,9 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, device, setDevice})
             <h3 className="font-bold text-gray-800 dark:text-white block">
               <input
                 type="text"
-                class="text-xl w-full py-[5px] border-b-2 dark:border-neutral-700 dark:text-neutral-400 "
+                className="text-xl w-full py-[5px] border-b-2 dark:border-neutral-700 dark:text-neutral-400 "
+                value={device.name}
+                onChange={handleNameChange}
               />
             </h3>
             <div className="hs-dropdown relative -mx-1 py-2 ">
@@ -177,11 +194,17 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, device, setDevice})
               </div>
             </div>
           </div>
-          <div className="">
-            <p className="text-gray-800 dark:text-neutral-400">
-              Some text as placeholder. In real life you can have the elements
-              you have chosen. Like, text, images, lists, etc.
-            </p>
+            <text w-full inline-block>Paste QR code here.</text>
+            <div className="flex">
+          <input
+                type="text"
+                className="text-sm w-full p-[5px] me-[7.5px] -mx-[2.5px] inline-flex rounded-md bg-black/10 dark:border-neutral-700 dark:text-neutral-400 "
+                value={device.qr}
+                onChange={handleQrChange}
+              />
+              <button className=" inline-flex m-auto h-fit w-fit rounded-[100%] p-[2.5px] bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"/></svg>
+              </button>
           </div>
         </div>
       </Resizable>
