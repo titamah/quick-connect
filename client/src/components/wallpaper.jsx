@@ -55,10 +55,6 @@ const Wallpaper = forwardRef(
           width: device.size.x,
           height: device.size.y,
           fillPatternRepeat: "no-repeat",
-          fillPatternOffset: {
-            x: (imageSize.width * getScaleFactors().x - device.size.x) / 2,
-            y: (imageSize.height * getScaleFactors().y - device.size.y) / 2,
-          },
         }
       : {
           fill: device.color,
@@ -119,9 +115,9 @@ rounded-4xl"
           height={device.size.y}
           style={{
             transform: `scale(${stageScale})`,
-            transformOrigin: "center center",
-            top: "0",
-            left: "0",
+            // transformOrigin: "center center",
+            // top: "0",
+            // left: "0",
             pointerEvents: "auto",
           }}
           ref={ref}

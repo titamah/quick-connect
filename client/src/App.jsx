@@ -14,10 +14,10 @@ function App() {
   const [device, setDevice] = useState({
     name: "iPhone 12 Pro Max",
     type: "iPhone 12 Pro Max",
-    size: { x: 1784, y: 2778 },
+    size: { x: 4000, y: 1000 },
     isUpload: true,
     color: "blue",
-    bg: "https://wallpapers.com/images/featured/iphone-12-pro-max-hknmpjtf3rmp9egv.jpg",
+    bg: "https://i.redd.it/mv5ftn8czwh91.jpg",
     qr: "https://www.linkedin.com/in/titamah",
   });
 
