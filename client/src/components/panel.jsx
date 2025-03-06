@@ -27,7 +27,6 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
 
   const devicesSizes = [
     { name: "iPhone 14 Pro Max", size: { x: 1284, y: 2778 } },
-    { name: "testPhone", size: { x: 8175, y: 1175 } },
     { name: "iPhone 16 Pro", size: { x: 1179, y: 2556 } },
     { name: "iPhone 16 Pro Max", size: { x: 1290, y: 2796 } },
     { name: "Samsung Galaxy S23 Ultra", size: { x: 1440, y: 3088 } },
@@ -48,7 +47,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
       setDeviceSize(i.size);
       setDevice((prevDevice) => ({
         ...prevDevice,
-        name: i.name,
+        // name: i.name,
         type: i.name,
         size: i.size,
       }));
@@ -193,9 +192,9 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
                 aria-label="Dropdown"
               >
                 <span className="text-gray-600 text-xs truncate  dark:text-neutral-400">
-                  {`${deviceName} `}
+                  {`${device.type} `}
                   {
-                    <span className="font-thin">{`(${deviceSize.x} x ${deviceSize.y})`}</span>
+                    <span className="font-thin">{`(${device.size.x} x ${device.size.y})`}</span>
                   }
                 </span>
                 <svg

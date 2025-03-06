@@ -1,6 +1,7 @@
 import { Stage, Rect, Layer } from "react-konva";
 import React, { forwardRef, useEffect, useState } from "react";
 import { color } from "d3";
+import Konva from "konva";
 
 const Wallpaper = forwardRef(
   ({ device, panelSize, locked, setIsZoomEnabled }, ref) => {
@@ -9,41 +10,51 @@ const Wallpaper = forwardRef(
     const [stageScale, setStageScale] = useState({ x: 1, y: 1 });
     const [isDraggable, setIsDraggable] = useState(false);
     const [isImageLoaded, setIsImageLoaded] = useState(false);
-    const [qr, setQR] = useState(null);
+    // const [qr, setQR] = useState(null);
     const [qrImg, setQRImg] = useState(null);
     const [isQRLoaded, setIsQRLoaded] = useState(false);
-    const [qrSize, setQRSize] = useState(Math.min(device.size.x, device.size.y) / 2);
+    const [qrSize, setQRSize] = useState(
+      Math.min(device.size.x, device.size.y) / 2
+    );
+    //Temporary QR code
+    const [qr, setQR] = useState(
+      `http://api.qrserver.com/v1/create-qr-code/?data=HelloWorld!&size=${qrSize}x${qrSize}`
+    );
 
     useEffect(() => {
       setIsDraggable(locked);
     }, [locked]);
 
-    useEffect(() => {
-      const fetchQRCode = async () => {
-        try {
-          const response = await fetch(`http://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(device.qr)}&size=${qrSize}x${qrSize}&color=550022&bgcolor=ffffff&margin=10`);
+    // useEffect(() => {
+    //   const fetchQRCode = async () => {
+    //     try {
+    //       const response = await fetch(
+    //         `http://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
+    //           device.qr
+    //         )}&size=${qrSize}x${qrSize}&color=550022&bgcolor=ffffff&margin=10`
+    //       );
 
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
+    //       if (!response.ok) {
+    //         throw new Error(`HTTP error! status: ${response.status}`);
+    //       }
 
-          const qrBlob = await response.blob();
-          const qrUrl = URL.createObjectURL(qrBlob);
-          setQR(qrUrl);
-        } catch (error) {
-          console.error('Error fetching QR code:', error);
-        }
-      };
+    //       const qrBlob = await response.blob();
+    //       const qrUrl = URL.createObjectURL(qrBlob);
+    //       setQR(qrUrl);
+    //     } catch (error) {
+    //       console.error("Error fetching QR code:", error);
+    //     }
+    //   };
 
-      if (device.qr) {
-        fetchQRCode();
-      }
-    }, [device.qr, qrSize]);
+    //   if (device.qr) {
+    //     fetchQRCode();
+    //   }
+    // }, [device.qr, qrSize]);
 
     useEffect(() => {
       if (qr) {
         const qrImage = new Image();
-// qrImage.src = `http://api.qrserver.com/v1/create-qr-code/?data=HelloWorld!&size=${qrSize}x${qrSize}`; 
+        qrImage.src = `http://api.qrserver.com/v1/create-qr-code/?data=HelloWorld!&size=${qrSize}x${qrSize}`;
         qrImage.src = qr;
         qrImage.onload = () => {
           setQRImg(qrImage);
@@ -120,25 +131,52 @@ const Wallpaper = forwardRef(
       const shapeHeight = shape.height();
       const middleX = (stageWidth - shapeWidth) / 2;
       const middleY = (stageHeight - shapeHeight) / 2;
-      const snapThreshold = 50; // Distance within which the shape will snap to the center
+      const snapThreshold = 50;
 
-      // Constrain the rectangle within the layer bounds
-      const newX = Math.max(0, Math.min(shape.x(), stageWidth - shapeWidth));
-      const newY = Math.max(0, Math.min(shape.y(), stageHeight - shapeHeight));
+      // Constrain position within stage bounds
+      const rawX = Math.max(0, Math.min(shape.x(), stageWidth - shapeWidth));
+      const rawY = Math.max(0, Math.min(shape.y(), stageHeight - shapeHeight));
 
-      // Snap to the center if within the threshold
-      if (Math.abs(newX - middleX) < snapThreshold) {
-        shape.x(middleX);
-      } else {
-        shape.x(newX);
-      }
-      // Snap to the center if within the threshold
-      if (Math.abs(newY - middleY) < snapThreshold) {
-        shape.y(middleY);
-      } else {
-        shape.y(newY);
-      }
+      // Determine target position with snapping
+      const targetX = Math.abs(rawX - middleX) < snapThreshold ? middleX : rawX;
+      const targetY = Math.abs(rawY - middleY) < snapThreshold ? middleY : rawY;
+
+      shape.x(targetX);
+      shape.y(targetY);
     };
+
+    const handleMouseDown = (e) => {
+      if (isDraggable) {
+      const shape = e.target;
+      const originalScaleX = shape.scaleX();
+      const originalScaleY = shape.scaleY();
+      const originalWidth = shape.width() * originalScaleX;
+      const originalHeight = shape.height() * originalScaleY;
+      const newScale = 0.98;
+      const newWidth = shape.width() * newScale;
+      const newHeight = shape.height() * newScale;
+
+      // Calculate new position to keep the shape centered
+      const newX = shape.x() + (originalWidth - newWidth) / 2;
+      const newY = shape.y() + (originalHeight - newHeight) / 2;
+
+      // Use tween for smooth transition
+      const tween = new Konva.Tween({
+        node: shape,
+        duration: 0.05,
+        easing: Konva.Easings.EaseInOut,
+        scaleX: newScale,
+        scaleY: newScale,
+        x: newX,
+        y: newY,
+      }).play();
+
+      setTimeout(() => {
+        tween.reverse();      
+      }, 60)
+    }
+    };
+
 
     return (
       <div
@@ -167,8 +205,10 @@ const Wallpaper = forwardRef(
           }}
           ref={ref}
         >
+        <Layer>
+          {isImageLoaded && <Rect {...rectProps} />}
+        </Layer>
           <Layer>
-            {isImageLoaded && <Rect {...rectProps} />}
             <Rect
               x={device.size.x / 4}
               y={device.size.y / 1.75}
@@ -188,8 +228,9 @@ const Wallpaper = forwardRef(
                 console.log(device);
                 setTimeout(() => {
                   setIsZoomEnabled(false);
-                }, 50);
+                }, 10);
               }}
+              onMouseDown={handleMouseDown}
             />
           </Layer>
         </Stage>
