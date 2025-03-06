@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from "react";
 import "preline/preline";
-import image from "../assets/example.jpg";
 import { zoom, select, zoomIdentity } from "d3";
 import Wallpaper from "./wallpaper";
 
@@ -10,7 +9,7 @@ function Canvas({ isOpen, panelSize, device }) {
   const wallpaperRef = useRef(null);
 
   const [isLoading, setIsLoading] = useState(true);
-  const [image, setImage] = useState(null);
+  const [isZoomEnabled, setIsZoomEnabled] = useState(false);
 
   const updatePanelSize = () => {
     const screenWidth = window.innerWidth;
@@ -29,10 +28,7 @@ function Canvas({ isOpen, panelSize, device }) {
       HSStaticMethods.autoInit();
     });
     updatePanelSize();
-    if (wallpaperRef.current) {
-      const dataURL = wallpaperRef.current.toDataURL();
-      setImage(dataURL);
-    }
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
@@ -41,34 +37,19 @@ function Canvas({ isOpen, panelSize, device }) {
     const zoomBehavior = zoom()
       .scaleExtent([0.25, 15])
       .on("zoom", (event) => {
-        previewElement.style(
-          "transform",
-          `translate(${event.transform.x}px, ${event.transform.y}px) scale(${event.transform.k})`
-        );
+          previewElement.style(
+            "transform",
+            `translate(${event.transform.x}px, ${event.transform.y}px) scale(${event.transform.k})`
+          );
       });
+      
+      if (isZoomEnabled) {
+        canvasElement.call(zoomBehavior);
+      } else {
+        canvasElement.on(".zoom", null); // Disable zoom behavior
+      }
 
-    canvasElement.call(zoomBehavior);
     canvasElement.on("dblclick.zoom", null);
-
-    function detectDoubleTap(element, callback) {
-      let lastTap = 0;
-      element.on("touchend", (event) => {
-        const currentTime = new Date().getTime();
-        const tapLength = currentTime - lastTap;
-        if (tapLength < 500 && tapLength > 0) {
-          event.preventDefault();
-          callback();
-        }
-        lastTap = currentTime;
-      });
-    }
-    detectDoubleTap(canvasElement, () => {
-      canvasElement
-        .transition()
-        .duration(750)
-        .call(zoomBehavior.transform, zoomIdentity);
-    });
-
     canvasElement.on("dblclick", () => {
       canvasElement
         .transition()
@@ -83,23 +64,16 @@ function Canvas({ isOpen, panelSize, device }) {
         .duration(350)
         .call(zoomBehavior.transform, zoomIdentity);
     });
-    updatePanelSize();
-    setIsLoading(false);
-  }, [isOpen]);
 
-  useEffect(() => {
-    updatePanelSize();
-  }, [panelSize]);
+    document.addEventListener("click", (event) => {
+      if (isZoomEnabled && !previewRef.current.contains(event.target)) {
+        setIsZoomEnabled(false);
+      }
+    });
 
-  const handleLoad = () => {
-    setIsLoading(false);
-    // Force a reflow of the preview element
-    if (previewRef.current) {
-      previewRef.current.style.display = "none";
-      previewRef.current.offsetHeight; // Trigger reflow
-      previewRef.current.style.display = "";
-    }
-  };
+    updatePanelSize();
+
+  }, [isOpen, isZoomEnabled, panelSize]);
 
   return (
     <div
@@ -110,6 +84,8 @@ function Canvas({ isOpen, panelSize, device }) {
           bg-fixed 
           [--pattern-fg:theme(colors.gray.950/0.05)] 
           dark:[--pattern-fg:theme(colors.neutral.500/0.1)]
+          z-0
+          pointer-events-auto
     "
     >
       <div
@@ -129,18 +105,21 @@ function Canvas({ isOpen, panelSize, device }) {
           ml-auto
           items-center 
           justify-center
+          pointer-events-auto
         `}
       >
         <figure
           ref={previewRef}
-          className="z-1 transition-all duration-150 ease-linear w-full h-full min-w-[50vw] min-h-[50vh] flex items-center justify-center"
-        >
-          <div
-            id="preview"
-            className="max-w-full max-h-fit w-fit h-full p-2 bg-gray-800 shadow-[0_2.75rem_5.5rem_-3.5rem_rgb(45_55_75_/_20%),_0_2rem_4rem_-2rem_rgb(45_55_75_/_30%),_inset_0_-0.1875rem_0.3125rem_0_rgb(45_55_75_/_20%)] dark:bg-neutral-600 dark:shadow-[0_2.75rem_5.5rem_-3.5rem_rgb(0_0_0_/_20%),_0_2rem_4rem_-2rem_rgb(0_0_0_/_30%),_inset_0_-0.1875rem_0.3125rem_0_rgb(0_0_0_/_20%)] rounded-3xl"
+          className={`
+            transition-all duration-150 ease-linear flex items-center justify-center
+            pointer-events-auto z-1
+            ${isZoomEnabled ? "outline-2 outline-offset-40 outline-blue-500" : ""}
+          `}
+          onClick={()=>{
+              setIsZoomEnabled(true)}}
           >
             {isLoading ? (
-              <div className=" h-[874px] w-[402px] bg-gray-300  rounded-[1.25rem]">
+              <div className=" h-[874px] w-[402px] bg-gray-300 rounded-[1.25rem]">
                 <div
                   className="animate-spin inline-block m-auto size-20 border-[6px] border-current border-t-transparent text-blue-600 rounded-full dark:text-blue-500"
                   role="status"
@@ -150,17 +129,14 @@ function Canvas({ isOpen, panelSize, device }) {
                 </div>
               </div>
             ) : (
-              <img
-                className="rounded-[1.25rem] max-h-full max-w-full h-auto w-auto object-contain"
-                onLoad={handleLoad}
-                src={image}
-                alt="Mobile Placeholder"
-              />
+                <Wallpaper
+                  ref={wallpaperRef}
+                  panelSize={panelSize}
+                  device={device}
+                  locked={!isZoomEnabled}
+                  setIsZoomEnabled={setIsZoomEnabled}
+                />
             )}
-            <div className="hidden">
-              <Wallpaper ref={wallpaperRef} device={device} />
-            </div>
-          </div>
         </figure>
       </div>
     </div>
