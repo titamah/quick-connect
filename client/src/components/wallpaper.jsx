@@ -21,7 +21,8 @@ const Wallpaper = forwardRef(
       `http://api.qrserver.com/v1/create-qr-code/?data=HelloWorld!&size=${qrSize}x${qrSize}`
     );
     const transformerRef = useRef(null);
-    const shapeRef = useRef(null);
+    const shapeRef = useRef(null);;
+    const stageRef = useRef(null);
 
     useEffect(() => {
       setIsDraggable(locked);
@@ -180,15 +181,24 @@ const Wallpaper = forwardRef(
     };
 
     const handleMouseUp = (e) => {
-        const shape = e.target;
-        transformerRef.current.nodes([shape]);
-        window.addEventListener("mouseup", (e)=>{
-          // if (!transformerRef.current.nodes().includes(shape)) {
-          //   transformerRef.current.nodes([]);
-            console.log(e)
-          // }
-        })
+      console.log(e.target);
     };
+
+    useEffect(()=>{
+      // if (transformerRef.current.nodes().size() > 0){
+
+      // }
+      shapeRef.current.on("click dragend", (e)=>{
+        transformerRef.current.nodes([e.target])
+      });
+
+      ref.current.on("click", (e)=>{
+        if (shapeRef.current != e.target){
+        transformerRef.current.nodes([]);
+        }
+      });
+    
+    },[])
 
     const handleStageMouseDown = (e) => {
       console.log(e);
