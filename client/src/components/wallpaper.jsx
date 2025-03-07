@@ -180,12 +180,14 @@ const Wallpaper = forwardRef(
     };
 
     const handleMouseUp = (e) => {
-      if (isDraggable) {
         const shape = e.target;
         transformerRef.current.nodes([shape]);
-        transformerRef.current.getLayer().batchDraw();
-        console.log(transformerRef);
-      }
+        window.addEventListener("mouseup", (e)=>{
+          // if (!transformerRef.current.nodes().includes(shape)) {
+          //   transformerRef.current.nodes([]);
+            console.log(e)
+          // }
+        })
     };
 
     const handleStageMouseDown = (e) => {
@@ -254,7 +256,8 @@ const cancelBubble = (e) => {
               onMouseUp={handleMouseUp}
               ref={shapeRef}
             />
-            <Transformer 
+            <Transformer
+            onTransformEnd={cancelBubble} 
             anchorSize={7.5 * 1/stageScale}
             borderStrokeWidth={1/stageScale}
             rotateAnchorOffset={50 * 1/stageScale}
