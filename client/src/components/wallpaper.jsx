@@ -129,8 +129,8 @@ const Wallpaper = forwardRef(
       const stage = layer.getStage();
       const stageWidth = stage.width();
       const stageHeight = stage.height();
-      const shapeWidth = shape.width();
-      const shapeHeight = shape.height();
+      const shapeWidth = shape.width() * shape.scaleX();
+      const shapeHeight = shape.height() * shape.scaleY();
       const middleX = (stageWidth - shapeWidth) / 2;
       const middleY = (stageHeight - shapeHeight) / 2;
       const snapThreshold = 50;
@@ -155,7 +155,7 @@ const Wallpaper = forwardRef(
       const originalWidth = shape.width() * originalScaleX;
       const originalHeight = shape.height() * originalScaleY;
       const newScale = 0.985;
-      const newWidth = shape.width() * newScale * originalScaleY;
+      const newWidth = shape.width() * newScale * originalScaleX;
       const newHeight = shape.height() * newScale * originalScaleY;
 
       // Calculate new position to keep the shape centered
