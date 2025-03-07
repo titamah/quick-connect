@@ -154,9 +154,9 @@ const Wallpaper = forwardRef(
       const originalScaleY = shape.scaleY();
       const originalWidth = shape.width() * originalScaleX;
       const originalHeight = shape.height() * originalScaleY;
-      const newScale = 0.95;
-      const newWidth = shape.width() * newScale;
-      const newHeight = shape.height() * newScale;
+      const newScale = 0.985;
+      const newWidth = shape.width() * newScale * originalScaleY;
+      const newHeight = shape.height() * newScale * originalScaleY;
 
       // Calculate new position to keep the shape centered
       const newX = shape.x() + (originalWidth - newWidth) / 2;
@@ -165,17 +165,17 @@ const Wallpaper = forwardRef(
       // Use tween for smooth transition
       const tween = new Konva.Tween({
         node: shape,
-        duration: 0.05,
-        easing: Konva.Easings.EaseInOut,
-        scaleX: newScale,
-        scaleY: newScale,
+        duration: 0.1,
+        easing: Konva.Easings.BounceEaseInOut,
+        scaleX: newScale * originalScaleX,
+        scaleY: newScale * originalScaleY,
         x: newX,
         y: newY,
       }).play();
 
       setTimeout(() => {
         tween.reverse();      
-      }, 60)
+      }, 110)
     }
     };
 
