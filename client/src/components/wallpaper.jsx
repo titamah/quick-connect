@@ -1,5 +1,5 @@
-import { Stage, Rect, Layer } from "react-konva";
-import React, { forwardRef, useEffect, useState } from "react";
+import { Stage, Rect, Layer, Transformer } from "react-konva";
+import React, { forwardRef, useEffect, useState, useRef } from "react";
 import { color } from "d3";
 import Konva from "konva";
 
@@ -20,6 +20,8 @@ const Wallpaper = forwardRef(
     const [qr, setQR] = useState(
       `http://api.qrserver.com/v1/create-qr-code/?data=HelloWorld!&size=${qrSize}x${qrSize}`
     );
+    const transformerRef = useRef(null);
+    const shapeRef = useRef(null);
 
     useEffect(() => {
       setIsDraggable(locked);
@@ -152,7 +154,7 @@ const Wallpaper = forwardRef(
       const originalScaleY = shape.scaleY();
       const originalWidth = shape.width() * originalScaleX;
       const originalHeight = shape.height() * originalScaleY;
-      const newScale = 0.98;
+      const newScale = 0.95;
       const newWidth = shape.width() * newScale;
       const newHeight = shape.height() * newScale;
 
@@ -176,6 +178,30 @@ const Wallpaper = forwardRef(
       }, 60)
     }
     };
+
+    const handleMouseUp = (e) => {
+      if (isDraggable) {
+        const shape = e.target;
+        transformerRef.current.nodes([shape]);
+        transformerRef.current.getLayer().batchDraw();
+        console.log(transformerRef);
+      }
+    };
+
+    const handleStageMouseDown = (e) => {
+      console.log(e);
+      // Deselect transformer if clicked outside of the target shape
+      if (e.target === e.target.getStage()) {
+        transformerRef.current.nodes([]);
+        transformerRef.current.getLayer().batchDraw();
+      }
+    };
+
+const cancelBubble = (e) => {
+  setTimeout(() => {
+    setIsZoomEnabled(false);
+  }, 10);
+}
 
 
     return (
@@ -204,34 +230,35 @@ const Wallpaper = forwardRef(
             pointerEvents: "auto",
           }}
           ref={ref}
+          onMouseDown={handleStageMouseDown}
         >
         <Layer>
           {isImageLoaded && <Rect {...rectProps} />}
         </Layer>
-          <Layer>
+          <Layer
+          style={{
+            pointerEvents: "auto",
+          }}
+           onMouseUp={cancelBubble}
+              >
             <Rect
               x={device.size.x / 4}
               y={device.size.y / 1.75}
               fillPatternImage={qrImg}
               stroke="black"
-              height={Math.min(device.size.x, device.size.y) / 2}
-              width={Math.min(device.size.x, device.size.y) / 2}
+              height={qrSize}
+              width={qrSize}
               draggable={isDraggable}
               onDragMove={handleDragMove}
-              onDragEnd={() => {
-                setTimeout(() => {
-                  setIsZoomEnabled(false);
-                }, 10);
-              }}
-              onClick={(e) => {
-                console.log(e.target.x());
-                console.log(device);
-                setTimeout(() => {
-                  setIsZoomEnabled(false);
-                }, 10);
-              }}
               onMouseDown={handleMouseDown}
+              onMouseUp={handleMouseUp}
+              ref={shapeRef}
             />
+            <Transformer 
+            anchorSize={7.5 * 1/stageScale}
+            borderStrokeWidth={1/stageScale}
+            rotateAnchorOffset={50 * 1/stageScale}
+            ref={transformerRef} />
           </Layer>
         </Stage>
       </div>
