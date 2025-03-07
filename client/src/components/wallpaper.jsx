@@ -185,18 +185,31 @@ const Wallpaper = forwardRef(
     };
 
     useEffect(()=>{
-      // if (transformerRef.current.nodes().size() > 0){
-
-      // }
       shapeRef.current.on("click dragend", (e)=>{
-        transformerRef.current.nodes([e.target])
+        setTimeout(()=>{
+        transformerRef.current.nodes([e.target]);
+        transformerRef.current.getLayer().batchDraw();
+        },5)
+      });
+      // ref.current.on("mouseup", (e)=>{
+      //   if (shapeRef.current != e.target){
+      //   transformerRef.current.nodes([]);
+      //   transformerRef.current.getLayer().batchDraw();
+      //   cancelBubble();
+      //   }
+      // });
+      transformerRef.current.on("transformend", (e)=>{
+        setTimeout(()=>{
+        transformerRef.current.nodes([shapeRef.current]);
+        transformerRef.current.getLayer().batchDraw();
+      },5)
       });
 
-      ref.current.on("click", (e)=>{
-        if (shapeRef.current != e.target){
+      document.getElementById("Canvas").addEventListener("mouseup", (e)=>{
         transformerRef.current.nodes([]);
-        }
-      });
+        transformerRef.current.getLayer().batchDraw();
+        console.log(e);
+      })
     
     },[])
 
