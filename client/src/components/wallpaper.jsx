@@ -258,13 +258,9 @@ const Wallpaper = forwardRef(
           width: `${device.size.x * stageScale - 1}px`,
           height: `${device.size.y * stageScale - 1}px`,
           position: "relative",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          outline: "10px solid black",
-          backgroundColor: "rgba(0,0,0,0)",
-          overflow: "hidden",
-          borderRadius: "24px",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
         }}
         className="
         bg-gray-800 shadow-[0_2.75rem_5.5rem_-3.5rem_rgb(45_55_75_/_20%),_0_2rem_4rem_-2rem_rgb(45_55_75_/_30%),_inset_0_-0.1875rem_0.3125rem_0_rgb(45_55_75_/_20%)] dark:bg-neutral-600 dark:shadow-[0_2.75rem_5.5rem_-3.5rem_rgb(0_0_0_/_20%),_0_2rem_4rem_-2rem_rgb(0_0_0_/_30%),_inset_0_-0.1875rem_0.3125rem_0_rgb(0_0_0_/_20%)]"
@@ -298,7 +294,6 @@ const Wallpaper = forwardRef(
               draggable={isDraggable}
               onDragMove={handleDragMove}
               onMouseDown={handleMouseDown}
-              // onMouseUp={handleMouseUp}
               ref={shapeRef}
             />
             <Transformer

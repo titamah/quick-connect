@@ -133,12 +133,25 @@ function Canvas({ isOpen, panelSize }) {
           className={`
             transition-all duration-150 ease-linear flex items-center justify-center
             pointer-events-auto z-1
-            ${isZoomEnabled ? "outline-2 outline-offset-40 outline-blue-500" : ""}
+            ${isZoomEnabled ? "before:outline-2 before:outline-offset-40 before:outline-blue-500" : ""}
           `}
+          style={{
+                    position: "relative",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    outline: "10px solid black",
+                    backgroundColor: "rgba(0,0,0,0)",
+                    overflow: "hidden",
+                    borderRadius: "24px",}
+          }
           onClick={()=>{
               setIsZoomEnabled(true)}}
           >
-            {!isLoading ? (
+            <span
+            className={`${!isZoomEnabled ? "outline-200 outline-offset-40 outline-blue-500":""}`}>
+            </span>
+            {isLoading ? (
               <div className={`bg-gray-300 rounded-[1.25rem] flex`}
               style={{ height: `${previewSize.y}px`, width: `${previewSize.x}px` }}
               >
