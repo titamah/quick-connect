@@ -17,7 +17,7 @@ function App() {
     size: { x: 1284, y: 2778 },
     isUpload: true,
     color: "blue",
-    bg: "https://static1.squarespace.com/static/5e949a92e17d55230cd1d44f/t/61bbb7e2c6affb5f678b608d/1639692260743/Rainbow+Pro+Max.png",
+    bg: "https://pbs.twimg.com/media/GXD29kGbEAYLs4M?format=jpg&name=4096x4096",
     qr: "https://www.linkedin.com/in/titamah",
   });
 

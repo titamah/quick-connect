@@ -1,4 +1,4 @@
-import { Stage, Rect, Layer, Transformer } from "react-konva";
+import { Stage, Rect, Layer, Transformer, Line } from "react-konva";
 import React, { forwardRef, useEffect, useState, useRef } from "react";
 import { color } from "d3";
 import Konva from "konva";
@@ -9,6 +9,9 @@ const Wallpaper = forwardRef(
     const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
     const [stageScale, setStageScale] = useState({ x: 1, y: 1 });
     const [isDraggable, setIsDraggable] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
+    const [isCenterX, setIsCenterX] = useState(true);
+    const [isCenterY, setIsCenterY] = useState(false);
     const [isImageLoaded, setIsImageLoaded] = useState(false);
     // const [qr, setQR] = useState(null);
     const [qrImg, setQRImg] = useState(null);
@@ -21,7 +24,7 @@ const Wallpaper = forwardRef(
       `http://api.qrserver.com/v1/create-qr-code/?data=HelloWorld!&size=${qrSize}x${qrSize}`
     );
     const transformerRef = useRef(null);
-    const shapeRef = useRef(null);;
+    const shapeRef = useRef(null);
     const stageRef = useRef(null);
 
     useEffect(() => {
@@ -134,91 +137,104 @@ const Wallpaper = forwardRef(
       const shapeHeight = shape.height() * shape.scaleY();
       const middleX = (stageWidth - shapeWidth) / 2;
       const middleY = (stageHeight - shapeHeight) / 2;
-      const snapThreshold = 50;
+      const snapTolerance = 25;
 
       // Constrain position within stage bounds
       const rawX = Math.max(0, Math.min(shape.x(), stageWidth - shapeWidth));
       const rawY = Math.max(0, Math.min(shape.y(), stageHeight - shapeHeight));
-
+      let targetX, targetY;
       // Determine target position with snapping
-      const targetX = Math.abs(rawX - middleX) < snapThreshold ? middleX : rawX;
-      const targetY = Math.abs(rawY - middleY) < snapThreshold ? middleY : rawY;
+      if (Math.abs(rawX - middleX) < snapTolerance) {
+        setIsCenterX(true);
+        targetX = middleX;
+      } else {
+        setIsCenterX(false);
+        targetX = rawX;
+      }
 
+      if (Math.abs(rawY - middleY) < snapTolerance) {
+        setIsCenterY(true);
+        targetY = middleY;
+      } else {
+        setIsCenterY(false);
+        targetY = rawY;
+      }
       shape.x(targetX);
       shape.y(targetY);
     };
 
     const handleMouseDown = (e) => {
       if (isDraggable) {
-      const shape = e.target;
-      const originalScaleX = shape.scaleX();
-      const originalScaleY = shape.scaleY();
-      const originalWidth = shape.width() * originalScaleX;
-      const originalHeight = shape.height() * originalScaleY;
-      const newScale = 0.985;
-      const newWidth = shape.width() * newScale * originalScaleX;
-      const newHeight = shape.height() * newScale * originalScaleY;
+        const shape = e.target;
+        const originalScaleX = shape.scaleX();
+        const originalScaleY = shape.scaleY();
+        const originalWidth = shape.width() * originalScaleX;
+        const originalHeight = shape.height() * originalScaleY;
+        const newScale = 0.985;
+        const newWidth = shape.width() * newScale * originalScaleX;
+        const newHeight = shape.height() * newScale * originalScaleY;
 
-      // Calculate new position to keep the shape centered
-      const newX = shape.x() + (originalWidth - newWidth) / 2;
-      const newY = shape.y() + (originalHeight - newHeight) / 2;
+        // Calculate new position to keep the shape centered
+        const newX = shape.x() + (originalWidth - newWidth) / 2;
+        const newY = shape.y() + (originalHeight - newHeight) / 2;
 
-      // Use tween for smooth transition
-      const tween = new Konva.Tween({
-        node: shape,
-        duration: 0.1,
-        easing: Konva.Easings.BounceEaseInOut,
-        scaleX: newScale * originalScaleX,
-        scaleY: newScale * originalScaleY,
-        x: newX,
-        y: newY,
-      }).play();
+        // Use tween for smooth transition
+        const tween = new Konva.Tween({
+          node: shape,
+          duration: 0.1,
+          easing: Konva.Easings.BounceEaseInOut,
+          scaleX: newScale * originalScaleX,
+          scaleY: newScale * originalScaleY,
+          x: newX,
+          y: newY,
+        }).play();
 
-      setTimeout(() => {
-        tween.reverse();      
-      }, 110)
-    }
+        setTimeout(() => {
+          tween.reverse();
+        }, 110);
+      }
     };
 
     const handleMouseUp = (e) => {
       console.log(e.target);
     };
 
-    useEffect(()=>{
-      shapeRef.current.on("click dragend", (e)=>{
-        setTimeout(()=>{
-        transformerRef.current.nodes([e.target]);
-        transformerRef.current.getLayer().batchDraw();
-        console.log("qr");
-        },5)
+    useEffect(() => {
+      shapeRef.current.on("click dragend", (e) => {
+        setTimeout(() => {
+          setIsDragging(false);
+          transformerRef.current.nodes([e.target]);
+          transformerRef.current.getLayer().batchDraw();
+          console.log("qr");
+        }, 5);
       });
-      shapeRef.current.on("dragstart", (e)=>{
-        setTimeout(()=>{
+      shapeRef.current.on("dragstart", (e) => {
+        setTimeout(() => {
+          setIsDragging(true);
           transformerRef.current.nodes([]);
           transformerRef.current.getLayer().batchDraw();
-        console.log("qr");
-        },5)
+          console.log("qr");
+        }, 5);
       });
-      transformerRef.current.on("transformend", (e)=>{
-        setTimeout(()=>{
-        transformerRef.current.nodes([shapeRef.current]);
-        transformerRef.current.getLayer().batchDraw();
-        console.log("transformer");
-      },5)
+      transformerRef.current.on("transformend", (e) => {
+        setTimeout(() => {
+          transformerRef.current.nodes([shapeRef.current]);
+          transformerRef.current.getLayer().batchDraw();
+          console.log("transformer");
+        }, 5);
       });
-      document.getElementById("Canvas").addEventListener("mouseup", (e)=>{
-        console.log(transformerRef.current.nodes())
-        if (transformerRef.current.nodes().length > 0){
+      document.getElementById("Canvas").addEventListener("mouseup", (e) => {
+        console.log(transformerRef.current.nodes());
+        if (transformerRef.current.nodes().length > 0) {
           transformerRef.current.nodes([]);
           transformerRef.current.getLayer().batchDraw();
           cancelBubble();
         }
-      })
+      });
       // ref.current.on("click", ()=>{
       //   if(isDraggable){setIsZoomEnabled(true)};
       // })
-    
-    },[])
+    }, []);
 
     const handleStageMouseDown = (e) => {
       console.log(e);
@@ -229,12 +245,11 @@ const Wallpaper = forwardRef(
       }
     };
 
-const cancelBubble = (e) => {
-  setTimeout(() => {
-    setIsZoomEnabled(false);
-  }, 10);
-}
-
+    const cancelBubble = (e) => {
+      setTimeout(() => {
+        setIsZoomEnabled(false);
+      }, 10);
+    };
 
     return (
       <div
@@ -264,15 +279,15 @@ const cancelBubble = (e) => {
           ref={ref}
           onMouseDown={handleStageMouseDown}
         >
-        <Layer>
+          <Layer>
           {isImageLoaded && <Rect {...rectProps} />}
         </Layer>
           <Layer
-          style={{
-            pointerEvents: "auto",
-          }}
-           onMouseUp={cancelBubble}
-              >
+            style={{
+              pointerEvents: "auto",
+            }}
+            onMouseUp={cancelBubble}
+          >
             <Rect
               x={device.size.x / 4}
               y={device.size.y / 1.75}
@@ -287,17 +302,37 @@ const cancelBubble = (e) => {
               ref={shapeRef}
             />
             <Transformer
-            onTransformEnd={cancelBubble}
-            borderStroke={"red"} 
-            borderStrokeWidth={1.5/stageScale}
-            enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
-            anchorSize={7.5/stageScale}
-            anchorStroke={"red"}
-            anchorStrokeWidth={1/stageScale}
-            anchorCornerRadius={7.5/stageScale}
-            rotateEnabled={false}
-            flipEnabled={false}
-            ref={transformerRef} />
+              onTransformEnd={cancelBubble}
+              borderStroke={"red"}
+              borderStrokeWidth={2 / stageScale}
+              enabledAnchors={[
+                "top-left",
+                "top-right",
+                "bottom-left",
+                "bottom-right",
+              ]}
+              anchorSize={7.5 / stageScale}
+              anchorStroke={"red"}
+              anchorStrokeWidth={1 / stageScale}
+              anchorCornerRadius={7.5 / stageScale}
+              rotateEnabled={false}
+              flipEnabled={false}
+              ref={transformerRef}
+            />
+            <Line
+              stroke={"red"}
+              strokeWidth={5}
+              dash={[25, 15]}
+              points={[device.size.x/2, 0, device.size.x/2, device.size.y/2, device.size.x/2, device.size.y]}
+              visible={isCenterX && isDragging}
+            />
+            <Line
+              stroke={"red"}
+              strokeWidth={5}
+              dash={[25, 15]}
+              points={[0, device.size.y/2, device.size.x/2, device.size.y/2, device.size.x, device.size.y/2]}
+              visible={isCenterY & isDragging}
+            />
           </Layer>
         </Stage>
       </div>
