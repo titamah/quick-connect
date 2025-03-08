@@ -192,6 +192,13 @@ const Wallpaper = forwardRef(
         console.log("qr");
         },5)
       });
+      shapeRef.current.on("dragstart", (e)=>{
+        setTimeout(()=>{
+          transformerRef.current.nodes([]);
+          transformerRef.current.getLayer().batchDraw();
+        console.log("qr");
+        },5)
+      });
       transformerRef.current.on("transformend", (e)=>{
         setTimeout(()=>{
         transformerRef.current.nodes([shapeRef.current]);
@@ -280,10 +287,16 @@ const cancelBubble = (e) => {
               ref={shapeRef}
             />
             <Transformer
-            onTransformEnd={cancelBubble} 
-            anchorSize={7.5 * 1/stageScale}
-            borderStrokeWidth={1/stageScale}
-            rotateAnchorOffset={50 * 1/stageScale}
+            onTransformEnd={cancelBubble}
+            borderStroke={"red"} 
+            borderStrokeWidth={1.5/stageScale}
+            enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
+            anchorSize={7.5/stageScale}
+            anchorStroke={"red"}
+            anchorStrokeWidth={1/stageScale}
+            anchorCornerRadius={7.5/stageScale}
+            rotateEnabled={false}
+            flipEnabled={false}
             ref={transformerRef} />
           </Layer>
         </Stage>
