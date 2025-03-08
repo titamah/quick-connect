@@ -189,27 +189,27 @@ const Wallpaper = forwardRef(
         setTimeout(()=>{
         transformerRef.current.nodes([e.target]);
         transformerRef.current.getLayer().batchDraw();
+        console.log("qr");
         },5)
       });
-      // ref.current.on("mouseup", (e)=>{
-      //   if (shapeRef.current != e.target){
-      //   transformerRef.current.nodes([]);
-      //   transformerRef.current.getLayer().batchDraw();
-      //   cancelBubble();
-      //   }
-      // });
       transformerRef.current.on("transformend", (e)=>{
         setTimeout(()=>{
         transformerRef.current.nodes([shapeRef.current]);
         transformerRef.current.getLayer().batchDraw();
+        console.log("transformer");
       },5)
       });
-
       document.getElementById("Canvas").addEventListener("mouseup", (e)=>{
-        transformerRef.current.nodes([]);
-        transformerRef.current.getLayer().batchDraw();
-        console.log(e);
+        console.log(transformerRef.current.nodes())
+        if (transformerRef.current.nodes().length > 0){
+          transformerRef.current.nodes([]);
+          transformerRef.current.getLayer().batchDraw();
+          cancelBubble();
+        }
       })
+      // ref.current.on("click", ()=>{
+      //   if(isDraggable){setIsZoomEnabled(true)};
+      // })
     
     },[])
 
@@ -276,7 +276,7 @@ const cancelBubble = (e) => {
               draggable={isDraggable}
               onDragMove={handleDragMove}
               onMouseDown={handleMouseDown}
-              onMouseUp={handleMouseUp}
+              // onMouseUp={handleMouseUp}
               ref={shapeRef}
             />
             <Transformer
