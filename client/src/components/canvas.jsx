@@ -13,10 +13,11 @@ function Canvas({ isOpen, panelSize }) {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isZoomEnabled, setIsZoomEnabled] = useState(false);
+  
+  const [previewSize, setPreviewSize] = useState({x:0, y:0});
 
   const updatePanelSize = () => {
     const screenWidth = window.innerWidth;
-    
     if (screenWidth >= 640) {
       document.documentElement.style.setProperty("--panel-height", "0px");
       document.documentElement.style.setProperty("--panel-width", `${panelSize.width}px`);
@@ -31,8 +32,24 @@ function Canvas({ isOpen, panelSize }) {
       HSStaticMethods.autoInit();
     });
     updatePanelSize();
+    // setPreviewSize({
+    //   x: device.size.x,
+    //   y: device.size.y
+    // })
     setIsLoading(false);
   }, []);
+
+  useEffect(() => {
+    const scaleX =
+      (0.95 * window.innerWidth - panelSize.width) / device.size.x;
+    const scaleY =
+      (0.95 * window.innerHeight - panelSize.height) / device.size.y;
+    const scale = Math.min(scaleX, scaleY);
+    setPreviewSize({
+      x: device.size.x * scale,
+      y: device.size.y * scale
+    })
+  }, [device]);
 
   useEffect(() => {
     const canvasElement = select(canvasRef.current);
@@ -121,14 +138,15 @@ function Canvas({ isOpen, panelSize }) {
           onClick={()=>{
               setIsZoomEnabled(true)}}
           >
-            {isLoading ? (
-              <div className=" h-[874px] w-[402px] bg-gray-300 rounded-[1.25rem]">
+            {!isLoading ? (
+              <div className={`bg-gray-300 rounded-[1.25rem] flex`}
+              style={{ height: `${previewSize.y}px`, width: `${previewSize.x}px` }}
+              >
                 <div
-                  className="animate-spin inline-block m-auto size-20 border-[6px] border-current border-t-transparent text-blue-600 rounded-full dark:text-blue-500"
+                  className="animate-spin m-auto size-12 border-[4px] border-current border-t-transparent text-blue-600 rounded-full dark:text-blue-500"
                   role="status"
                   aria-label="loading"
                 >
-                  <span className="sr-only">Loading...</span>
                 </div>
               </div>
             ) : (

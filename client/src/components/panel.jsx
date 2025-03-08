@@ -26,6 +26,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
   };
 
   const devicesSizes = [
+    { name: "test phone", size: { x: 124, y: 778 } },
     { name: "iPhone 14 Pro Max", size: { x: 1284, y: 2778 } },
     { name: "iPhone 16 Pro", size: { x: 1179, y: 2556 } },
     { name: "iPhone 16 Pro Max", size: { x: 1290, y: 2796 } },
@@ -47,7 +48,6 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
       setDeviceSize(i.size);
       setDevice((prevDevice) => ({
         ...prevDevice,
-        // name: i.name,
         type: i.name,
         size: i.size,
       }));
