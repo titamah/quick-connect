@@ -62,6 +62,7 @@ const Wallpaper = forwardRef(
         const qrImage = new Image();
         qrImage.src = `http://api.qrserver.com/v1/create-qr-code/?data=HelloWorld!&size=${qrSize}x${qrSize}`;
         qrImage.src = qr;
+        qrImage.crossOrigin = 'Anonymous';
         qrImage.onload = () => {
           setQRImg(qrImage);
           setIsQRLoaded(true);
@@ -73,6 +74,7 @@ const Wallpaper = forwardRef(
       if (device.isUpload && device.bg) {
         const img = new Image();
         img.src = device.bg;
+        img.crossOrigin = 'Anonymous';
         img.onload = () => {
           setPatternImage(img);
           setImageSize({

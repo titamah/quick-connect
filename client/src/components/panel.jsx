@@ -223,8 +223,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
               </div>
             </div>
           </div>
-          <div
-            id="panel-sections"
+          <div id="panel-sections"
             className="hs-accordion-group"
             data-hs-accordion-always-open
           >
@@ -296,7 +295,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
                   <input
                     id="qr-input"
                     type="text"
-                    className="text-sm w-full p-[5px] me-[7.5px] -mx-[2.5px] inline-flex rounded-md bg-black/10 dark:border-neutral-700 dark:text-neutral-400 "
+                    className="text-sm !select-all w-full p-[5px] me-[7.5px] -mx-[2.5px] inline-flex rounded-md bg-black/10 dark:border-neutral-700 dark:text-neutral-400 "
                     value={tempQr}
                     onChange={(e) => setTempQr(e.target.value)}
                   />
