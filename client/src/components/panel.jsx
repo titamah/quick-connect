@@ -8,7 +8,11 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
   const { device, setDevice } = useContext(DeviceContext);
   const [deviceName, setDeviceName] = useState(device.name);
   const [deviceSize, setDeviceSize] = useState(device.size);
-  const [activeAccordions, setActiveAccordions] = useState([]);
+  const [activeAccordions, setActiveAccordions] = useState([
+    "accordion-one",
+    "accordion-two",
+    "accordion-three",
+  ]);
   const [tempQr, setTempQr] = useState(device.qr);
 
   const handleNameChange = (event) => {
@@ -71,7 +75,9 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
       <div className="p-1 w-max max-h-[40vh] overflow-y-scroll space-y-0.5">
         <div
           key={0}
-          onClick={() => {console.log(key)}}
+          onClick={() => {
+            console.log(key);
+          }}
           className="flex text-xs w-full h-fit items-center gap-x-3.5 py-[7.5px] px-[5px] rounded-lg text-gray-800 hover:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-700"
         >
           <span className="font-thin text-xl">{"+"}</span>
@@ -128,30 +134,6 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
         handle={
           <div className="fixed z-150 right-0 top-0 h-full w-[10px] cursor-col-resize">
             <div className="fixed right-0 top-1/2 cursor-pointer z-200">
-              <span
-                className="absolute start-1/2 -translate-x-1/2 block w-5 h-7 flex items-center bg-white border border-gray-200 text-gray-400 rounded-md  hover:bg-gray-100 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-600 dark:hover:bg-neutral-900"
-                onClick={togglePanel}
-              >
-                <svg
-                  className="shrink-0 size-4.5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="8" cy="12" r="1" />
-                  <circle cx="8" cy="5" r="1" />
-                  <circle cx="8" cy="19" r="1" />
-                  <circle cx="16" cy="12" r="1" />
-                  <circle cx="16" cy="5" r="1" />
-                  <circle cx="16" cy="19" r="1" />
-                </svg>
-              </span>
             </div>
           </div>
         }
@@ -167,6 +149,30 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
           role="dialog"
           aria-labelledby="hs-offcanvas-example-label"
         >
+        <span
+          className="absolute top-[calc(50vh-52px)] right-0 translate-x-1/2 block w-5 h-7 flex items-center bg-white border border-gray-200 text-gray-400 rounded-md  hover:bg-gray-100 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-600 dark:hover:bg-neutral-900"
+          onClick={togglePanel}
+        >
+          <svg
+            className="shrink-0 size-4.5"
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="8" cy="12" r="1" />
+            <circle cx="8" cy="5" r="1" />
+            <circle cx="8" cy="19" r="1" />
+            <circle cx="16" cy="12" r="1" />
+            <circle cx="16" cy="5" r="1" />
+            <circle cx="16" cy="19" r="1" />
+          </svg>
+        </span>
           <div
             id="device-info"
             className="flex-col justify-between items-center py-1  px-5"
@@ -223,7 +229,8 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
               </div>
             </div>
           </div>
-          <div id="panel-sections"
+          <div
+            id="panel-sections"
             className="hs-accordion-group"
             data-hs-accordion-always-open
           >
@@ -246,7 +253,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
                 <text> QR Code</text>
                 <svg
                   className={`${
-                    activeAccordions.includes("accordion-one")
+                    !activeAccordions.includes("accordion-one")
                       ? "hidden"
                       : "block"
                   } size-4`}
@@ -264,7 +271,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
                 </svg>
                 <svg
                   className={`${
-                    activeAccordions.includes("accordion-one")
+                    !activeAccordions.includes("accordion-one")
                       ? "block"
                       : "hidden"
                   } size-4`}
@@ -323,7 +330,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
               </div>
             </div>
             <div
-              className={`hs-accordion  border-y  border-neutral-300/50 dark:border-neutral-700/50 py-3 px-5 ${
+              className={`hs-accordion  border-y  border-neutral-300/50 dark:border-neutral-700/50  ${
                 activeAccordions.includes("accordion-two") ? "active" : ""
               }`}
               id="hs-basic-with-title-and-arrow-stretched-heading-one"
@@ -333,15 +340,15 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
                   activeAccordions.includes("accordion-two")
                     ? "opacity-100"
                     : "opacity-66"
-                } hs-accordion-toggle inline-flex text-sm items-center justify-between gap-x-3 w-full font-medium text-gray-800 hover:text-gray-500 dark:text-neutral-200 dark:hover:text-neutral-400`}
+                } hs-accordion-toggle py-3 px-5 inline-flex text-sm items-center justify-between gap-x-3 w-full font-medium text-gray-800 hover:text-gray-500 dark:text-neutral-200 dark:hover:text-neutral-400`}
                 aria-expanded={activeAccordions.includes("accordion-two")}
                 aria-controls="hs-basic-with-title-and-arrow-stretched-collapse-one"
                 onClick={() => toggleAccordion("accordion-two")}
               >
-                <text> QR Code</text>
+                <text> Background </text>
                 <svg
                   className={`${
-                    activeAccordions.includes("accordion-two")
+                    !activeAccordions.includes("accordion-two")
                       ? "hidden"
                       : "block"
                   } size-4`}
@@ -359,7 +366,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
                 </svg>
                 <svg
                   className={`${
-                    activeAccordions.includes("accordion-two")
+                    !activeAccordions.includes("accordion-two")
                       ? "block"
                       : "hidden"
                   } size-4`}
@@ -386,33 +393,135 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
                 role="region"
                 aria-labelledby="hs-basic-with-title-and-arrow-stretched-heading-one"
               >
-                <div id="qr-input-box" className="flex">
-                  <input
-                    id="qr-input"
-                    type="text"
-                    className="text-sm w-full p-[5px] me-[7.5px] -mx-[2.5px] inline-flex rounded-md bg-black/10 dark:border-neutral-700 dark:text-neutral-400 "
-                    value={device.qr}
-                    onChange={handleQrChange}
-                  />
-                  <button
-                    id="qr-input-submit"
-                    className=" inline-flex m-auto h-fit w-fit rounded-[100%] p-[2.5px] bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+                <div class="border-b-[.5px] border-gray-200 dark:border-neutral-700">
+                  <nav
+                    class="flex gap-x-2.5 text-x px-4"
+                    aria-label="Tabs"
+                    role="tablist"
+                    aria-orientation="horizontal"
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="15"
-                      height="15"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      class="lucide lucide-check"
+                    <button
+                      type="button"
+                      class="hs-tab-active:font-semibold hs-tab-active:border-neutral-600 hs-tab-active:text-blue-600 py-1 px-1 inline-flex items-center gap-x-2 border-b-2 border-transparent text-sm whitespace-nowrap text-gray-500 hover:text-blue-600 focus:outline-hidden focus:text-blue-600 disabled:opacity-50 disabled:pointer-events-none dark:text-neutral-400 dark:hover:text-blue-500 active"
+                      id="tabs-with-underline-item-1"
+                      aria-selected="true"
+                      data-hs-tab="#tabs-with-underline-1"
+                      aria-controls="tabs-with-underline-1"
+                      role="tab"
                     >
-                      <path d="M20 6 9 17l-5-5" />
-                    </svg>
-                  </button>
+                      Custom
+                    </button>
+                    <button
+                      type="button"
+                      class="hs-tab-active:font-semibold hs-tab-active:border-blue-600 hs-tab-active:text-blue-600 py-1 px-1 inline-flex items-center gap-x-2 border-b-2 border-transparent text-sm whitespace-nowrap text-gray-500 hover:text-blue-600 focus:outline-hidden focus:text-blue-600 disabled:opacity-50 disabled:pointer-events-none dark:text-neutral-400 dark:hover:text-blue-500"
+                      id="tabs-with-underline-item-2"
+                      aria-selected="false"
+                      data-hs-tab="#tabs-with-underline-2"
+                      aria-controls="tabs-with-underline-2"
+                      role="tab"
+                    >
+                      Library
+                    </button>
+                    {/* <button type="button" class="hs-tab-active:font-semibold hs-tab-active:border-blue-600 hs-tab-active:text-blue-600 py-1 px-1 inline-flex items-center gap-x-2 border-b-2 border-transparent text-sm whitespace-nowrap text-gray-500 hover:text-blue-600 focus:outline-hidden focus:text-blue-600 disabled:opacity-50 disabled:pointer-events-none dark:text-neutral-400 dark:hover:text-blue-500" id="tabs-with-underline-item-3" aria-selected="false" data-hs-tab="#tabs-with-underline-3" aria-controls="tabs-with-underline-3" role="tab">
+                  Tab 3
+                </button> */}
+                  </nav>
+                </div>
+                <div class="">
+                  <div
+                    id="tabs-with-underline-1"
+                    role="tabpanel"
+                    aria-labelledby="tabs-with-underline-item-1"
+                  >
+                    <div class="border-b border-gray-200 dark:border-neutral-700">
+                      <nav
+                        class="flex gap-x-1"
+                        aria-label="Tabs"
+                        role="tablist"
+                        aria-orientation="horizontal"
+                      >
+                        <button
+                          type="button"
+                          class="hs-tab-active:font-semibold hs-tab-active:border-blue-600 hs-tab-active:text-blue-600 py-4 px-1 inline-flex items-center gap-x-2 border-b-2 border-transparent text-sm whitespace-nowrap text-gray-500 hover:text-blue-600 focus:outline-hidden focus:text-blue-600 disabled:opacity-50 disabled:pointer-events-none dark:text-neutral-400 dark:hover:text-blue-500 active"
+                          id="custom-tabs-with-underline-item-1"
+                          aria-selected="true"
+                          data-hs-tab="#custom-tabs-with-underline-1"
+                          aria-controls="custom-tabs-with-underline-1"
+                          role="tab"
+                        >
+                          Color Pick
+                        </button>
+                        <button
+                          type="button"
+                          class="hs-tab-active:font-semibold hs-tab-active:border-blue-600 hs-tab-active:text-blue-600 py-4 px-1 inline-flex items-center gap-x-2 border-b-2 border-transparent text-sm whitespace-nowrap text-gray-500 hover:text-blue-600 focus:outline-hidden focus:text-blue-600 disabled:opacity-50 disabled:pointer-events-none dark:text-neutral-400 dark:hover:text-blue-500"
+                          id="custom-tabs-with-underline-item-2"
+                          aria-selected="false"
+                          data-hs-tab="#custom-tabs-with-underline-2"
+                          aria-controls="custom-tabs-with-underline-2"
+                          role="tab"
+                        >
+                          Tab 2
+                        </button>
+                        <button
+                          type="button"
+                          class="hs-tab-active:font-semibold hs-tab-active:border-blue-600 hs-tab-active:text-blue-600 py-4 px-1 inline-flex items-center gap-x-2 border-b-2 border-transparent text-sm whitespace-nowrap text-gray-500 hover:text-blue-600 focus:outline-hidden focus:text-blue-600 disabled:opacity-50 disabled:pointer-events-none dark:text-neutral-400 dark:hover:text-blue-500"
+                          id="custom-tabs-with-underline-item-3"
+                          aria-selected="false"
+                          data-hs-tab="#custom-tabs-with-underline-3"
+                          aria-controls="custom-tabs-with-underline-3"
+                          role="tab"
+                        >
+                          Tab 3
+                        </button>
+                      </nav>
+                    </div>
+                    <div class="mt-3">
+                      <div
+                        id="custom-tabs-with-underline-1"
+                        role="tabpanel"
+                        aria-labelledby="custom-tabs-with-underline-item-1"
+                      >
+                        CUSTOM COLOR PICKER
+                      </div>
+                      <div
+                        id="custom-tabs-with-underline-2"
+                        class="hidden"
+                        role="tabpanel"
+                        aria-labelledby="custom-tabs-with-underline-item-2"
+                      >
+                        GRADIENT MAKER
+                      </div>
+                      <div
+                        id="custom-tabs-with-underline-3"
+                        class="hidden"
+                        role="tabpanel"
+                        aria-labelledby="custom-tabs-with-underline-item-3"
+                      >
+                        UPLOAD AN IMAGE
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    id="custom-tabs-with-underline-2"
+                    class="hidden"
+                    role="tabpanel"
+                    aria-labelledby="custom-tabs-with-underline-item-2"
+                  >
+                    <p class="text-gray-500 dark:text-neutral-400">
+                      This is the{" "}
+                      <em class="font-semibold text-gray-800 dark:text-neutral-200">
+                        second
+                      </em>{" "}
+                      item's tab body.
+                    </p>
+                  </div>
+
+                  {/* <div id="tabs-with-underline-3" class="hidden" role="tabpanel" aria-labelledby="tabs-with-underline-item-3">
+    <p class="text-gray-500 dark:text-neutral-400">
+      This is the <em class="font-semibold text-gray-800 dark:text-neutral-200">third</em> item's tab body.
+    </p>
+  </div> */}
                 </div>
               </div>
             </div>
@@ -435,7 +544,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
                 <text> QR Code</text>
                 <svg
                   className={`${
-                    activeAccordions.includes("accordion-three")
+                    !activeAccordions.includes("accordion-three")
                       ? "hidden"
                       : "block"
                   } size-4`}
@@ -453,7 +562,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
                 </svg>
                 <svg
                   className={`${
-                    activeAccordions.includes("accordion-three")
+                    !activeAccordions.includes("accordion-three")
                       ? "block"
                       : "hidden"
                   } size-4`}

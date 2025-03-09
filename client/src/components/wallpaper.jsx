@@ -1,10 +1,12 @@
 import { Stage, Rect, Layer, Transformer, Line } from "react-konva";
 import React, { forwardRef, useEffect, useState, useRef } from "react";
+import useWindowSize from "../hooks/useWindowSize";
 import { color } from "d3";
 import Konva from "konva";
 
 const Wallpaper = forwardRef(
-  ({ device, panelSize, locked, setIsZoomEnabled }, ref) => {
+  ({ device, panelSize, isOpen, locked, setIsZoomEnabled }, ref) => {
+    const windowSize = useWindowSize();
     const [patternImage, setPatternImage] = useState(null);
     const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
     const [stageScale, setStageScale] = useState({ x: 1, y: 1 });
@@ -87,13 +89,14 @@ const Wallpaper = forwardRef(
     }, [device.isUpload, device.bg]);
 
     useEffect(() => {
-      const scaleX =
-        (0.95 * window.innerWidth - panelSize.width) / device.size.x;
-      const scaleY =
-        (0.95 * window.innerHeight - panelSize.height) / device.size.y;
+      const scaleX = isOpen ?  (0.90 * window.innerWidth - panelSize.width) / device.size.x : (0.90 * window.innerWidth) / device.size.x;
+      const scaleY = isOpen ?  (0.90 * (window.innerHeight - panelSize.height - 52)) / device.size.y : (0.90 * (window.innerHeight - 52)) / device.size.y;
+
       const scale = Math.min(scaleX, scaleY);
       setStageScale(scale);
-    }, [device.size.x, device.size.y, panelSize.width, panelSize.height]);
+      console.log(stageScale);
+      ref.current.draw();
+    }, [device.size.x, device.size.y, panelSize.width, panelSize.height, isOpen, windowSize]);
 
     const getScaleFactors = () => {
       if (!imageSize.width || !imageSize.height) return { x: 1, y: 1 };
@@ -260,9 +263,9 @@ const Wallpaper = forwardRef(
           width: `${device.size.x * stageScale - 1}px`,
           height: `${device.size.y * stageScale - 1}px`,
           position: "relative",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
         }}
         className="
         bg-gray-800 shadow-[0_2.75rem_5.5rem_-3.5rem_rgb(45_55_75_/_20%),_0_2rem_4rem_-2rem_rgb(45_55_75_/_30%),_inset_0_-0.1875rem_0.3125rem_0_rgb(45_55_75_/_20%)] dark:bg-neutral-600 dark:shadow-[0_2.75rem_5.5rem_-3.5rem_rgb(0_0_0_/_20%),_0_2rem_4rem_-2rem_rgb(0_0_0_/_30%),_inset_0_-0.1875rem_0.3125rem_0_rgb(0_0_0_/_20%)]"
@@ -272,6 +275,7 @@ const Wallpaper = forwardRef(
           height={device.size.y}
           style={{
             transform: `scale(${stageScale})`,
+          transition:"ease-in-out",
             pointerEvents: "auto",
           }}
           ref={ref}
