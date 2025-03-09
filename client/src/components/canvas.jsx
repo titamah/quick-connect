@@ -121,29 +121,31 @@ function Canvas({ isOpen, panelSize }) {
     document.body.removeChild(link);
   }
 
-  const exportImage = (type, quality, size) => {
+  const exportImage = () => {
     // const dataURL = wallpaperRef.current.toDataURL({
     //   mimeType: "image/jpeg",
     //   pixelRatio: 1,
     //   quality: 0.2
     // });
-    // const dataURL = wallpaperRef.current.toDataURL({
-    //   mimeType: downloadSettings.isPng,
-    //   pixelRatio: downloadSettings.size,
-    //   quality: downloadSettings.quality,
-    // });
-    // downloadURI(dataURL, device.name);
-    // toast.success("Download complete", {
-    //   position: "bottom-right",
-    //   autoClose: 3000,
-    //   hideProgressBar: false,
-    //   closeOnClick: false,
-    //   pauseOnHover: true,
-    //   draggable: true,
-    //   progress: undefined,
-    // });
-
+    const mimeType = downloadSettings.isPng ? "image/png" : "image/jpeg";
+    const dataURL = wallpaperRef.current.toDataURL({
+      mimeType: mimeType,
+      pixelRatio: downloadSettings.size,
+      quality: downloadSettings.quality,
+    });
     console.log(downloadSettings.size)
+    downloadURI(dataURL, device.name);
+    toast.success("Download complete", {
+      position: "bottom-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+
+    // console.log(downloadSettings.quality)
   };
 
   return (
@@ -274,6 +276,7 @@ function Canvas({ isOpen, panelSize }) {
                 </li>
               </ul>
             </div>
+            { !downloadSettings.isPng &&
             <div className="flex-col text-xs w-full h-fit items-center gap-x-3.5 py-[8px] rounded-lg text-gray-800 dark:text-neutral-400 ">
               <span className="flex place-content-between w-full">
                 <span>Size</span>
@@ -298,7 +301,7 @@ function Canvas({ isOpen, panelSize }) {
   [&::-moz-range-thumb]:h-2.5
   [&::-moz-range-thumb]:appearance-none
   [&::-moz-range-thumb]:bg-white
-  [&::-moz-range-thumb]:border-3
+  [&::-moz-range-thumb]:border-4
   [&::-moz-range-thumb]:border-blue-600
   [&::-moz-range-thumb]:rounded-full
   [&::-moz-range-thumb]:transition-all
@@ -332,7 +335,7 @@ function Canvas({ isOpen, panelSize }) {
               <span className="flex place-content-end w-full">
                   <span className="italic opacity-50 text-[10px] h-2"> ({Math.ceil(device.size.x * downloadSettings.size)} x {Math.ceil(device.size.y * downloadSettings.size)})</span>
                 </span>
-            </div>
+            </div> }
             <div className="flex-col text-xs w-full h-fit items-center gap-x-3.5 py-[8px] rounded-lg text-gray-800 dark:text-neutral-400 ">
               <span className="flex place-content-between w-full">
                 <span>Quality</span>

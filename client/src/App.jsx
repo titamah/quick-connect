@@ -17,7 +17,7 @@ function App() {
     size: { x: 1284, y: 2778 },
     isUpload: true,
     color: "blue",
-    bg: "https://pbs.twimg.com/media/GXD29kGbEAYLs4M?format=jpg&name=4096x4096",
+    bg: "https://i0.wp.com/current.org/wp-content/uploads/2025/03/SS54_RichardTermine_TheOct-Dough-Pus_GroverElmo_02-scaled.jpg?fit=1170%2C658&ssl=1",
     qr: "https://www.linkedin.com/in/titamah",
   });
 
