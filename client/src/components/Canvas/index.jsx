@@ -10,11 +10,6 @@ function Canvas({ isOpen, panelSize }) {
   const previewRef = useRef(null);
   const canvasRef = useRef(null);
   const wallpaperRef = useRef(null);
-  // const [downloadSettings, setDownloadSettings] = useState({
-  //   isPng: true,
-  //   size: 1,
-  //   quality: 1,
-  // });
 
   const [isLoading, setIsLoading] = useState(true);
   const [isZoomEnabled, setIsZoomEnabled] = useState(false);
@@ -56,16 +51,6 @@ function Canvas({ isOpen, panelSize }) {
       y: device.size.y * scale,
     });
   }, [device]);
-
-  useEffect(() => {
-    // const exportButton = select(downloadToast.current);
-    // downloadToast.current.on("click", ()=>{
-    // Toastify({
-    //   text: "This is a toast",
-    //   duration: 3000
-    //   }).showToast();
-    // })
-  }, []);
 
   useEffect(() => {
     const canvasElement = select(canvasRef.current);
@@ -110,34 +95,6 @@ function Canvas({ isOpen, panelSize }) {
     updatePanelSize();
   }, [isOpen, isZoomEnabled, panelSize, device]);
 
-  function downloadURI(uri, name) {
-    // Construct the <a> element
-    var link = document.createElement("a");
-    link.download = name;
-    link.href = uri;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  // const exportImage = () => {
-  //   const mimeType = downloadSettings.isPng ? "image/png" : "image/jpeg";
-  //   const dataURL = wallpaperRef.current.toDataURL({
-  //     mimeType: mimeType,
-  //     pixelRatio: downloadSettings.size,
-  //     quality: downloadSettings.quality,
-  //   });
-  //   downloadURI(dataURL, device.name);
-  //   toast.success("Download complete", {
-  //     position: "bottom-right",
-  //     autoClose: 2000,
-  //     hideProgressBar: false,
-  //     closeOnClick: false,
-  //     pauseOnHover: true,
-  //     draggable: true,
-  //     progress: undefined,
-  //   });
-  // };
 
   return (
     <div
