@@ -2,9 +2,8 @@ import { useEffect, useState, useRef, useContext } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "preline/preline";
 import { zoom, select, zoomIdentity } from "d3";
-import { Resizable } from "react-resizable";
-import { DeviceContext } from "../App";
-import Wallpaper from "./wallpaper";
+import { DeviceContext } from "../../App";
+import Wallpaper from '../Wallpaper/index'
 
 function Canvas({ isOpen, panelSize }) {
   const { device } = useContext(DeviceContext);

@@ -1,6 +1,6 @@
 import { Stage, Rect, Layer, Transformer, Line } from "react-konva";
 import React, { forwardRef, useEffect, useState, useRef } from "react";
-import useWindowSize from "../hooks/useWindowSize";
+import useWindowSize from "../../hooks/useWindowSize";
 import { color } from "d3";
 import Konva from "konva";
 
@@ -108,9 +108,6 @@ const Wallpaper = forwardRef(
 
     useEffect(() => {
       setStageScale(getStageScale());
-      // console.log(stageScale);
-      // ref.current.draw();
-      
     }, [device.size.x, device.size.y, panelSize.width, panelSize.height, isOpen, windowSize]);
 
     const getScaleFactors = () => {

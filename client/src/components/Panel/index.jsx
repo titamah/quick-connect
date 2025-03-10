@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef, useContext } from "react";
 import "preline/preline";
-import "./styles.css";
 import { Resizable } from "react-resizable";
-import { DeviceContext } from "../App";
+import { DeviceContext } from "../../App";
 
 function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
   const { device, setDevice } = useContext(DeviceContext);
@@ -141,7 +140,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
         <div
           id="side-panel"
           ref={panelRef}
-          className={` hs-overlay fixed max-sm:hidden [--body-scroll:true] transition-[left] duration-350 transform h-full z-100 bg-white shadow-[3px_0_8px_1px_rgba(0,0,0,0.075)] dark:bg-neutral-800 dark:border-neutral-700`}
+          className={` hs-overlay fixed max-sm:hidden [--body-scroll:true] transition-[left] duration-350 transform h-[calc(100vh-52px)] z-100 bg-white shadow-[3px_0_8px_1px_rgba(0,0,0,0.075)] dark:bg-neutral-800 dark:border-neutral-700`}
           style={{
             left: isOpen ? 0 : `${panelSize.width * -1}px`,
             width: `${panelSize.width}px`,
@@ -150,7 +149,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
           aria-labelledby="hs-offcanvas-example-label"
         >
         <span
-          className="absolute top-[calc(50vh-52px)] right-0 translate-x-1/2 block w-5 h-7 flex items-center bg-white border border-gray-200 text-gray-400 rounded-md  hover:bg-gray-100 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-600 dark:hover:bg-neutral-900"
+          className="absolute top-1/2 right-0 translate-x-1/2 block w-5 h-7 flex items-center bg-white border border-gray-200 text-gray-400 rounded-md  hover:bg-gray-100 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-600 dark:hover:bg-neutral-900"
           onClick={togglePanel}
         >
           <svg
@@ -501,12 +500,11 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
                       </div>
                     </div>
                   </div>
-
                   <div
-                    id="custom-tabs-with-underline-2"
+                    id="tabs-with-underline-2"
                     class="hidden"
                     role="tabpanel"
-                    aria-labelledby="custom-tabs-with-underline-item-2"
+                    aria-labelledby="tabs-with-underline-item-2"
                   >
                     <p class="text-gray-500 dark:text-neutral-400">
                       This is the{" "}
@@ -516,12 +514,6 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
                       item's tab body.
                     </p>
                   </div>
-
-                  {/* <div id="tabs-with-underline-3" class="hidden" role="tabpanel" aria-labelledby="tabs-with-underline-item-3">
-    <p class="text-gray-500 dark:text-neutral-400">
-      This is the <em class="font-semibold text-gray-800 dark:text-neutral-200">third</em> item's tab body.
-    </p>
-  </div> */}
                 </div>
               </div>
             </div>
