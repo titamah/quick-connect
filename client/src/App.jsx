@@ -1,9 +1,10 @@
 import "./App.css";
 import "preline/preline";
 import { useState, useEffect, createContext } from "react";
-import Header from "./components/header";
-import Panel from "./components/panel/";
-import Canvas from "./components/canvas";
+import { ToastContainer } from "react-toastify";
+import Header from "./components/Header/index"
+import Panel from './components/Panel/index'
+import Canvas from "./components/Canvas/index"
 
 export const DeviceContext = createContext();
 
@@ -24,6 +25,7 @@ function App() {
 
   return (
     <DeviceContext.Provider value={{ device, setDevice }}>
+      <ToastContainer />
       <Header />
       <Panel
         setIsOpen={setIsOpen}
