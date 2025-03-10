@@ -10,15 +10,15 @@ export const DeviceContext = createContext();
 function App() {
   const [screenSize, setScreenSize] = useState({ x: window.innerWidth, y: window.innerHeight });
   const [isOpen, setIsOpen] = useState(true);
-  // const [panelSize, setPanelSize] = useState({ width: screenSize.x / 2, height: screenSize.y / 2 });
-  const [panelSize, setPanelSize] = useState({ width:100, height:100 });
+  const [panelSize, setPanelSize] = useState({ width: screenSize.x / 3, height: screenSize.y / 3 });
+  // const [panelSize, setPanelSize] = useState({ width:100, height:100 });
   const [device, setDevice] = useState({
     name: "Sample iPhone Wallpaper",
     type: "iPhone 12 Pro Max",
     size: { x: 1284, y: 2778 },
     isUpload: true,
     color: "blue",
-    bg: "file:///Users/titamah/repos/quick-connect/client/src/assets/example.jpg",
+    bg: "https://wallpapers.com/images/featured/iphone-12-pro-max-hknmpjtf3rmp9egv.jpg",
     qr: "https://www.linkedin.com/in/titamah",
   });
 

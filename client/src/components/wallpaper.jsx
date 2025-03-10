@@ -9,11 +9,30 @@ const Wallpaper = forwardRef(
     const windowSize = useWindowSize();
     const [patternImage, setPatternImage] = useState(null);
     const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
-    const [stageScale, setStageScale] = useState({ x: 1, y: 1 });
+
+    const getStageScale = () => {
+      let panelX, panelY;
+      if (window.innerHeight > 640) {
+        panelX = panelSize.width;
+        panelY = 0;
+      } else {
+        panelX = 0;
+        panelY = panelSize.height;
+      }
+      const scaleX = isOpen ?  (0.925 * window.innerWidth - panelX) / device.size.x : (0.925 * window.innerWidth) / device.size.x;
+      const scaleY = isOpen ?  (0.925 * (window.innerHeight - panelY - 52)) / device.size.y : (0.925 * (window.innerHeight - 52)) / device.size.y;
+      const scale = Math.min(scaleX, scaleY);
+      return scale;
+    } 
+    
+    const [stageScale, setStageScale] = useState({ x: getStageScale(), y: getStageScale() });
+
     const [isDraggable, setIsDraggable] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+
     const [isCenterX, setIsCenterX] = useState(true);
     const [isCenterY, setIsCenterY] = useState(false);
+
     const [isImageLoaded, setIsImageLoaded] = useState(false);
     // const [qr, setQR] = useState(null);
     const [qrImg, setQRImg] = useState(null);
@@ -25,9 +44,9 @@ const Wallpaper = forwardRef(
     const [qr, setQR] = useState(
       `http://api.qrserver.com/v1/create-qr-code/?data=HelloWorld!&size=${qrSize}x${qrSize}`
     );
+
     const transformerRef = useRef(null);
     const shapeRef = useRef(null);
-    const stageRef = useRef(null);
 
     useEffect(() => {
       setIsDraggable(locked);
@@ -76,7 +95,6 @@ const Wallpaper = forwardRef(
       if (device.isUpload && device.bg) {
         const img = new Image();
         img.src = device.bg;
-        img.crossOrigin = 'Anonymous';
         img.onload = () => {
           setPatternImage(img);
           setImageSize({
@@ -89,13 +107,10 @@ const Wallpaper = forwardRef(
     }, [device.isUpload, device.bg]);
 
     useEffect(() => {
-      const scaleX = isOpen ?  (0.90 * window.innerWidth - panelSize.width) / device.size.x : (0.90 * window.innerWidth) / device.size.x;
-      const scaleY = isOpen ?  (0.90 * (window.innerHeight - panelSize.height - 52)) / device.size.y : (0.90 * (window.innerHeight - 52)) / device.size.y;
-
-      const scale = Math.min(scaleX, scaleY);
-      setStageScale(scale);
-      console.log(stageScale);
-      ref.current.draw();
+      setStageScale(getStageScale());
+      // console.log(stageScale);
+      // ref.current.draw();
+      
     }, [device.size.x, device.size.y, panelSize.width, panelSize.height, isOpen, windowSize]);
 
     const getScaleFactors = () => {
@@ -274,9 +289,9 @@ const Wallpaper = forwardRef(
           width={device.size.x}
           height={device.size.y}
           style={{
-            transform: `scale(${stageScale})`,
-          transition:"ease-in-out",
-            pointerEvents: "auto",
+          pointerEvents: "auto",
+          transform: `scale(${stageScale})`,
+          transition: "ease-in-out",
           }}
           ref={ref}
           onMouseDown={handleStageMouseDown}
