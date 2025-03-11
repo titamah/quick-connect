@@ -7,7 +7,7 @@ import DeviceTypeSelector from "./DeviceTypeSelector"
 import ToggleButtonArrow from "./ToggleButtonArrow";
 import BackgroundSelector from "./BackgroundSelector"
 
-function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
+function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
   const { device, setDevice } = useContext(DeviceContext);
   const [activeAccordions, setActiveAccordions] = useState([
     "accordion-one",
@@ -66,7 +66,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
         onResize={onResizeSide}
         resizeHandles={["e"]}
         handle={
-          <div className="fixed z-150 right-0 top-0 h-full w-[10px] cursor-col-resize">
+          <div className="fixed z-1500 right-0 top-0 h-full w-[10px] cursor-col-resize">
             <div className="fixed right-0 top-1/2 cursor-pointer z-200">
             </div>
           </div>
@@ -156,7 +156,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize }) {
                 role="region"
                 aria-labelledby="hs-basic-with-title-and-arrow-stretched-heading-one"
               >
-                <QRGenerator/>
+                <QRGenerator panelSize={panelSize}/>
               </div>
             </div>
             <div

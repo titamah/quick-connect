@@ -1,6 +1,6 @@
 import "./App.css";
 import "preline/preline";
-import { useState, useEffect, createContext } from "react";
+import { useState, useRef, createContext } from "react";
 import { ToastContainer } from "react-toastify";
 import Header from "./components/Header/index"
 import Panel from './components/Panel/index'
@@ -9,10 +9,9 @@ import Canvas from "./components/Canvas/index"
 export const DeviceContext = createContext();
 
 function App() {
-  const [screenSize, setScreenSize] = useState({ x: window.innerWidth, y: window.innerHeight });
   const [isOpen, setIsOpen] = useState(true);
-  const [panelSize, setPanelSize] = useState({ width: screenSize.x / 3, height: screenSize.y / 3 });
-  // const [panelSize, setPanelSize] = useState({ width:100, height:100 });
+  const [panelSize, setPanelSize] = useState({ width: window.innerWidth / 3, height: window.innerHeight / 3 });
+  const wallpaperRef = useRef(null);
   const [device, setDevice] = useState({
     name: "Sample iPhone Wallpaper",
     type: "iPhone 12 Pro Max",
@@ -20,7 +19,7 @@ function App() {
     isUpload: true,
     color: "blue",
     bg: "https://wallpapers.com/images/featured/iphone-12-pro-max-hknmpjtf3rmp9egv.jpg",
-    qr: "https://www.linkedin.com/in/titamah",
+    qr: {url:"https://www.linkedin.com/in/titamah", custom: false},
   });
 
   return (
@@ -32,10 +31,12 @@ function App() {
         isOpen={isOpen}
         panelSize={panelSize}
         setPanelSize={setPanelSize}
+        wallpaperRef={wallpaperRef}
       />
       <Canvas
         isOpen={isOpen}
         panelSize={panelSize}
+        wallpaperRef={wallpaperRef}
       />
     </DeviceContext.Provider>
   );

@@ -5,11 +5,11 @@ import { DeviceContext } from "../../App";
 import Wallpaper from '../Wallpaper/index'
 import ExportButton from "./ExportButton";
 
-function Canvas({ isOpen, panelSize }) {
+function Canvas({ isOpen, panelSize, wallpaperRef }) {
   const { device } = useContext(DeviceContext);
   const previewRef = useRef(null);
   const canvasRef = useRef(null);
-  const wallpaperRef = useRef(null);
+  // const wallpaperRef = useRef(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isZoomEnabled, setIsZoomEnabled] = useState(false);

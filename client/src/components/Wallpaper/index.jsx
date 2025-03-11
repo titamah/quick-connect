@@ -19,13 +19,20 @@ const Wallpaper = forwardRef(
         panelX = 0;
         panelY = panelSize.height;
       }
-      const scaleX = isOpen ?  (0.925 * window.innerWidth - panelX) / device.size.x : (0.925 * window.innerWidth) / device.size.x;
-      const scaleY = isOpen ?  (0.925 * (window.innerHeight - panelY - 52)) / device.size.y : (0.925 * (window.innerHeight - 52)) / device.size.y;
+      const scaleX = isOpen
+        ? (0.925 * window.innerWidth - panelX) / device.size.x
+        : (0.925 * window.innerWidth) / device.size.x;
+      const scaleY = isOpen
+        ? (0.925 * (window.innerHeight - panelY - 52)) / device.size.y
+        : (0.925 * (window.innerHeight - 52)) / device.size.y;
       const scale = Math.min(scaleX, scaleY);
       return scale;
-    } 
-    
-    const [stageScale, setStageScale] = useState({ x: getStageScale(), y: getStageScale() });
+    };
+
+    const [stageScale, setStageScale] = useState({
+      x: getStageScale(),
+      y: getStageScale(),
+    });
 
     const [isDraggable, setIsDraggable] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
@@ -34,15 +41,10 @@ const Wallpaper = forwardRef(
     const [isCenterY, setIsCenterY] = useState(false);
 
     const [isImageLoaded, setIsImageLoaded] = useState(false);
-    // const [qr, setQR] = useState(null);
+    const [qr, setQR] = useState(null);
     const [qrImg, setQRImg] = useState(null);
-    const [isQRLoaded, setIsQRLoaded] = useState(false);
     const [qrSize, setQRSize] = useState(
       Math.min(device.size.x, device.size.y) / 2
-    );
-    //Temporary QR code
-    const [qr, setQR] = useState(
-      `http://api.qrserver.com/v1/create-qr-code/?data=HelloWorld!&size=${qrSize}x${qrSize}`
     );
 
     const transformerRef = useRef(null);
@@ -52,44 +54,18 @@ const Wallpaper = forwardRef(
       setIsDraggable(locked);
     }, [locked]);
 
-    // useEffect(() => {
-    //   const fetchQRCode = async () => {
-    //     try {
-    //       const response = await fetch(
-    //         `http://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(
-    //           device.qr
-    //         )}&size=${qrSize}x${qrSize}&color=550022&bgcolor=ffffff&margin=10`
-    //       );
-
-    //       if (!response.ok) {
-    //         throw new Error(`HTTP error! status: ${response.status}`);
-    //       }
-
-    //       const qrBlob = await response.blob();
-    //       const qrUrl = URL.createObjectURL(qrBlob);
-    //       setQR(qrUrl);
-    //     } catch (error) {
-    //       console.error("Error fetching QR code:", error);
-    //     }
-    //   };
-
-    //   if (device.qr) {
-    //     fetchQRCode();
-    //   }
-    // }, [device.qr, qrSize]);
-
     useEffect(() => {
-      if (qr) {
-        const qrImage = new Image();
-        qrImage.src = `http://api.qrserver.com/v1/create-qr-code/?data=HelloWorld!&size=${qrSize}x${qrSize}`;
-        qrImage.src = qr;
-        qrImage.crossOrigin = 'Anonymous';
-        qrImage.onload = () => {
-          setQRImg(qrImage);
-          setIsQRLoaded(true);
-        };
-      }
-    }, [qr]);
+      const svg = document.getElementById("QRCode")?.querySelector("svg");
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const qrImage = new Image();
+      qrImage.src = url;
+      qrImage.onload = () => {
+        console.log(qrImage);
+        setQRImg(qrImage);
+      };
+    }, [device.qr]);
 
     useEffect(() => {
       if (device.isUpload && device.bg) {
@@ -108,7 +84,14 @@ const Wallpaper = forwardRef(
 
     useEffect(() => {
       setStageScale(getStageScale());
-    }, [device.size.x, device.size.y, panelSize.width, panelSize.height, isOpen, windowSize]);
+    }, [
+      device.size.x,
+      device.size.y,
+      panelSize.width,
+      panelSize.height,
+      isOpen,
+      windowSize,
+    ]);
 
     const getScaleFactors = () => {
       if (!imageSize.width || !imageSize.height) return { x: 1, y: 1 };
@@ -286,16 +269,14 @@ const Wallpaper = forwardRef(
           width={device.size.x}
           height={device.size.y}
           style={{
-          pointerEvents: "auto",
-          transform: `scale(${stageScale})`,
-          transition: "ease-in-out",
+            pointerEvents: "auto",
+            transform: `scale(${stageScale})`,
+            transition: "ease-in-out",
           }}
           ref={ref}
           onMouseDown={handleStageMouseDown}
         >
-          <Layer>
-          {isImageLoaded && <Rect {...rectProps} />}
-        </Layer>
+          <Layer>{isImageLoaded && <Rect {...rectProps} />}</Layer>
           <Layer
             style={{
               pointerEvents: "auto",
@@ -306,7 +287,7 @@ const Wallpaper = forwardRef(
               x={device.size.x / 4}
               y={device.size.y / 1.75}
               fillPatternImage={qrImg}
-              stroke="black"
+              fillPatternRepeat={"no-repeat"}
               height={qrSize}
               width={qrSize}
               draggable={isDraggable}
@@ -336,14 +317,28 @@ const Wallpaper = forwardRef(
               stroke={"red"}
               strokeWidth={5}
               dash={[25, 15]}
-              points={[device.size.x/2, 0, device.size.x/2, device.size.y/2, device.size.x/2, device.size.y]}
+              points={[
+                device.size.x / 2,
+                0,
+                device.size.x / 2,
+                device.size.y / 2,
+                device.size.x / 2,
+                device.size.y,
+              ]}
               visible={isCenterX && isDragging}
             />
             <Line
               stroke={"red"}
               strokeWidth={5}
               dash={[25, 15]}
-              points={[0, device.size.y/2, device.size.x/2, device.size.y/2, device.size.x, device.size.y/2]}
+              points={[
+                0,
+                device.size.y / 2,
+                device.size.x / 2,
+                device.size.y / 2,
+                device.size.x,
+                device.size.y / 2,
+              ]}
               visible={isCenterY & isDragging}
             />
           </Layer>
