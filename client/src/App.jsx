@@ -20,7 +20,7 @@ function App() {
     isUpload: true,
     color: "blue",
     bg: "https://wallpapers.com/images/featured/iphone-12-pro-max-hknmpjtf3rmp9egv.jpg",
-    qr: {url:"https://www.linkedin.com/in/titamah", custom: {borderSize:25, borderColor:"#ffffff", cornerRadius:50}},
+    qr: {url:"https://www.linkedin.com/in/titamah", custom: {borderSize:0, borderColor:"#ffffff", cornerRadius:0}},
   });
 
   return (

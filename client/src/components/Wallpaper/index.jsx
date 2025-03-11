@@ -1,4 +1,4 @@
-import { Stage, Rect, Layer, Transformer, Line } from "react-konva";
+import { Stage, Rect, Layer, Transformer, Line, Group } from "react-konva";
 import React, { forwardRef, useEffect, useState, useRef } from "react";
 import useWindowSize from "../../hooks/useWindowSize";
 import { color } from "d3";
@@ -283,6 +283,25 @@ const Wallpaper = forwardRef(
             }}
             onMouseUp={cancelBubble}
           >
+          <Group
+              draggable={isDraggable}
+              onDragMove={handleDragMove}
+              onMouseDown={handleMouseDown}
+              ref={shapeRef}
+          >
+          <Rect
+          id="QRImage"
+            x={device.size.x / 4}
+            y={device.size.y / 1.75}
+            fill={device.qr.custom.borderColor}
+            fillPatternRepeat={"no-repeat"}
+            height={qrSize }
+            width={qrSize }
+            fillAfterStrokeEnabled={true}
+            cornerRadius={[device.qr.custom.cornerRadius,device.qr.custom.cornerRadius,device.qr.custom.cornerRadius,device.qr.custom.cornerRadius]}
+            stroke={device.qr.custom.borderColor}
+            strokeWidth={device.qr.custom.borderSize}
+          />
             <Rect
             id="QRImage"
               x={device.size.x / 4}
@@ -292,14 +311,8 @@ const Wallpaper = forwardRef(
               height={qrSize}
               width={qrSize}
               fillAfterStrokeEnabled={true}
-              cornerRadius={[device.qr.custom.cornerRadius,device.qr.custom.cornerRadius,device.qr.custom.cornerRadius,device.qr.custom.cornerRadius]}
-              stroke={device.qr.custom.borderColor}
-              strokeWidth={device.qr.custom.borderSize}
-              draggable={isDraggable}
-              onDragMove={handleDragMove}
-              onMouseDown={handleMouseDown}
-              ref={shapeRef}
             />
+        </Group>
             <Transformer
               onTransformEnd={cancelBubble}
               borderStroke={"red"}
