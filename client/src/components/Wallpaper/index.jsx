@@ -41,7 +41,10 @@ const Wallpaper = forwardRef(
     const [isCenterY, setIsCenterY] = useState(false);
 
     const [isImageLoaded, setIsImageLoaded] = useState(false);
-    const [qr, setQR] = useState(null);
+    const [qrPos, setQRPos] = useState({
+      x:(device.size.x / 4),
+      y:(device.size.y / 1.75)
+    });
     const [qrImg, setQRImg] = useState(null);
     const [qrSize, setQRSize] = useState(
       Math.min(device.size.x, device.size.y) / 2
@@ -65,7 +68,7 @@ const Wallpaper = forwardRef(
         console.log(qrImage);
         setQRImg(qrImage);
       };
-    }, [device.qr]);
+    }, [device.qr, device.size]);
 
     useEffect(() => {
       if (device.isUpload && device.bg) {
@@ -129,9 +132,12 @@ const Wallpaper = forwardRef(
 
     const handleDragMove = (e) => {
       const shape = e.target;
+      console.log(shape);
       const layer = shape.getLayer();
       const stage = layer.getStage();
       const stageWidth = stage.width();
+      console.log(stageWidth);
+      console.log(stageWidth);
       const stageHeight = stage.height();
       const shapeWidth = shape.width() * shape.scaleX();
       const shapeHeight = shape.height() * shape.scaleY();
@@ -161,11 +167,16 @@ const Wallpaper = forwardRef(
       }
       shape.x(targetX);
       shape.y(targetY);
+      setQRPos({
+        x: targetX + (device.qr.custom.borderSize / 2 * stageScale),
+        y: targetY + (device.qr.custom.borderSize / 2 * stageScale)
+      })
     };
 
     const handleMouseDown = (e) => {
       if (isDraggable) {
-        const shape = e.target;
+        const shape = e.target.getParent();
+        console.log(shape)
         const originalScaleX = shape.scaleX();
         const originalScaleY = shape.scaleY();
         const originalWidth = shape.width() * originalScaleX;
@@ -203,7 +214,7 @@ const Wallpaper = forwardRef(
       shapeRef.current.on("click dragend", (e) => {
         setTimeout(() => {
           setIsDragging(false);
-          transformerRef.current.nodes([e.target]);
+          transformerRef.current.nodes([shapeRef.current]);
           transformerRef.current.getLayer().batchDraw();
           console.log("qr");
         }, 5);
@@ -288,24 +299,24 @@ const Wallpaper = forwardRef(
               onDragMove={handleDragMove}
               onMouseDown={handleMouseDown}
               ref={shapeRef}
+              x={qrPos.x - (device.qr.custom.borderSize / 2 * stageScale)}
+              y={qrPos.y - (device.qr.custom.borderSize / 2 * stageScale)}
+              height={qrSize + (device.qr.custom.borderSize * stageScale)}
+              width={qrSize + (device.qr.custom.borderSize * stageScale)}
           >
           <Rect
           id="QRImage"
-            x={device.size.x / 4}
-            y={device.size.y / 1.75}
             fill={device.qr.custom.borderColor}
             fillPatternRepeat={"no-repeat"}
-            height={qrSize }
-            width={qrSize }
+            height={qrSize + (device.qr.custom.borderSize * stageScale)}
+            width={qrSize + (device.qr.custom.borderSize * stageScale)}
             fillAfterStrokeEnabled={true}
             cornerRadius={[device.qr.custom.cornerRadius,device.qr.custom.cornerRadius,device.qr.custom.cornerRadius,device.qr.custom.cornerRadius]}
-            stroke={device.qr.custom.borderColor}
-            strokeWidth={device.qr.custom.borderSize}
           />
             <Rect
             id="QRImage"
-              x={device.size.x / 4}
-              y={device.size.y / 1.75}
+              x={(device.qr.custom.borderSize / 2 * stageScale)}
+              y={(device.qr.custom.borderSize / 2 * stageScale)}
               fillPatternImage={qrImg}
               fillPatternRepeat={"no-repeat"}
               height={qrSize}

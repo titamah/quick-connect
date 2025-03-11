@@ -5,6 +5,7 @@ import { DeviceContext } from "../../App";
 function QRGenerator() {
   const { device, setDevice } = useContext(DeviceContext);
   const [deviceSize, setDeviceSize] = useState(device.size);
+  const [deviceName, setDeviceName] = useState(device.size);
 
   const devicesSizes = [
     { name: "test phone", size: { x: 124, y: 778 } },

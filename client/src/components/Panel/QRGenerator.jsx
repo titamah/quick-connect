@@ -146,8 +146,9 @@ function QRGenerator(panelSize) {
                 id="steps-range-slider-usage"
                 aria-orientation="horizontal"
                 min="0"
-                max={qrSize/3}
+                max={qrSize * 2}
                 step="1"
+                value={device.qr.custom.borderSize}
                 // When border size is changes, transformer tweaks
                 // try to switch from StrokeWidth to actual canvas size
                 onChange={(e) => {
@@ -162,7 +163,7 @@ function QRGenerator(panelSize) {
       Border Color
       <div className="flex justify-between py-2">
         <ColorPicker
-        //   value={device.qr.custom.borderColor}
+          value={device.qr.custom.borderColor}
           className="qr-color-picker"
           onChange={(e) => {
             console.log(e.toHexString())
@@ -217,9 +218,9 @@ function QRGenerator(panelSize) {
                 id="steps-range-slider-usage"
                 aria-orientation="horizontal"
                 min="0"
-                max={qrSize/2}
+                max={qrSize}
                 step="1"
-                // value={0}
+                value={device.qr.custom.cornerRadius}
                 onChange={(e) => {
                     console.log(e.target.value)
                     setDevice((prevDevice) => ({
