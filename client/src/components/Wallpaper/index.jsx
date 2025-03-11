@@ -284,12 +284,17 @@ const Wallpaper = forwardRef(
             onMouseUp={cancelBubble}
           >
             <Rect
+            id="QRImage"
               x={device.size.x / 4}
               y={device.size.y / 1.75}
               fillPatternImage={qrImg}
               fillPatternRepeat={"no-repeat"}
               height={qrSize}
               width={qrSize}
+              fillAfterStrokeEnabled={true}
+              cornerRadius={[device.qr.custom.cornerRadius,device.qr.custom.cornerRadius,device.qr.custom.cornerRadius,device.qr.custom.cornerRadius]}
+              stroke={device.qr.custom.borderColor}
+              strokeWidth={device.qr.custom.borderSize}
               draggable={isDraggable}
               onDragMove={handleDragMove}
               onMouseDown={handleMouseDown}
@@ -305,6 +310,7 @@ const Wallpaper = forwardRef(
                 "bottom-left",
                 "bottom-right",
               ]}
+              keepRatio={true}
               anchorSize={7.5 / stageScale}
               anchorStroke={"red"}
               anchorStrokeWidth={1 / stageScale}

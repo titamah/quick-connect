@@ -2,6 +2,7 @@ import "./App.css";
 import "preline/preline";
 import { useState, useRef, createContext } from "react";
 import { ToastContainer } from "react-toastify";
+import { ConfigProvider, theme } from "antd";
 import Header from "./components/Header/index"
 import Panel from './components/Panel/index'
 import Canvas from "./components/Canvas/index"
@@ -19,10 +20,19 @@ function App() {
     isUpload: true,
     color: "blue",
     bg: "https://wallpapers.com/images/featured/iphone-12-pro-max-hknmpjtf3rmp9egv.jpg",
-    qr: {url:"https://www.linkedin.com/in/titamah", custom: false},
+    qr: {url:"https://www.linkedin.com/in/titamah", custom: {borderSize:25, borderColor:"#ffffff", cornerRadius:50}},
   });
 
   return (
+    <ConfigProvider
+    theme={{
+      // 1. Use dark algorithm
+      algorithm: theme.darkAlgorithm,
+
+      // 2. Combine dark algorithm and compact algorithm
+      // algorithm: [theme.darkAlgorithm, theme.compactAlgorithm],
+    }}
+  >
     <DeviceContext.Provider value={{ device, setDevice }}>
       <ToastContainer />
       <Header />
@@ -39,6 +49,7 @@ function App() {
         wallpaperRef={wallpaperRef}
       />
     </DeviceContext.Provider>
+    </ConfigProvider>
   );
 }
 
