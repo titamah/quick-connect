@@ -9,6 +9,7 @@ function QRGenerator(panelSize) {
   const [qrSize, setQRSize] = useState(
     Math.min(device.size.x, device.size.y) / 2
   );
+
   useEffect(() => {
     qrCodeRef.current.style.width = "100%";
     qrCodeRef.current.style.maxWidth = "250px";
@@ -29,8 +30,6 @@ function QRGenerator(panelSize) {
 
   useEffect(()=>{
     const QRImage = document.getElementById("#QRImage");
-    console.log(QRImage)
-    // QRImage.stroke = "red";
   },[])
 
   const getColorString = (String) => {
@@ -52,7 +51,7 @@ function QRGenerator(panelSize) {
   const [iconSize, setIconSize] = useState(null);
 
   return (
-    <div id="qr-input-box" className="dark:text-white text-sm">
+    <div id="qr-input-box" className="dark:text-white text-sm px-5">
       <input
         id="qr-input"
         type="text"
@@ -83,6 +82,7 @@ function QRGenerator(panelSize) {
       <div className="flex justify-between py-2">
         <ColorPicker
           value={color}
+          placement="bottomRight"
           className="qr-color-picker"
           onChange={(e) => {
             setColor(getColorString(e));
@@ -96,6 +96,7 @@ function QRGenerator(panelSize) {
       <div className="flex justify-between py-2">
         <ColorPicker
           value={bgColor}
+          placement="bottomRight"
           className="qr-color-picker"
           onChange={(e) => {
             setBGColor(getColorString(e));
@@ -149,10 +150,7 @@ function QRGenerator(panelSize) {
                 max={qrSize * 2}
                 step="1"
                 value={device.qr.custom.borderSize}
-                // When border size is changes, transformer tweaks
-                // try to switch from StrokeWidth to actual canvas size
                 onChange={(e) => {
-                    console.log(e.target)
                     setDevice((prevDevice) => ({
                       ...prevDevice,
                       qr: { url: prevDevice.qr.url, custom: {borderSize:e.target.value, borderColor: prevDevice.qr.custom.borderColor, cornerRadius: prevDevice.qr.custom.cornerRadius} },
@@ -164,9 +162,9 @@ function QRGenerator(panelSize) {
       <div className="flex justify-between py-2">
         <ColorPicker
           value={device.qr.custom.borderColor}
+          placement="bottomRight"
           className="qr-color-picker"
           onChange={(e) => {
-            console.log(e.toHexString())
             setDevice((prevDevice) => ({
               ...prevDevice,
               qr: { url: prevDevice.qr.url, custom: {borderSize: prevDevice.qr.custom.borderSize, borderColor: e.toHexString(), cornerRadius: prevDevice.qr.custom.cornerRadius} },
@@ -222,7 +220,6 @@ function QRGenerator(panelSize) {
                 step="1"
                 value={device.qr.custom.cornerRadius}
                 onChange={(e) => {
-                    console.log(e.target.value)
                     setDevice((prevDevice) => ({
                       ...prevDevice,
                       qr: { url: prevDevice.qr.url, custom: {borderSize: prevDevice.qr.custom.borderSize, borderColor: prevDevice.qr.custom.borderColor, cornerRadius:e.target.value} },

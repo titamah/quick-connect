@@ -114,30 +114,28 @@ const Wallpaper = forwardRef(
       };
     };
 
-    const rectProps = device.isUpload
-      ? {
+    useEffect(()=>{
+      
+    },[device.isUpload, device.color])
+
+    const [rectProps, setRectProps] = useState({
           fillPatternImage: patternImage,
           fillPatternScale: getScaleFactors(),
-          width: getImageSize().x,
-          height: getImageSize().y,
-          x: (device.size.x - getImageSize().x) / 2,
-          y: (device.size.y - getImageSize().y) / 2,
-          fillPatternRepeat: "no-repeat",
-        }
-      : {
           fill: device.color,
-          width: device.size.x,
-          height: device.size.y,
-        };
+          fillPriority: device.isUpload ? "pattern" : "color",
+          width: device.isUpload ? getImageSize().x : device.size.x,
+          height: device.isUpload ? getImageSize().y : device.size.y,
+          x: device.isUpload ? (device.size.x - getImageSize().x) / 2 : 0,
+          y: device.isUpload ? (device.size.y - getImageSize().y) / 2 : 0,
+          fillPatternRepeat: "no-repeat",
+        })
+
 
     const handleDragMove = (e) => {
       const shape = e.target;
-      console.log(shape);
       const layer = shape.getLayer();
       const stage = layer.getStage();
       const stageWidth = stage.width();
-      console.log(stageWidth);
-      console.log(stageWidth);
       const stageHeight = stage.height();
       const shapeWidth = shape.width() * shape.scaleX();
       const shapeHeight = shape.height() * shape.scaleY();
@@ -176,7 +174,6 @@ const Wallpaper = forwardRef(
     const handleMouseDown = (e) => {
       if (isDraggable) {
         const shape = e.target.getParent();
-        console.log(shape)
         const originalScaleX = shape.scaleX();
         const originalScaleY = shape.scaleY();
         const originalWidth = shape.width() * originalScaleX;
@@ -206,36 +203,29 @@ const Wallpaper = forwardRef(
       }
     };
 
-    const handleMouseUp = (e) => {
-      console.log(e.target);
-    };
-
     useEffect(() => {
       shapeRef.current.on("click dragend", (e) => {
         setTimeout(() => {
           setIsDragging(false);
           transformerRef.current.nodes([shapeRef.current]);
           transformerRef.current.getLayer().batchDraw();
-          console.log("qr");
         }, 5);
       });
       shapeRef.current.on("dragstart", (e) => {
+        console.log(device.color)
         setTimeout(() => {
           setIsDragging(true);
           transformerRef.current.nodes([]);
           transformerRef.current.getLayer().batchDraw();
-          console.log("qr");
         }, 5);
       });
       transformerRef.current.on("transformend", (e) => {
         setTimeout(() => {
           transformerRef.current.nodes([shapeRef.current]);
           transformerRef.current.getLayer().batchDraw();
-          console.log("transformer");
         }, 5);
       });
       document.getElementById("Canvas").addEventListener("mouseup", (e) => {
-        console.log(transformerRef.current.nodes());
         if (transformerRef.current.nodes().length > 0) {
           transformerRef.current.nodes([]);
           transformerRef.current.getLayer().batchDraw();
@@ -248,7 +238,6 @@ const Wallpaper = forwardRef(
     }, []);
 
     const handleStageMouseDown = (e) => {
-      console.log(e);
       // Deselect transformer if clicked outside of the target shape
       if (e.target === e.target.getStage()) {
         transformerRef.current.nodes([]);
@@ -264,115 +253,126 @@ const Wallpaper = forwardRef(
 
     return (
       <div
-        id="preview"
-        style={{
-          width: `${device.size.x * stageScale - 1}px`,
-          height: `${device.size.y * stageScale - 1}px`,
-          position: "relative",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-        className="
-        bg-gray-800 shadow-[0_2.75rem_5.5rem_-3.5rem_rgb(45_55_75_/_20%),_0_2rem_4rem_-2rem_rgb(45_55_75_/_30%),_inset_0_-0.1875rem_0.3125rem_0_rgb(45_55_75_/_20%)] dark:bg-neutral-600 dark:shadow-[0_2.75rem_5.5rem_-3.5rem_rgb(0_0_0_/_20%),_0_2rem_4rem_-2rem_rgb(0_0_0_/_30%),_inset_0_-0.1875rem_0.3125rem_0_rgb(0_0_0_/_20%)]"
+      id="preview"
+      style={{
+        width: `${device.size.x * stageScale - 1}px`,
+        height: `${device.size.y * stageScale - 1}px`,
+        position: "relative",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
       >
-        <Stage
-          width={device.size.x}
-          height={device.size.y}
-          style={{
-            pointerEvents: "auto",
-            transform: `scale(${stageScale})`,
-            transition: "ease-in-out",
-          }}
-          ref={ref}
-          onMouseDown={handleStageMouseDown}
-        >
-          <Layer>{isImageLoaded && <Rect {...rectProps} />}</Layer>
-          <Layer
-            style={{
-              pointerEvents: "auto",
-            }}
-            onMouseUp={cancelBubble}
-          >
-          <Group
-              draggable={isDraggable}
-              onDragMove={handleDragMove}
-              onMouseDown={handleMouseDown}
-              ref={shapeRef}
-              x={qrPos.x - (device.qr.custom.borderSize / 2 * stageScale)}
-              y={qrPos.y - (device.qr.custom.borderSize / 2 * stageScale)}
-              height={qrSize + (device.qr.custom.borderSize * stageScale)}
-              width={qrSize + (device.qr.custom.borderSize * stageScale)}
-          >
+      <Stage
+        width={device.size.x}
+        height={device.size.y}
+        style={{
+        pointerEvents: "auto",
+        transform: `scale(${stageScale})`,
+        transition: "ease-in-out",
+        // backgroundColor: device.color,
+        }}
+        ref={ref}
+        onMouseDown={handleStageMouseDown}
+      >
+        <Layer>
           <Rect
-          id="QRImage"
-            fill={device.qr.custom.borderColor}
-            fillPatternRepeat={"no-repeat"}
-            height={qrSize + (device.qr.custom.borderSize * stageScale)}
-            width={qrSize + (device.qr.custom.borderSize * stageScale)}
-            fillAfterStrokeEnabled={true}
-            cornerRadius={[device.qr.custom.cornerRadius,device.qr.custom.cornerRadius,device.qr.custom.cornerRadius,device.qr.custom.cornerRadius]}
+          fillPatternImage={patternImage}
+          fillPatternScale={getScaleFactors()}
+          fill={device.color}
+          fillPriority={device.isUpload ? "pattern" : "color"}
+          width={device.isUpload ? getImageSize().x : device.size.x}
+          height={device.isUpload ? getImageSize().y : device.size.y}
+          x={device.isUpload ? (device.size.x - getImageSize().x) / 2 : 0}
+          y={device.isUpload ? (device.size.y - getImageSize().y) / 2 : 0}
+          fillPatternRepeat="no-repeat"
           />
-            <Rect
-            id="QRImage"
-              x={(device.qr.custom.borderSize / 2 * stageScale)}
-              y={(device.qr.custom.borderSize / 2 * stageScale)}
-              fillPatternImage={qrImg}
-              fillPatternRepeat={"no-repeat"}
-              height={qrSize}
-              width={qrSize}
-              fillAfterStrokeEnabled={true}
-            />
-        </Group>
-            <Transformer
-              onTransformEnd={cancelBubble}
-              borderStroke={"red"}
-              borderStrokeWidth={2 / stageScale}
-              enabledAnchors={[
-                "top-left",
-                "top-right",
-                "bottom-left",
-                "bottom-right",
-              ]}
-              keepRatio={true}
-              anchorSize={7.5 / stageScale}
-              anchorStroke={"red"}
-              anchorStrokeWidth={1 / stageScale}
-              anchorCornerRadius={7.5 / stageScale}
-              rotateEnabled={false}
-              flipEnabled={false}
-              ref={transformerRef}
-            />
-            <Line
-              stroke={"red"}
-              strokeWidth={5}
-              dash={[25, 15]}
-              points={[
-                device.size.x / 2,
-                0,
-                device.size.x / 2,
-                device.size.y / 2,
-                device.size.x / 2,
-                device.size.y,
-              ]}
-              visible={isCenterX && isDragging}
-            />
-            <Line
-              stroke={"red"}
-              strokeWidth={5}
-              dash={[25, 15]}
-              points={[
-                0,
-                device.size.y / 2,
-                device.size.x / 2,
-                device.size.y / 2,
-                device.size.x,
-                device.size.y / 2,
-              ]}
-              visible={isCenterY & isDragging}
-            />
           </Layer>
-        </Stage>
+        <Layer
+        style={{
+          pointerEvents: "auto",
+        }}
+        onMouseUp={cancelBubble}
+        >
+        <Group
+          draggable={isDraggable}
+          onDragMove={handleDragMove}
+          onMouseDown={handleMouseDown}
+          ref={shapeRef}
+          x={qrPos.x - (device.qr.custom.borderSize / 2 * stageScale)}
+          y={qrPos.y - (device.qr.custom.borderSize / 2 * stageScale)}
+          height={qrSize + (device.qr.custom.borderSize * stageScale)}
+          width={qrSize + (device.qr.custom.borderSize * stageScale)}
+        >
+        <Rect
+        id="QRImage"
+        fill={device.qr.custom.borderColor}
+        fillPatternRepeat={"no-repeat"}
+        height={qrSize + (device.qr.custom.borderSize * stageScale)}
+        width={qrSize + (device.qr.custom.borderSize * stageScale)}
+        fillAfterStrokeEnabled={true}
+        cornerRadius={[device.qr.custom.cornerRadius,device.qr.custom.cornerRadius,device.qr.custom.cornerRadius,device.qr.custom.cornerRadius]}
+        />
+        <Rect
+        id="QRImage"
+          x={(device.qr.custom.borderSize / 2 * stageScale)}
+          y={(device.qr.custom.borderSize / 2 * stageScale)}
+          fillPatternImage={qrImg}
+          fillPatternRepeat={"no-repeat"}
+          height={qrSize}
+          width={qrSize}
+          fillAfterStrokeEnabled={true}
+        />
+      </Group>
+        <Transformer
+          onTransformEnd={cancelBubble}
+          borderStroke={"red"}
+          borderStrokeWidth={2 / stageScale}
+          enabledAnchors={[
+          "top-left",
+          "top-right",
+          "bottom-left",
+          "bottom-right",
+          ]}
+          keepRatio={true}
+          anchorSize={7.5 / stageScale}
+          anchorStroke={"red"}
+          anchorStrokeWidth={1 / stageScale}
+          anchorCornerRadius={7.5 / stageScale}
+          rotateEnabled={false}
+          flipEnabled={false}
+          ref={transformerRef}
+        />
+        <Line
+          stroke={"red"}
+          strokeWidth={5}
+          dash={[25, 15]}
+          points={[
+          device.size.x / 2,
+          0,
+          device.size.x / 2,
+          device.size.y / 2,
+          device.size.x / 2,
+          device.size.y,
+          ]}
+          visible={isCenterX && isDragging}
+        />
+        <Line
+          stroke={"red"}
+          strokeWidth={5}
+          dash={[25, 15]}
+          points={[
+          0,
+          device.size.y / 2,
+          device.size.x / 2,
+          device.size.y / 2,
+          device.size.x,
+          device.size.y / 2,
+          ]}
+          visible={isCenterY & isDragging}
+        />
+        </Layer>
+      </Stage>
       </div>
     );
   }

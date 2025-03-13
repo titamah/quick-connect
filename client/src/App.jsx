@@ -1,6 +1,6 @@
 import "./App.css";
 import "preline/preline";
-import { useState, useRef, createContext } from "react";
+import { useState, useRef, createContext, useEffect } from "react";
 import { ToastContainer } from "react-toastify";
 import { ConfigProvider, theme } from "antd";
 import Header from "./components/Header/index"
@@ -17,22 +17,32 @@ function App() {
     name: "Sample iPhone Wallpaper",
     type: "iPhone 12 Pro Max",
     size: { x: 1284, y: 2778 },
-    isUpload: true,
-    color: "blue",
-    bg: "https://wallpapers.com/images/featured/iphone-12-pro-max-hknmpjtf3rmp9egv.jpg",
+    isUpload: false,
+    color: "#ffffff",
+    // bg: "https://wallpapers.com/images/featured/iphone-12-pro-max-hknmpjtf3rmp9egv.jpg",
     qr: {url:"https://www.linkedin.com/in/titamah", custom: {borderSize:0, borderColor:"#000000", cornerRadius:0}},
   });
 
-  return (
-    <ConfigProvider
-    theme={{
-      // 1. Use dark algorithm
-      algorithm: theme.darkAlgorithm,
+    const [isDarkMode, setIsDarkMode] = useState(false);
+    useEffect(() => {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handler = (e) => setIsDarkMode(e.matches);
+      setIsDarkMode(mediaQuery.matches);
+      mediaQuery.addEventListener('change', handler);
+      return () => mediaQuery.removeEventListener('change', handler);
+    }, []);
+  
 
-      // 2. Combine dark algorithm and compact algorithm
-      // algorithm: [theme.darkAlgorithm, theme.compactAlgorithm],
-    }}
-  >
+    return (
+      <ConfigProvider
+        theme={{
+          token: {
+            colorPrimary: '#00b96b',
+            borderRadius: 4,
+          },
+          algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm
+        }}
+      >
     <DeviceContext.Provider value={{ device, setDevice }}>
       <ToastContainer />
       <Header />

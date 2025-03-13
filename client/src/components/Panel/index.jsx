@@ -10,9 +10,9 @@ import BackgroundSelector from "./BackgroundSelector"
 function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
   const { device, setDevice } = useContext(DeviceContext);
   const [activeAccordions, setActiveAccordions] = useState([
-    "accordion-one",
+    // "accordion-one",
     "accordion-two",
-    "accordion-three",
+    // "accordion-three",
   ]);
 
   const handleNameChange = (event) => {
@@ -75,7 +75,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
         <div
           id="side-panel"
           ref={panelRef}
-          className={` hs-overlay fixed max-sm:hidden [--body-scroll:true] transition-[left] duration-350 transform h-[calc(100vh-52px)] z-100 bg-white shadow-[3px_0_8px_1px_rgba(0,0,0,0.075)] dark:bg-neutral-800 dark:border-neutral-700`}
+          className={`hs-overlay fixed max-sm:hidden [--body-scroll:true] transition-[left] duration-350 transform h-[calc(100vh-52px)] z-100 bg-white shadow-[3px_0_8px_1px_rgba(0,0,0,0.075)] dark:bg-neutral-800 dark:border-neutral-700`}
           style={{
             left: isOpen ? 0 : `${panelSize.width * -1}px`,
             width: `${panelSize.width}px`,
@@ -107,7 +107,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
             <circle cx="16" cy="19" r="1" />
           </svg>
         </span>
-        <span className="overflow-hidden" >
+        <div className="" >
           <div
             id="device-info"
             className="flex-col justify-between items-center py-1  px-5"
@@ -128,7 +128,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
             data-hs-accordion-always-open
           >
             <div
-              className={`hs-accordion border-t border-neutral-300/50 dark:border-neutral-700/50 py-2  px-5 ${
+              className={`hs-accordion border-t border-neutral-300/50 dark:border-neutral-700/50 py-2 ${
                 activeAccordions.includes("accordion-one") ? "active" : ""
               }`}
               id="hs-basic-with-title-and-arrow-stretched-heading-one"
@@ -138,7 +138,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
                   activeAccordions.includes("accordion-one")
                     ? "opacity-100"
                     : "opacity-66"
-                } hs-accordion-toggle inline-flex text-sm items-center justify-between gap-x-3 w-full font-medium text-gray-800 hover:text-gray-500 dark:text-neutral-200 dark:hover:text-neutral-400`}
+                } hs-accordion-toggle inline-flex text-sm items-center justify-between gap-x-3 w-full font-medium text-gray-800 hover:text-gray-500 dark:text-neutral-200 dark:hover:text-neutral-400 px-5`}
                 aria-expanded={activeAccordions.includes("accordion-one")}
                 aria-controls="hs-basic-with-title-and-arrow-stretched-collapse-one"
                 onClick={() => toggleAccordion("accordion-one")}
@@ -148,7 +148,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
               </button>
               <div
                 id="hs-basic-with-title-and-arrow-stretched-collapse-one"
-                className={`hs-accordion-content w-full overflow-hidden transition-[height] duration-300 ${
+                className={`hs-accordion-content w-full transition-[height] duration-300 ${
                   activeAccordions.includes("accordion-one")
                     ? "block"
                     : "hidden"
@@ -180,7 +180,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
               </button>
               <div
                 id="hs-basic-with-title-and-arrow-stretched-collapse-one"
-                className={`hs-accordion-content w-full overflow-hidden transition-[height] duration-300 ${
+                className={`hs-accordion-content w-full transition-[height] duration-300 ${
                   activeAccordions.includes("accordion-two")
                     ? "block"
                     : "hidden"
@@ -213,7 +213,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
               </button>
               <div
                 id="hs-basic-with-title-and-arrow-stretched-collapse-one"
-                className={`hs-accordion-content w-full overflow-hidden transition-[height] duration-300 ${
+                className={`hs-accordion-content w-full transition-[height] duration-300 ${
                   activeAccordions.includes("accordion-three")
                     ? "block"
                     : "hidden"
@@ -225,7 +225,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
               </div>
             </div>
           </div>
-          </span>
+          </div>
         </div>
       </Resizable>
       {/* <Resizable // Bottom Panel
