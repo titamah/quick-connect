@@ -11,8 +11,19 @@ function QRGenerator(panelSize) {
   );
 
   useEffect(() => {
-    qrCodeRef.current.style.width = "100%";
+    setQRSize(Math.min(device.size.x, device.size.y) / 2)
+  },[device.size])
+
+  useEffect(() => {
+    // qrCodeRef.current.style.width = "100%";
+
+    const svgElement = qrCodeRef.current.querySelector("svg");
+    svgElement.style.width = "250px";
+    svgElement.style.height = "250px";
     qrCodeRef.current.style.maxWidth = "250px";
+    qrCodeRef.current.style.maxHeight = "250px";
+    qrCodeRef.current.style.minWidth = "250px";
+    qrCodeRef.current.style.minHeight = "250px";
     const currWidth = qrCodeRef.current.offsetWidth;
     qrCodeRef.current.style.height = `${currWidth}px`;
 
@@ -67,7 +78,7 @@ function QRGenerator(panelSize) {
       <div className="w-full flex justify-center py-2" style={{}}>
         <QRCode
           ref={qrCodeRef}
-          value={device.qr.url || "-"}
+          value={device.qr.url || "www.titamah.com"}
           id="QRCode"
           type="svg"
           bordered={false}

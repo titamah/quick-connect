@@ -6,6 +6,7 @@ import QRGenerator from "./QRGenerator"
 import DeviceTypeSelector from "./DeviceTypeSelector"
 import ToggleButtonArrow from "./ToggleButtonArrow";
 import BackgroundSelector from "./BackgroundSelector"
+import CustomBackgroundSelector from "./CustomBackgroudSelector";
 
 function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
   const { device, setDevice } = useContext(DeviceContext);
@@ -188,7 +189,9 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
                 role="region"
                 aria-labelledby="hs-basic-with-title-and-arrow-stretched-heading-one"
               >
-                 <BackgroundSelector/>
+                 {/* <BackgroundSelector/> */}
+                 <CustomBackgroundSelector/>
+
               </div>
             </div>
             <div 

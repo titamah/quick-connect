@@ -1,5 +1,5 @@
 import { Stage, Rect, Layer, Transformer, Line, Group } from "react-konva";
-import React, { forwardRef, useEffect, useState, useRef } from "react";
+import React, { forwardRef, useEffect, useState, useRef, use } from "react";
 import useWindowSize from "../../hooks/useWindowSize";
 import { color } from "d3";
 import Konva from "konva";
@@ -45,6 +45,11 @@ const Wallpaper = forwardRef(
       x:(device.size.x / 4),
       y:(device.size.y / 1.75)
     });
+
+    // useEffect(()=> {
+    // },[device.size])
+
+
     const [qrImg, setQRImg] = useState(null);
     const [qrSize, setQRSize] = useState(
       Math.min(device.size.x, device.size.y) / 2
@@ -58,6 +63,7 @@ const Wallpaper = forwardRef(
     }, [locked]);
 
     useEffect(() => {
+      setTimeout(() => {
       const svg = document.getElementById("QRCode")?.querySelector("svg");
       const svgData = new XMLSerializer().serializeToString(svg);
       const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
@@ -68,6 +74,14 @@ const Wallpaper = forwardRef(
         console.log(qrImage);
         setQRImg(qrImage);
       };
+    }, 1);
+
+      setQRPos({
+        x:(device.size.x / 4),
+        y:(device.size.y / 1.75)
+      })
+      setQRSize(Math.min(device.size.x, device.size.y) / 2)
+
     }, [device.qr, device.size]);
 
     useEffect(() => {
