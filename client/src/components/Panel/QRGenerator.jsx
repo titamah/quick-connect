@@ -18,12 +18,12 @@ function QRGenerator(panelSize) {
     // qrCodeRef.current.style.width = "100%";
 
     const svgElement = qrCodeRef.current.querySelector("svg");
-    svgElement.style.width = "250px";
-    svgElement.style.height = "250px";
+    svgElement.style.width = panelSize.width;
+    svgElement.style.height = panelSize.width;
     qrCodeRef.current.style.maxWidth = "250px";
     qrCodeRef.current.style.maxHeight = "250px";
-    qrCodeRef.current.style.minWidth = "250px";
-    qrCodeRef.current.style.minHeight = "250px";
+    qrCodeRef.current.style.minWidth = panelSize.width;
+    qrCodeRef.current.style.minHeight = panelSize.width;
     const currWidth = qrCodeRef.current.offsetWidth;
     qrCodeRef.current.style.height = `${currWidth}px`;
 
