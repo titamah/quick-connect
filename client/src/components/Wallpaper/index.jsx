@@ -85,7 +85,7 @@ const Wallpaper = forwardRef(
     }, [device.qr, device.size]);
 
     useEffect(() => {
-      if (device.isUpload && device.bg) {
+      if (device.style == "image" && device.bg) {
         const img = new Image();
         img.src = device.bg;
         img.onload = () => {
@@ -97,7 +97,7 @@ const Wallpaper = forwardRef(
           setIsImageLoaded(true); // Set image loaded status to true
         };
       }
-    }, [device.isUpload, device.bg]);
+    }, [device.style, device.bg]);
 
     useEffect(() => {
       setStageScale(getStageScale());
@@ -128,22 +128,54 @@ const Wallpaper = forwardRef(
       };
     };
 
-    useEffect(()=>{
-      
-    },[device.isUpload, device.color])
-
-    const [rectProps, setRectProps] = useState({
-          fillPatternImage: patternImage,
-          fillPatternScale: getScaleFactors(),
-          fill: device.color,
-          fillPriority: device.isUpload ? "pattern" : "color",
-          width: device.isUpload ? getImageSize().x : device.size.x,
-          height: device.isUpload ? getImageSize().y : device.size.y,
-          x: device.isUpload ? (device.size.x - getImageSize().x) / 2 : 0,
-          y: device.isUpload ? (device.size.y - getImageSize().y) / 2 : 0,
-          fillPatternRepeat: "no-repeat",
-        })
-
+    // const rectProps = (() => {
+    //   if (device.style === "image") {
+    //     return {
+    //       fillPatternImage: patternImage,
+    //       fillPatternScale: getScaleFactors(),
+    //       width: getImageSize().x,
+    //       height: getImageSize().y,
+    //       x: (device.size.x - getImageSize().x) / 2,
+    //       y: (device.size.y - getImageSize().y) / 2,
+    //       fillPatternRepeat: "no-repeat",
+    //       fillPriority: "pattern",
+    //     };
+    //   } else if (device.style === "solid") {
+    //     return {
+    //       fill: device.color,
+    //       width: device.size.x,
+    //       height: device.size.y,
+    //       x: 0,
+    //       y: 0,
+    //       fillPriority: "color",
+    //     };
+    //   } else if (device.style === "linear") {
+    //     return {
+    //       fillLinearGradientColorStops: device.gradient,
+    //       fillLinearGradientStartPoint: { x: 0, y: 0 },
+    //       fillLinearGradientEndPoint: { x: device.size.x, y: device.size.y },
+    //       width: device.size.x,
+    //       height: device.size.y,
+    //       x: 0,
+    //       y: 0,
+    //       fillPriority: "color",
+    //     };
+    //   } else if (device.style === "radial") {
+    //     return {
+    //       fillRadialGradientColorStops: device.gradient,
+    //       fillRadialGradientStartPoint: { x: device.size.x / 2, y: device.size.y / 2 },
+    //       fillRadialGradientEndPoint: { x: device.size.x / 2, y: device.size.y / 2 },
+    //       fillRadialGradientStartRadius: 0,
+    //       fillRadialGradientEndRadius: Math.max(device.size.x, device.size.y) / 2,
+    //       width: device.size.x,
+    //       height: device.size.y,
+    //       x: 0,
+    //       y: 0,
+    //       fillPriority: "color",
+    //     };
+    //   }
+    // });
+    
 
     const handleDragMove = (e) => {
       const shape = e.target;
@@ -219,6 +251,7 @@ const Wallpaper = forwardRef(
 
     useEffect(() => {
       shapeRef.current.on("click dragend", (e) => {
+        console.log(device.style)
         setTimeout(() => {
           setIsDragging(false);
           transformerRef.current.nodes([shapeRef.current]);
@@ -290,17 +323,63 @@ const Wallpaper = forwardRef(
         onMouseDown={handleStageMouseDown}
       >
         <Layer>
+          {/* <Rect
+          // fillPatternImage={patternImage}
+          // fillPatternScale={getScaleFactors()}
+          // fill={device.color}
+          // fillPriority={device.style == "image" ? "pattern" : "color"}
+          // width={device.style == "image" ? getImageSize().x : device.size.x}
+          // height={device.style == "image" ? getImageSize().y : device.size.y}
+          // x={device.style == "image" ? (device.size.x - getImageSize().x) / 2 : 0}
+          // y={device.style == "image" ? (device.size.y - getImageSize().y) / 2 : 0}
+          // fillPatternRepeat="no-repeat"
+          /> */}
           <Rect
-          fillPatternImage={patternImage}
-          fillPatternScale={getScaleFactors()}
-          fill={device.color}
-          fillPriority={device.isUpload ? "pattern" : "color"}
-          width={device.isUpload ? getImageSize().x : device.size.x}
-          height={device.isUpload ? getImageSize().y : device.size.y}
-          x={device.isUpload ? (device.size.x - getImageSize().x) / 2 : 0}
-          y={device.isUpload ? (device.size.y - getImageSize().y) / 2 : 0}
-          fillPatternRepeat="no-repeat"
-          />
+  width={
+    device.style === "image"
+      ? getImageSize().x
+      : device.size.x
+  }
+  height={
+    device.style === "image"
+      ? getImageSize().y
+      : device.size.y
+  }
+  x={
+    device.style === "image"
+      ? (device.size.x - getImageSize().x) / 2
+      : 0
+  }
+  y={
+    device.style === "image"
+      ? (device.size.y - getImageSize().y) / 2
+      : 0
+  }
+
+  // Solid fill
+  fill={device.style === "solid" ? device.color : undefined}
+
+  // Linear gradient
+  fillLinearGradientColorStops={device.style === "linear" ? device.gradient : undefined}
+  fillLinearGradientStartPoint={device.style === "linear" ? { x: 0, y: 0 } : undefined}
+  fillLinearGradientEndPoint={device.style === "linear" ? { x: device.size.x, y: device.size.y } : undefined}
+
+  // Radial gradient
+  fillRadialGradientColorStops={device.style === "radial" ? device.gradient : undefined}
+  fillRadialGradientStartPoint={device.style === "radial" ? { x: device.size.x / 2, y: device.size.y / 2 } : undefined}
+  fillRadialGradientEndPoint={device.style === "radial" ? { x: device.size.x / 2, y: device.size.y / 2 } : undefined}
+  fillRadialGradientStartRadius={device.style === "radial" ? 0 : undefined}
+  fillRadialGradientEndRadius={device.style === "radial" ? Math.max(device.size.x, device.size.y) / 2 : undefined}
+
+  // Image pattern
+  fillPatternImage={device.style === "image" ? patternImage : undefined}
+  fillPatternScale={device.style === "image" ? getScaleFactors() : undefined}
+  fillPatternRepeat={device.style === "image" ? "no-repeat" : undefined}
+
+  // Fill priority
+  fillPriority={device.style === "image" ? "pattern" : "color"}
+/>
+
           </Layer>
         <Layer
         style={{

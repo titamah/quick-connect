@@ -17,9 +17,10 @@ function App() {
     name: "Sample iPhone Wallpaper",
     type: "iPhone 12 Pro Max",
     size: { x: 1284, y: 2778 },
-    isUpload: false,
+    style: "linear",
     color: "#ffffff",
-    // bg: "https://wallpapers.com/images/featured/iphone-12-pro-max-hknmpjtf3rmp9egv.jpg",
+    bg: "https://wallpapers.com/images/featured/iphone-12-pro-max-hknmpjtf3rmp9egv.jpg",
+    gradient:[],
     qr: {url:"https://www.linkedin.com/in/titamah", custom: {borderSize:0, borderColor:"#000000", cornerRadius:0}},
   });
 

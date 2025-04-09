@@ -1,11 +1,13 @@
 import { useState, useContext, useEffect } from "react";
 import "preline/preline";
 import { DeviceContext } from "../../App";
-import ImageUploader from "./ImageUpload";
+import ImageUploader from "./ImageUploader";
 import ColorSelector from "./ColorSelector";
+import GradientSelector from "./GradientSelector";
 
 function CustomBackgroundSelector() {
   const [activeTab, setActiveTab] = useState(1);
+  const { device, setDevice } = useContext(DeviceContext);
 
   // useEffect(()=>{
   //   const customTab = document.querySelector(".bg-tab-1");
@@ -13,22 +15,32 @@ function CustomBackgroundSelector() {
   //   customTab.classList.add("!text-gray-500");
   // },[])
 
-  const setActive = () => {
-    const customTab = document.querySelector(".bg-tab-1");
-    const libraryTab = document.querySelector(".bg-tab-2");
-
-    customTab.classList.add("!text-neutral-500");
-    // customTab.classList.add("!dark:text-neutral-400");
-    libraryTab.classList.remove("!text-gray-500");
-    // libraryTab.classList.remove("!dark:text-neutral-400");
-  };
+  // const setActive = (index) => {
+  //   if (index == 1){
+  //     setDevice((prevDevice) => ({
+  //       ...prevDevice,
+  //       style: "solid",
+  //     }));
+  //   } else if (index == 2){
+  //     setDevice((prevDevice) => ({
+  //       ...prevDevice,
+  //       style: "gradient",
+  //     }));
+  //   }
+  //   else if (index == 3){
+  //     setDevice((prevDevice) => ({
+  //       ...prevDevice,
+  //       style: "image",
+  //     }));
+  //   }
+  // };
 
   return (
     <div
       id="tabs-with-underline-1"
       role="tabpanel"
       aria-labelledby="tabs-with-underline-item-1"
-      onClick={setActive}
+      // onClick={setActive(0}
     >
       <div className="border-b-[.5px] border-gray-200 dark:border-neutral-700">
         <nav
@@ -166,7 +178,7 @@ function CustomBackgroundSelector() {
           role="tabpanel"
           aria-labelledby="custom-tabs-with-underline-item-2"
         >
-          GRADIENT MAKER
+          <GradientSelector/>
         </div>
         <div
           id="custom-tabs-with-underline-3"
