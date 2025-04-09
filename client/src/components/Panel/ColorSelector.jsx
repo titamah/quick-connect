@@ -57,7 +57,7 @@ function ColorSelector() {
   };
 
 return (
-    <div id="ColorSelectPanel" className="dark:text-white text-sm color-selector-panel">
+    <div id="ColorSelectPanel" className="dark:text-white text-sm color-selector-panel px-5">
         <HexAlphaColorPicker color={color} onChange={(e) => updateColors(e)} />
         <div className="p-2 flex row">
             <input

@@ -17,7 +17,7 @@ function App() {
     name: "Sample iPhone Wallpaper",
     type: "iPhone 12 Pro Max",
     size: { x: 1284, y: 2778 },
-    style: "linear",
+    style: "radial",
     color: "#ffffff",
     bg: "https://wallpapers.com/images/featured/iphone-12-pro-max-hknmpjtf3rmp9egv.jpg",
     gradient:[],

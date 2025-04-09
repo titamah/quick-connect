@@ -20,11 +20,11 @@ const Wallpaper = forwardRef(
         panelY = panelSize.height;
       }
       const scaleX = isOpen
-        ? (0.925 * window.innerWidth - panelX) / device.size.x
-        : (0.925 * window.innerWidth) / device.size.x;
+        ? (0.85 * window.innerWidth - panelX) / device.size.x
+        : (0.85 * window.innerWidth) / device.size.x;
       const scaleY = isOpen
-        ? (0.925 * (window.innerHeight - panelY - 52)) / device.size.y
-        : (0.925 * (window.innerHeight - 52)) / device.size.y;
+        ? (0.85 * (window.innerHeight - panelY - 52)) / device.size.y
+        : (0.85 * (window.innerHeight - 52)) / device.size.y;
       const scale = Math.min(scaleX, scaleY);
       return scale;
     };

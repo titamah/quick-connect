@@ -1,18 +1,33 @@
 .react-colorful {
-    width: 100% !important;
-    padding-left: 12.5px;
-    padding-right: 12.5px;
+    width: clamp(250px, 50%, 100%) !important;
+    max-width: 100% !important;
+    height: 200px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    /* padding-left: 12.5px;
+    padding-right: 12.5px; */
 }
 .react-colorful__interactive{
     height: 100% !important;
 }
-.react-colorful > div {
-    border-radius: 0 !important;
+.react-colorful__saturation {
+    border: 3.25px solid rgb(38, 38, 38) !important;
+    border-radius: 4px !important;
+    box-shadow: 0 0 0 .95px rgb(66, 66, 66) !important;
+}
+
+.react-colorful__saturation > .react-colorful__interactive {
+    box-shadow: 0 0 0 1px rgb(39, 38, 38) !important;
 }
 
 .react-colorful__hue, .react-colorful__alpha {
+    border-radius: 0 !important;
     margin-top: 5px !important;
     height: 7.5px !important;
+}
+
+.react-colorful__hue > div, .react-colorful__alpha > div {
+    border-radius: 0 !important;
 }
 
 .react-colorful__pointer {

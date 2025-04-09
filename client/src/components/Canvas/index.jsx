@@ -9,6 +9,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   const { device } = useContext(DeviceContext);
   const previewRef = useRef(null);
   const canvasRef = useRef(null);
+  const [scale, setScale] = useState(1);
   // const wallpaperRef = useRef(null);
 
   const [isLoading, setIsLoading] = useState(true);
@@ -42,15 +43,18 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   }, []);
 
   useEffect(() => {
-    const scaleX = (0.95 * window.innerWidth - panelSize.width) / device.size.x;
-    const scaleY =
-      (0.95 * window.innerHeight - panelSize.height) / device.size.y;
+    const scaleX = isOpen
+      ? (0.85 * window.innerWidth - panelSize.width) / device.size.x
+      : (0.85 * window.innerWidth) / device.size.x;
+    const scaleY = isOpen
+      ? (0.85 * (window.innerHeight - panelSize.height - 52)) / device.size.y
+      : (0.85 * (window.innerHeight - 52)) / device.size.y;
     const scale = Math.min(scaleX, scaleY);
     setPreviewSize({
       x: device.size.x * scale,
       y: device.size.y * scale,
     });
-  }, [device]);
+  }, [device, panelSize, isOpen]);
 
   useEffect(() => {
     const canvasElement = select(canvasRef.current);
@@ -58,6 +62,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
     const zoomBehavior = zoom()
       .scaleExtent([0.25, 15])
       .on("zoom", (event) => {
+        setScale(event.transform.k);
         previewElement.style(
           "transform",
           `translate(${event.transform.x}px, ${event.transform.y}px) scale(${event.transform.k})`
@@ -149,10 +154,10 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              outline: "10px solid black",
+              outline: `${((previewSize.y + previewSize.x) *.0125)}px solid black`,
+              borderRadius: `${((previewSize.y + previewSize.x) *.0375)}px`,
               backgroundColor: "rgba(0,0,0,0)",
               overflow: "hidden",
-              borderRadius: "24px",
             }}
             onClick={() => {
               setIsZoomEnabled(true);

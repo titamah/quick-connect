@@ -15,8 +15,6 @@ function QRGenerator(panelSize) {
   },[device.size])
 
   useEffect(() => {
-    // qrCodeRef.current.style.width = "100%";
-
     const svgElement = qrCodeRef.current.querySelector("svg");
     svgElement.style.width = panelSize.width;
     svgElement.style.height = panelSize.width;
