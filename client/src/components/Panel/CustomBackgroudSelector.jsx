@@ -6,7 +6,7 @@ import ColorSelector from "./ColorSelector";
 import GradientSelector from "./GradientSelector";
 
 function CustomBackgroundSelector() {
-  const [activeTab, setActiveTab] = useState(1);
+  const [activeTab, setActiveTab] = useState(2);
   const { device, setDevice } = useContext(DeviceContext);
 
   // useEffect(()=>{
@@ -15,25 +15,25 @@ function CustomBackgroundSelector() {
   //   customTab.classList.add("!text-gray-500");
   // },[])
 
-  // const setActive = (index) => {
-  //   if (index == 1){
-  //     setDevice((prevDevice) => ({
-  //       ...prevDevice,
-  //       style: "solid",
-  //     }));
-  //   } else if (index == 2){
-  //     setDevice((prevDevice) => ({
-  //       ...prevDevice,
-  //       style: "gradient",
-  //     }));
-  //   }
-  //   else if (index == 3){
-  //     setDevice((prevDevice) => ({
-  //       ...prevDevice,
-  //       style: "image",
-  //     }));
-  //   }
-  // };
+  const setBGStyle = (index) => {
+    if (index == 1){
+      setDevice((prevDevice) => ({
+        ...prevDevice,
+        style: "solid",
+      }));
+    } else if (index == 2){
+      setDevice((prevDevice) => ({
+        ...prevDevice,
+        style: "gradient",
+      }));
+    }
+    else if (index == 3){
+      setDevice((prevDevice) => ({
+        ...prevDevice,
+        style: "image",
+      }));
+    }
+  };
 
   return (
     <div
@@ -60,6 +60,7 @@ function CustomBackgroundSelector() {
           >
             <span
               onClick={() => {
+                setBGStyle(1);
                 setActiveTab(1);
               }}
               className={`inline-flex justify-center items-center size-7 rounded-md active:bg-black/20 ${
@@ -94,6 +95,7 @@ function CustomBackgroundSelector() {
           >
             <span
               onClick={() => {
+                setBGStyle(2);
                 setActiveTab(2);
               }}
               className={`inline-flex justify-center items-center size-7 rounded-md active:bg-black/20 ${
@@ -138,6 +140,7 @@ function CustomBackgroundSelector() {
           >
             <span
               onClick={() => {
+                setBGStyle(3);
                 setActiveTab(3);
               }}
               className={`inline-flex justify-center items-center size-7 rounded-md active:bg-black/20 ${

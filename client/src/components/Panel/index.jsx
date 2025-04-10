@@ -63,8 +63,9 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
         className="duration-100"
         width={panelSize.width}
         height={0}
-        minConstraints={[100, 0]}
+        minConstraints={[200, 0]}
         onResize={onResizeSide}
+        // onResizeStop={onResizeSide}
         resizeHandles={["e"]}
         handle={
           <div className="fixed z-1500 right-0 top-0 h-full w-[10px] cursor-col-resize">

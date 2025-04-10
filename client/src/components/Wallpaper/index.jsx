@@ -301,9 +301,10 @@ const Wallpaper = forwardRef(
     return (
       <div
       id="preview"
+      unselectable="on"
       style={{
-        width: `${device.size.x * stageScale - 1}px`,
-        height: `${device.size.y * stageScale - 1}px`,
+        width: `${device.size.x * stageScale - 2}px`,
+        height: `${device.size.y * stageScale }px`,
         position: "relative",
         display: "flex",
         justifyContent: "center",
@@ -360,16 +361,16 @@ const Wallpaper = forwardRef(
   fill={device.style === "solid" ? device.color : undefined}
 
   // Linear gradient
-  fillLinearGradientColorStops={device.style === "linear" ? device.gradient : undefined}
-  fillLinearGradientStartPoint={device.style === "linear" ? { x: 0, y: 0 } : undefined}
-  fillLinearGradientEndPoint={device.style === "linear" ? { x: device.size.x, y: device.size.y } : undefined}
+  fillLinearGradientColorStops={device.style === "gradient" && device.gradient.type == "linear" ? device.gradient.stops : undefined}
+  fillLinearGradientStartPoint={device.style === "gradient"  && device.gradient.type == "linear"? { x: 0, y: 0 } : undefined}
+  fillLinearGradientEndPoint={device.style === "gradient" && device.gradient.type == "linear"? { x: device.size.x, y: device.size.y } : undefined}
 
   // Radial gradient
-  fillRadialGradientColorStops={device.style === "radial" ? device.gradient : undefined}
-  fillRadialGradientStartPoint={device.style === "radial" ? { x: device.size.x / 2, y: device.size.y / 2 } : undefined}
-  fillRadialGradientEndPoint={device.style === "radial" ? { x: device.size.x / 2, y: device.size.y / 2 } : undefined}
-  fillRadialGradientStartRadius={device.style === "radial" ? 0 : undefined}
-  fillRadialGradientEndRadius={device.style === "radial" ? Math.max(device.size.x, device.size.y) / 2 : undefined}
+  fillRadialGradientColorStops={device.style === "gradient" && device.gradient.type === "radial" ? device.gradient.stops : undefined}
+  fillRadialGradientStartPoint={device.style === "gradient" && device.gradient.type === "radial" ? { x: device.size.x / 2, y: device.size.y / 2 } : undefined}
+  fillRadialGradientEndPoint={device.style === "gradient" && device.gradient.type === "radial" ? { x: device.size.x / 2, y: device.size.y / 2 } : undefined}
+  fillRadialGradientStartRadius={device.style === "gradient" && device.gradient.type === "radial" ? 0 : undefined}
+  fillRadialGradientEndRadius={device.style === "gradient" && device.gradient.type === "radial" ? Math.max(device.size.x, device.size.y) / 2 : undefined}
 
   // Image pattern
   fillPatternImage={device.style === "image" ? patternImage : undefined}

@@ -36,6 +36,9 @@ function BackgroundSelector() {
           aria-orientation="horizontal"
         >
           <button
+          onClick={() => {
+            console.log("Custom");
+          }}
             type="button"
             className="bg-tab-1 py-1 px-1 inline-flex items-center gap-x-2 text-sm whitespace-nowrap text-gray-500/50 hover:text-gray-500 focus:text-gray-500 dark:text-neutral-400/50 dark:focus:text-neutral-400 dark:hover:text-neutral-400/75 active"
             id="tabs-with-underline-item-1"

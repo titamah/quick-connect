@@ -1,19 +1,18 @@
 import { useState, useContext, useEffect } from "react";
 import "preline/preline";
 import { DeviceContext } from "../../App";
-import { HexAlphaColorPicker } from "react-colorful";
+import { HexColorPicker } from "react-colorful";
 import "./styles.css";
 
 function ColorSelector() {
   const { device, setDevice } = useContext(DeviceContext);
-  const [color, setColor] = useState("#000000");
-  const [recentColors] = useState(["#000000", "#ff0000", "#ffff00", "#00ff00", "#00ffff", "#0000ff"]);
+  const [color, setColor] = useState("#ffad6c");
+  const [recentColors] = useState(["#000000", "#ff0000", "#ffff00", "#00ff00", "#00ffff", "#0000ff", "#ff0000", "#ffff00", ]);
 //   const [recentColors] = useState([]);
   const [colorCircles, setColorCircles] = useState(null);
 
   const getColorCircle = recentColors.map((e) => (
     <div
-      key={e}
       className="recent-color my-auto border-black/25 dark:border-black/75"
       style={{ backgroundColor: e }}
       onClick={() => setColorCombo(e)} // Pass the color value directly
@@ -57,15 +56,15 @@ function ColorSelector() {
   };
 
 return (
-    <div id="ColorSelectPanel" className="dark:text-white text-sm color-selector-panel px-5">
-        <HexAlphaColorPicker color={color} onChange={(e) => updateColors(e)} />
-        <div className="p-2 flex row">
+    <div id="ColorSelectPanel" className="dark:text-white text-sm color-selector-panel w-full px-5 gap-[10px] flex flex-wrap">
+        <HexColorPicker color={color} onChange={(e) => updateColors(e)} className="flex-7 min-w-[150px] !max-w-full"/>
+        <div className="flex-5 w-fit">
             <input
                 value={getColorString(color)}
                 onChange={(e) => updateColors(e.target.value)}
-                className="p-1 border-1 border-black/10 dark:border-white/10 mr-5 text-neutral-600 dark:text-neutral-200/75 text-sm align-center rounded-sm w-[75px]"
+                className="p-1 border-1 border-black/10 dark:border-white/10 mr-5 text-neutral-600 dark:text-neutral-200/75 text-sm align-center rounded-sm w-full min-w-[75px]"
             />
-            <div className="flex gap-[5px]">
+            <div className="flex flex-wrap  my-[5px] gap-[5px]">
             {getColorCircle}
             </div>
         </div>

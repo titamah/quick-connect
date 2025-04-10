@@ -51,8 +51,8 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
       : (0.85 * (window.innerHeight - 52)) / device.size.y;
     const scale = Math.min(scaleX, scaleY);
     setPreviewSize({
-      x: device.size.x * scale,
-      y: device.size.y * scale,
+      x: (device.size.x * scale) + 20,
+      y: (device.size.y * scale) + 1,
     });
   }, [device, panelSize, isOpen]);
 
