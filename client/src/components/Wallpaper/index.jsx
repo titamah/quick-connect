@@ -1,7 +1,6 @@
 import { Stage, Rect, Layer, Transformer, Line, Group } from "react-konva";
 import React, { forwardRef, useEffect, useState, useRef, use } from "react";
 import useWindowSize from "../../hooks/useWindowSize";
-import { color } from "d3";
 import Konva from "konva";
 
 const Wallpaper = forwardRef(
@@ -42,13 +41,9 @@ const Wallpaper = forwardRef(
 
     const [isImageLoaded, setIsImageLoaded] = useState(false);
     const [qrPos, setQRPos] = useState({
-      x:(device.size.x / 4),
-      y:(device.size.y / 1.75)
+      x: device.size.x / 4,
+      y: device.size.y / 1.75,
     });
-
-    // useEffect(()=> {
-    // },[device.size])
-
 
     const [qrImg, setQRImg] = useState(null);
     const [qrSize, setQRSize] = useState(
@@ -64,24 +59,25 @@ const Wallpaper = forwardRef(
 
     useEffect(() => {
       setTimeout(() => {
-      const svg = document.getElementById("QRCode")?.querySelector("svg");
-      const svgData = new XMLSerializer().serializeToString(svg);
-      const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const qrImage = new Image();
-      qrImage.src = url;
-      qrImage.onload = () => {
-        console.log(qrImage);
-        setQRImg(qrImage);
-      };
-    }, 1);
+        const svg = document.getElementById("QRCode")?.querySelector("svg");
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const blob = new Blob([svgData], {
+          type: "image/svg+xml;charset=utf-8",
+        });
+        const url = URL.createObjectURL(blob);
+        const qrImage = new Image();
+        qrImage.src = url;
+        qrImage.onload = () => {
+          console.log(qrImage);
+          setQRImg(qrImage);
+        };
+      }, 1);
 
       setQRPos({
-        x:(device.size.x / 4),
-        y:(device.size.y / 1.75)
-      })
-      setQRSize(Math.min(device.size.x, device.size.y) / 2)
-
+        x: device.size.x / 4,
+        y: device.size.y / 1.75,
+      });
+      setQRSize(Math.min(device.size.x, device.size.y) / 2);
     }, [device.qr, device.size]);
 
     useEffect(() => {
@@ -94,7 +90,7 @@ const Wallpaper = forwardRef(
             width: img.naturalWidth,
             height: img.naturalHeight,
           });
-          setIsImageLoaded(true); // Set image loaded status to true
+          setIsImageLoaded(true);
         };
       }
     }, [device.style, device.bg]);
@@ -113,7 +109,6 @@ const Wallpaper = forwardRef(
     const getScaleFactors = () => {
       if (!imageSize.width || !imageSize.height) return { x: 1, y: 1 };
 
-      // Calculate scale to cover entire stage (like CSS background-size: cover)
       const scaleX = device.size.x / imageSize.width;
       const scaleY = device.size.y / imageSize.height;
       const scale = Math.max(scaleX, scaleY);
@@ -128,55 +123,6 @@ const Wallpaper = forwardRef(
       };
     };
 
-    // const rectProps = (() => {
-    //   if (device.style === "image") {
-    //     return {
-    //       fillPatternImage: patternImage,
-    //       fillPatternScale: getScaleFactors(),
-    //       width: getImageSize().x,
-    //       height: getImageSize().y,
-    //       x: (device.size.x - getImageSize().x) / 2,
-    //       y: (device.size.y - getImageSize().y) / 2,
-    //       fillPatternRepeat: "no-repeat",
-    //       fillPriority: "pattern",
-    //     };
-    //   } else if (device.style === "solid") {
-    //     return {
-    //       fill: device.color,
-    //       width: device.size.x,
-    //       height: device.size.y,
-    //       x: 0,
-    //       y: 0,
-    //       fillPriority: "color",
-    //     };
-    //   } else if (device.style === "linear") {
-    //     return {
-    //       fillLinearGradientColorStops: device.gradient,
-    //       fillLinearGradientStartPoint: { x: 0, y: 0 },
-    //       fillLinearGradientEndPoint: { x: device.size.x, y: device.size.y },
-    //       width: device.size.x,
-    //       height: device.size.y,
-    //       x: 0,
-    //       y: 0,
-    //       fillPriority: "color",
-    //     };
-    //   } else if (device.style === "radial") {
-    //     return {
-    //       fillRadialGradientColorStops: device.gradient,
-    //       fillRadialGradientStartPoint: { x: device.size.x / 2, y: device.size.y / 2 },
-    //       fillRadialGradientEndPoint: { x: device.size.x / 2, y: device.size.y / 2 },
-    //       fillRadialGradientStartRadius: 0,
-    //       fillRadialGradientEndRadius: Math.max(device.size.x, device.size.y) / 2,
-    //       width: device.size.x,
-    //       height: device.size.y,
-    //       x: 0,
-    //       y: 0,
-    //       fillPriority: "color",
-    //     };
-    //   }
-    // });
-    
-
     const handleDragMove = (e) => {
       const shape = e.target;
       const layer = shape.getLayer();
@@ -189,11 +135,10 @@ const Wallpaper = forwardRef(
       const middleY = (stageHeight - shapeHeight) / 2;
       const snapTolerance = 25;
 
-      // Constrain position within stage bounds
       const rawX = Math.max(0, Math.min(shape.x(), stageWidth - shapeWidth));
       const rawY = Math.max(0, Math.min(shape.y(), stageHeight - shapeHeight));
       let targetX, targetY;
-      // Determine target position with snapping
+      
       if (Math.abs(rawX - middleX) < snapTolerance) {
         setIsCenterX(true);
         targetX = middleX;
@@ -212,9 +157,9 @@ const Wallpaper = forwardRef(
       shape.x(targetX);
       shape.y(targetY);
       setQRPos({
-        x: targetX + (device.qr.custom.borderSize / 2 * stageScale),
-        y: targetY + (device.qr.custom.borderSize / 2 * stageScale)
-      })
+        x: targetX + (device.qr.custom.borderSize / 2) * stageScale,
+        y: targetY + (device.qr.custom.borderSize / 2) * stageScale,
+      });
     };
 
     const handleMouseDown = (e) => {
@@ -228,11 +173,9 @@ const Wallpaper = forwardRef(
         const newWidth = shape.width() * newScale * originalScaleX;
         const newHeight = shape.height() * newScale * originalScaleY;
 
-        // Calculate new position to keep the shape centered
         const newX = shape.x() + (originalWidth - newWidth) / 2;
         const newY = shape.y() + (originalHeight - newHeight) / 2;
 
-        // Use tween for smooth transition
         const tween = new Konva.Tween({
           node: shape,
           duration: 0.1,
@@ -251,7 +194,6 @@ const Wallpaper = forwardRef(
 
     useEffect(() => {
       shapeRef.current.on("click dragend", (e) => {
-        console.log(device.style)
         setTimeout(() => {
           setIsDragging(false);
           transformerRef.current.nodes([shapeRef.current]);
@@ -259,19 +201,20 @@ const Wallpaper = forwardRef(
         }, 5);
       });
       shapeRef.current.on("dragstart", (e) => {
-        console.log(device.color)
         setTimeout(() => {
           setIsDragging(true);
           transformerRef.current.nodes([]);
           transformerRef.current.getLayer().batchDraw();
         }, 5);
       });
+
       transformerRef.current.on("transformend", (e) => {
         setTimeout(() => {
           transformerRef.current.nodes([shapeRef.current]);
           transformerRef.current.getLayer().batchDraw();
         }, 5);
       });
+
       document.getElementById("Canvas").addEventListener("mouseup", (e) => {
         if (transformerRef.current.nodes().length > 0) {
           transformerRef.current.nodes([]);
@@ -279,13 +222,9 @@ const Wallpaper = forwardRef(
           cancelBubble();
         }
       });
-      // ref.current.on("click", ()=>{
-      //   if(isDraggable){setIsZoomEnabled(true)};
-      // })
     }, []);
 
     const handleStageMouseDown = (e) => {
-      // Deselect transformer if clicked outside of the target shape
       if (e.target === e.target.getStage()) {
         transformerRef.current.nodes([]);
         transformerRef.current.getLayer().batchDraw();
@@ -300,173 +239,201 @@ const Wallpaper = forwardRef(
 
     return (
       <div
-      id="preview"
-      unselectable="on"
-      style={{
-        width: `${device.size.x * stageScale - 2}px`,
-        height: `${device.size.y * stageScale }px`,
-        position: "relative",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-      >
-      <Stage
-        width={device.size.x}
-        height={device.size.y}
+        id="preview"
+        unselectable="on"
         style={{
-        pointerEvents: "auto",
-        transform: `scale(${stageScale})`,
-        transition: "ease-in-out",
-        // backgroundColor: device.color,
+          width: `${device.size.x * stageScale - 2}px`,
+          height: `${device.size.y * stageScale}px`,
+          position: "relative",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
         }}
-        ref={ref}
-        onMouseDown={handleStageMouseDown}
       >
-        <Layer>
-          {/* <Rect
-          // fillPatternImage={patternImage}
-          // fillPatternScale={getScaleFactors()}
-          // fill={device.color}
-          // fillPriority={device.style == "image" ? "pattern" : "color"}
-          // width={device.style == "image" ? getImageSize().x : device.size.x}
-          // height={device.style == "image" ? getImageSize().y : device.size.y}
-          // x={device.style == "image" ? (device.size.x - getImageSize().x) / 2 : 0}
-          // y={device.style == "image" ? (device.size.y - getImageSize().y) / 2 : 0}
-          // fillPatternRepeat="no-repeat"
-          /> */}
-          <Rect
-  width={
-    device.style === "image"
-      ? getImageSize().x
-      : device.size.x
-  }
-  height={
-    device.style === "image"
-      ? getImageSize().y
-      : device.size.y
-  }
-  x={
-    device.style === "image"
-      ? (device.size.x - getImageSize().x) / 2
-      : 0
-  }
-  y={
-    device.style === "image"
-      ? (device.size.y - getImageSize().y) / 2
-      : 0
-  }
-
-  // Solid fill
-  fill={device.style === "solid" ? device.color : undefined}
-
-  // Linear gradient
-  fillLinearGradientColorStops={device.style === "gradient" && device.gradient.type == "linear" ? device.gradient.stops : undefined}
-  fillLinearGradientStartPoint={device.style === "gradient"  && device.gradient.type == "linear"? { x: 0, y: 0 } : undefined}
-  fillLinearGradientEndPoint={device.style === "gradient" && device.gradient.type == "linear"? { x: device.size.x, y: device.size.y } : undefined}
-
-  // Radial gradient
-  fillRadialGradientColorStops={device.style === "gradient" && device.gradient.type === "radial" ? device.gradient.stops : undefined}
-  fillRadialGradientStartPoint={device.style === "gradient" && device.gradient.type === "radial" ? { x: device.size.x / 2, y: device.size.y / 2 } : undefined}
-  fillRadialGradientEndPoint={device.style === "gradient" && device.gradient.type === "radial" ? { x: device.size.x / 2, y: device.size.y / 2 } : undefined}
-  fillRadialGradientStartRadius={device.style === "gradient" && device.gradient.type === "radial" ? 0 : undefined}
-  fillRadialGradientEndRadius={device.style === "gradient" && device.gradient.type === "radial" ? Math.max(device.size.x, device.size.y) / 2 : undefined}
-
-  // Image pattern
-  fillPatternImage={device.style === "image" ? patternImage : undefined}
-  fillPatternScale={device.style === "image" ? getScaleFactors() : undefined}
-  fillPatternRepeat={device.style === "image" ? "no-repeat" : undefined}
-
-  // Fill priority
-  fillPriority={device.style === "image" ? "pattern" : "color"}
-/>
-
+        <Stage
+          width={device.size.x}
+          height={device.size.y}
+          style={{
+            pointerEvents: "auto",
+            transform: `scale(${stageScale})`,
+            transition: "ease-in-out",
+          }}
+          ref={ref}
+          onMouseDown={handleStageMouseDown}
+        >
+          <Layer>
+            <Rect
+              width={
+                device.style === "image" ? getImageSize().x : device.size.x
+              }
+              height={
+                device.style === "image" ? getImageSize().y : device.size.y
+              }
+              x={
+                device.style === "image"
+                  ? (device.size.x - getImageSize().x) / 2
+                  : 0
+              }
+              y={
+                device.style === "image"
+                  ? (device.size.y - getImageSize().y) / 2
+                  : 0
+              }
+              fill={device.style === "solid" ? device.color : undefined}
+              fillLinearGradientColorStops={
+                device.style === "gradient" && device.gradient.type == "linear"
+                  ? device.gradient.stops
+                  : undefined
+              }
+              fillLinearGradientStartPoint={
+                device.style === "gradient" && device.gradient.type == "linear"
+                  ? {
+                      x: device.size.x * device.gradient.angle.start.x,
+                      y: device.size.y * device.gradient.angle.start.y,
+                    }
+                  : undefined
+              }
+              fillLinearGradientEndPoint={
+                device.style === "gradient" && device.gradient.type == "linear"
+                  ? {
+                      x: device.size.x * device.gradient.angle.end.x,
+                      y: device.size.x * device.gradient.angle.end.y,
+                    }
+                  : undefined
+              }
+              fillRadialGradientColorStops={
+                device.style === "gradient" && device.gradient.type === "radial"
+                  ? device.gradient.stops
+                  : undefined
+              }
+              fillRadialGradientStartPoint={
+                device.style === "gradient" && device.gradient.type === "radial"
+                  ? {
+                      x: device.size.x * device.gradient.pos.x,
+                      y: device.size.y * device.gradient.pos.y,
+                    }
+                  : undefined
+              }
+              fillRadialGradientEndPoint={
+                device.style === "gradient" && device.gradient.type === "radial"
+                  ? {
+                      x: device.size.x * device.gradient.pos.x,
+                      y: device.size.y * device.gradient.pos.y,
+                    }
+                  : undefined
+              }
+              fillRadialGradientStartRadius={
+                device.style === "gradient" && device.gradient.type === "radial"
+                  ? 0
+                  : undefined
+              }
+              fillRadialGradientEndRadius={
+                device.style === "gradient" && device.gradient.type === "radial"
+                  ? Math.max(device.size.x, device.size.y) / 1.5
+                  : undefined
+              }
+              fillPatternImage={
+                device.style === "image" ? patternImage : undefined
+              }
+              fillPatternScale={
+                device.style === "image" ? getScaleFactors() : undefined
+              }
+              fillPatternRepeat={
+                device.style === "image" ? "no-repeat" : undefined
+              }
+              fillPriority={device.style === "image" ? "pattern" : "color"}
+            />
           </Layer>
-        <Layer
-        style={{
-          pointerEvents: "auto",
-        }}
-        onMouseUp={cancelBubble}
-        >
-        <Group
-          draggable={isDraggable}
-          onDragMove={handleDragMove}
-          onMouseDown={handleMouseDown}
-          ref={shapeRef}
-          x={qrPos.x - (device.qr.custom.borderSize / 2 * stageScale)}
-          y={qrPos.y - (device.qr.custom.borderSize / 2 * stageScale)}
-          height={qrSize + (device.qr.custom.borderSize * stageScale)}
-          width={qrSize + (device.qr.custom.borderSize * stageScale)}
-        >
-        <Rect
-        id="QRImage"
-        fill={device.qr.custom.borderColor}
-        fillPatternRepeat={"no-repeat"}
-        height={qrSize + (device.qr.custom.borderSize * stageScale)}
-        width={qrSize + (device.qr.custom.borderSize * stageScale)}
-        fillAfterStrokeEnabled={true}
-        cornerRadius={[device.qr.custom.cornerRadius,device.qr.custom.cornerRadius,device.qr.custom.cornerRadius,device.qr.custom.cornerRadius]}
-        />
-        <Rect
-        id="QRImage"
-          x={(device.qr.custom.borderSize / 2 * stageScale)}
-          y={(device.qr.custom.borderSize / 2 * stageScale)}
-          fillPatternImage={qrImg}
-          fillPatternRepeat={"no-repeat"}
-          height={qrSize}
-          width={qrSize}
-          fillAfterStrokeEnabled={true}
-        />
-      </Group>
-        <Transformer
-          onTransformEnd={cancelBubble}
-          borderStroke={"red"}
-          borderStrokeWidth={2 / stageScale}
-          enabledAnchors={[
-          "top-left",
-          "top-right",
-          "bottom-left",
-          "bottom-right",
-          ]}
-          keepRatio={true}
-          anchorSize={7.5 / stageScale}
-          anchorStroke={"red"}
-          anchorStrokeWidth={1 / stageScale}
-          anchorCornerRadius={7.5 / stageScale}
-          rotateEnabled={false}
-          flipEnabled={false}
-          ref={transformerRef}
-        />
-        <Line
-          stroke={"red"}
-          strokeWidth={5}
-          dash={[25, 15]}
-          points={[
-          device.size.x / 2,
-          0,
-          device.size.x / 2,
-          device.size.y / 2,
-          device.size.x / 2,
-          device.size.y,
-          ]}
-          visible={isCenterX && isDragging}
-        />
-        <Line
-          stroke={"red"}
-          strokeWidth={5}
-          dash={[25, 15]}
-          points={[
-          0,
-          device.size.y / 2,
-          device.size.x / 2,
-          device.size.y / 2,
-          device.size.x,
-          device.size.y / 2,
-          ]}
-          visible={isCenterY & isDragging}
-        />
-        </Layer>
-      </Stage>
+          <Layer
+            style={{
+              pointerEvents: "auto",
+            }}
+            onMouseUp={cancelBubble}
+          >
+            <Group
+              draggable={isDraggable}
+              onDragMove={handleDragMove}
+              onMouseDown={handleMouseDown}
+              ref={shapeRef}
+              x={qrPos.x - (device.qr.custom.borderSize / 2) * stageScale}
+              y={qrPos.y - (device.qr.custom.borderSize / 2) * stageScale}
+              height={qrSize + device.qr.custom.borderSize * stageScale}
+              width={qrSize + device.qr.custom.borderSize * stageScale}
+            >
+              <Rect
+                id="QRImage"
+                fill={device.qr.custom.borderColor}
+                fillPatternRepeat={"no-repeat"}
+                height={qrSize + device.qr.custom.borderSize * stageScale}
+                width={qrSize + device.qr.custom.borderSize * stageScale}
+                fillAfterStrokeEnabled={true}
+                cornerRadius={[
+                  device.qr.custom.cornerRadius,
+                  device.qr.custom.cornerRadius,
+                  device.qr.custom.cornerRadius,
+                  device.qr.custom.cornerRadius,
+                ]}
+              />
+              <Rect
+                id="QRImage"
+                x={(device.qr.custom.borderSize / 2) * stageScale}
+                y={(device.qr.custom.borderSize / 2) * stageScale}
+                fillPatternImage={qrImg}
+                fillPatternRepeat={"no-repeat"}
+                height={qrSize}
+                width={qrSize}
+                fillAfterStrokeEnabled={true}
+              />
+            </Group>
+            <Transformer
+              onTransformEnd={cancelBubble}
+              borderStroke={"red"}
+              borderStrokeWidth={2 / stageScale}
+              enabledAnchors={[
+                "top-left",
+                "top-right",
+                "bottom-left",
+                "bottom-right",
+              ]}
+              keepRatio={true}
+              anchorSize={7.5 / stageScale}
+              anchorStroke={"red"}
+              anchorStrokeWidth={1 / stageScale}
+              anchorCornerRadius={7.5 / stageScale}
+              rotateEnabled={false}
+              flipEnabled={false}
+              ref={transformerRef}
+            />
+            <Line
+              stroke={"red"}
+              strokeWidth={5}
+              dash={[25, 15]}
+              points={[
+                device.size.x / 2,
+                0,
+                device.size.x / 2,
+                device.size.y / 2,
+                device.size.x / 2,
+                device.size.y,
+              ]}
+              visible={isCenterX && isDragging}
+            />
+            <Line
+              stroke={"red"}
+              strokeWidth={5}
+              dash={[25, 15]}
+              points={[
+                0,
+                device.size.y / 2,
+                device.size.x / 2,
+                device.size.y / 2,
+                device.size.x,
+                device.size.y / 2,
+              ]}
+              visible={isCenterY & isDragging}
+            />
+          </Layer>
+        </Stage>
       </div>
     );
   }

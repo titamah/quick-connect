@@ -8,13 +8,18 @@ function GradientSelector() {
   const { device, setDevice } = useContext(DeviceContext);
   const [type, setType] = useState(device.gradient.type);
   const gradientPreview = useRef(null);
-  const [angle, setAngle] = useState(90);
-  const [pos, setPos] = useState({ x: 50, y: 50 });
+  const [angle, setAngle] = useState(180);
   const [anglePercent, setAnglePercent] = useState({
     start: { x: 0.5, y: 0 },
     end: { x: 0.5, y: 1 },
   });
-  const [posPercent, setPosPercent] = useState({ x: 0.5, y: 0.5 });
+  const [pos, setPos] = useState({ x: 50, y: 66 });
+  const [posPercent, setPosPercent] = useState({ x: 0.5, y: 0.66 });
+
+useEffect(() => {
+    setPosPercent({x: pos.x * 0.01, y: pos.y * 0.01});
+}, [pos]);
+
   const [gradientCSS, setGradientCSS] = useState(null);
 
   const updateCSS = () => {
@@ -105,35 +110,36 @@ function GradientSelector() {
   };
 
   return (
-    <div className="space-y-2 dark:text-white w-full px-5 gap-[10px] flex flex-wrap">
-      <ColorPicker
-        ref={gradientPreview}
-        value={processedStops}
-        size="large"
-        placement="bottomRight"
-        mode="gradient"
-        disabledAlpha
-        onChange={(color) => {
-          updateStops(color.toCssString());
-        }}
-      >
-        <div className="react-colorful !flex-7 min-w-[150px] w-full !max-w-full !h-[200px]">
+    <div className="dark:text-white w-full px-5 space-y-2.5 mb-3.5">
+      <div className="react-colorful space-y-1 !w-full">
+        <ColorPicker
+          ref={gradientPreview}
+          value={processedStops}
+          size="large"
+          placement="bottomRight"
+          mode="gradient"
+          disabledAlpha
+          onChange={(color) => {
+            updateStops(color.toCssString());
+          }}
+        >
           <div
-            className="react-colorful__saturation"
+            className="react-colorful__saturation !w-full !border-radius-[4px] !border-[5px] !border-white dark:!border-[rgba(38,38,38,1)] !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)]"
             style={{ background: gradientCSS }}
-          ></div>
-          <div
-            className="w-full h-3 rounded-full cursor-pointer react-colorful__hue"
-            style={{
-              background: `linear-gradient(90deg, ${processedStops
-                .map(({ color, percent }) => `${color} ${percent}%`)
-                .join(", ")})`,
-            }}
-          >
-            {stops.map(([percent, color], index) => (
-              <React.Fragment key={index}>
-                <style>
-                  {`
+          />
+        </ColorPicker>
+        <div
+          className="w-full h-3 rounded-full cursor-pointer react-colorful__hue"
+          style={{
+            background: `linear-gradient(90deg, ${processedStops
+              .map(({ color, percent }) => `${color} ${percent}%`)
+              .join(", ")})`,
+          }}
+        >
+          {stops.map(([percent, color], index) => (
+            <React.Fragment key={index}>
+              <style>
+                {`
             #gradient-slider-${index} {
                 pointer-events: none; /* block full-track dragging */
             }
@@ -149,6 +155,7 @@ function GradientSelector() {
                 pointer-events: all; /* allow thumb to be draggable */
                 position: relative;
                 z-index: ${998 * index};
+                box-shadow: 0 2px 4px rgba(0,0,0,.2);
             }
 
             #gradient-slider-${index}::-moz-range-thumb {
@@ -161,30 +168,30 @@ function GradientSelector() {
                 pointer-events: all;
                 position: relative;
                 z-index: ${998 * index};
+                box-shadow: 0 2px 4px rgba(0,0,0,.2);
             }
         `}
-                </style>
-                <input
-                  id={`gradient-slider-${index}`}
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={percent * 100}
-                  onInput={(e) => {
-                    const newPercent = Number(e.target.value) / 100;
-                    const newStops = [...stops];
-                    newStops[index][0] = newPercent;
-                    updateStops(newStops);
-                  }}
-                  className="absolute top-[1/2] left-0 w-full h-full appearance-none bg-transparent z-[999]"
-                />
-              </React.Fragment>
-            ))}
-          </div>
+              </style>
+              <input
+                id={`gradient-slider-${index}`}
+                type="range"
+                min="0"
+                max="100"
+                value={percent * 100}
+                onInput={(e) => {
+                  const newPercent = Number(e.target.value) / 100;
+                  const newStops = [...stops];
+                  newStops[index][0] = newPercent;
+                  updateStops(newStops);
+                }}
+                className="absolute top-[1/2] left-0 w-full h-full appearance-none bg-transparent z-[999]"
+              />
+            </React.Fragment>
+          ))}
         </div>
-      </ColorPicker>
-      <div className="flex flex-col w-full gap-2">
-        <div className="flex flex-row items-center justify-between flex-5 w-full">
+      </div>
+      <div className="flex flex-col w-full">
+        <div className="flex flex-row items-center justify-between w-full mb-2">
           <Dropdown menu={menuProps}>
             <Button>
               <Space>
@@ -193,37 +200,67 @@ function GradientSelector() {
               </Space>
             </Button>
           </Dropdown>
-          <span className="flex items-center gap-2 pointer-events-auto"
-            
-              onClick={() => {
-                const reverse = stops.map(([percent, color]) => {
-                  return [1 - percent, color];
-                });
-                setStops(reverse.sort((a, b) => a[0] - b[0]));
-              }}
-             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="lucide lucide-arrow-left-right-icon lucide-arrow-left-right"
-              >
-                <path d="M8 3 4 7l4 4" />
-                <path d="M4 7h16" />
-                <path d="m16 21 4-4-4-4" />
-                <path d="M20 17H4" />
-              </svg>
+          <span
+            className="flex items-center gap-2 pointer-events-auto"
+            onClick={() => {
+              const reverse = stops.map(([percent, color]) => {
+                return [1 - percent, color];
+              });
+              setStops(reverse.sort((a, b) => a[0] - b[0]));
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="lucide lucide-arrow-left-right-icon lucide-arrow-left-right"
+            >
+              <path d="M8 3 4 7l4 4" />
+              <path d="M4 7h16" />
+              <path d="m16 21 4-4-4-4" />
+              <path d="M20 17H4" />
+            </svg>
           </span>
         </div>
         {type === "linear" ? (
-          <div>
+          <React.Fragment>
+            <style>
+          {`
+      #gradient-angle-slide::-webkit-slider-thumb {
+          background-color: rgb(115,115,115);
+          border: 1.5px solid white;
+          border-radius: 50%;
+          height: 15px;
+          width: 15px;
+          cursor: pointer;
+          appearance: none;
+          pointer-events: all; /* allow thumb to be draggable */
+          position: relative;
+          box-shadow: 0 2px 4px rgba(0,0,0,.2);
+      }
+
+      #gradient-angle-slide::-moz-range-thumb {
+          background-color: rgb(115,115,115);
+          border: 1.5px solid white;
+          border-radius: 50%;
+          height: 15px;
+          width: 15px;
+          cursor: pointer;
+          pointer-events: all;
+          position: relative;
+          box-shadow: 0 2px 4px rgba(0,0,0,.2);
+      }
+  `}
+  </style>
+  <span className="text-xs">Angle</span>
             <input
+            id="gradient-angle-slide"
               type="range"
               min="0"
               max="360"
@@ -231,13 +268,11 @@ function GradientSelector() {
               onInput={(e) => {
                 setAngle(e.target.value);
                 setAnglePercent(() => {
-                  const rad = (angle * Math.PI) / 180;
+                  const rad = ((angle - 90) * Math.PI) / 180;
 
-                  // Direction vector
                   const dx = Math.cos(rad);
                   const dy = Math.sin(rad);
 
-                  // Half-length vector from center in direction of angle
                   const half = 0.5;
 
                   return {
@@ -252,23 +287,24 @@ function GradientSelector() {
                   };
                 });
               }}
-              className="w-full h-3 bg-gray-200 rounded-lg cursor-pointer appearance-none dark:bg-gray-700"
+              
+              className="w-full h-3 rounded-full cursor-pointer border-radius-[4px] mt-[7.5px] h-[5px] appearance-none bg-neutral-300 dark:bg-neutral-700"
             />
-          </div>
+          </React.Fragment>
         ) : (
           <div className="flex gap-2">
             <input
-              type="text"
+              type="number"
               value={pos.x}
               onChange={(e) => setPos({ ...pos, x: e.target.value })}
-              className="w-full h-8 px-2 border rounded dark:bg-gray-800 dark:border-gray-600"
+              className="w-full px-2 border rounded dark:bg-neutral-900/50 dark:border-neutral-700/50"
               placeholder="X Position"
             />
             <input
-              type="text"
+              type="number"
               value={pos.y}
               onChange={(e) => setPos({ ...pos, y: e.target.value })}
-              className="w-full h-8 px-2 border rounded dark:bg-gray-800 dark:border-gray-600"
+              className="w-full px-2 border rounded dark:bg-neutral-900/50 dark:border-neutral-700/50"
               placeholder="Y Position"
             />
           </div>

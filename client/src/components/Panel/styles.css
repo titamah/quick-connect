@@ -1,25 +1,13 @@
-/* .react-colorful {
-    height: 200px !important;
-    display: flex !important;
-} */
-/* .react-colorful__interactive{
-    height: 100% !important;
-} */
 .react-colorful__saturation {
-    border: 3.25px solid rgb(38, 38, 38) !important;
+    border: inherit !important;
     border-radius: 4px !important;
-    box-shadow: 0 0 0 .95px rgb(66, 66, 66) !important;
+    box-shadow: inherit !important;
 }
-.react-colorful__hue{
+.react-colorful__hue {
     border-radius: 4px !important;
     margin-top: 7.5px !important;
     height: 5px !important;
 }
-
-/* .react-colorful__hue > div, .react-colorful__alpha > div {
-    border-radius: 0 !important;
-} */
-
 .react-colorful__pointer {
     height: 15px !important;
     width: 15px !important;
@@ -36,3 +24,10 @@
 .recent-color:hover {
     opacity: 50%;
 } 
+
+.hover {
+    opacity: 0;
+}
+.hover:hover {
+    opacity: 100%;
+}

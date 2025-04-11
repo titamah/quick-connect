@@ -6,14 +6,8 @@ import ColorSelector from "./ColorSelector";
 import GradientSelector from "./GradientSelector";
 
 function CustomBackgroundSelector() {
-  const [activeTab, setActiveTab] = useState(2);
+  const [activeTab, setActiveTab] = useState(1);
   const { device, setDevice } = useContext(DeviceContext);
-
-  // useEffect(()=>{
-  //   const customTab = document.querySelector(".bg-tab-1");
-  //   const libraryTab = document.querySelector(".bg-tab-2");
-  //   customTab.classList.add("!text-gray-500");
-  // },[])
 
   const setBGStyle = (index) => {
     if (index == 1){
