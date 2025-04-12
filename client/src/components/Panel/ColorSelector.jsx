@@ -3,6 +3,7 @@ import "preline/preline";
 import { DeviceContext } from "../../App";
 import { HexColorPicker } from "react-colorful";
 import "./styles.css";
+import { Grid, Grip, Waves } from "lucide-react";
 
 function ColorSelector() {
   const { device, setDevice } = useContext(DeviceContext);
@@ -76,15 +77,27 @@ function ColorSelector() {
 
 return (
   <>
-    <div id="ColorSelectPanel" ref={pickerRef} className="dark:text-white w-full px-5 space-y-2.5 mb-3.5">
-            <input
+    <div id="ColorSelectPanel" ref={pickerRef} className="dark:text-white w-full px-5 space-y-2.5 mb-3">
+            <span className="flex flex-row items-center justify-between w-full mb-2 ">
+              <input
                 value={getColorString(color)}
                 onChange={(e) => updateColors(e.target.value)}
-                className="p-1 border-1 border-black/10 dark:border-white/10 mb-2 text-neutral-600 dark:text-neutral-200/75 text-sm align-center rounded-sm px-[15px] w-[95px]"
+                className="p-1 border-1 border-black/10 dark:border-white/10 text-neutral-600 dark:text-neutral-200/75 text-sm align-center rounded-sm px-[15px] w-[95px]"
             />
+            <Grip
+              className="opacity-75 hover:opacity-100 cursor-pointer"
+              size={20}
+              onClick={() => {
+                  const curr = device.grain;
+                  setDevice((prevDevice) => ({
+                ...prevDevice,
+                grain: !curr
+              }));
+              }}/>
+              </span>
         <HexColorPicker color={color} onChange={(e) => updateColors(e)} className="space-y-1 !w-full"/>
         <div className="w-full">
-            <div className="flex flex-wrap  my-[5px] gap-[5px]">
+            <div className="flex flex-wrap my-3 gap-[5px]">
             {getColorCircle}
             </div>
         </div>

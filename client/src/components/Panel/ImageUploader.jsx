@@ -3,10 +3,14 @@ import { DeviceContext } from "../../App";
 import { Modal } from "antd";
 import { ReactCrop, makeAspectCrop, centerCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import { Trash2, Upload } from "lucide-react";
+import { Grip, Trash2, Upload, Waves } from "lucide-react";
+import Dropdown from "./Dropdown";
 
 function ImageUploader() {
   const { device, setDevice } = useContext(DeviceContext);
+
+  const [source, setSource] = useState("Upload");
+  const menuOptions = source !== "Upload" ? ["Upload"] : ["Library"];
 
   const [file, setFile] = useState(null);
   const [originalFile, setOriginalFile] = useState(null);
@@ -92,67 +96,99 @@ function ImageUploader() {
           />
         </ReactCrop>
       </Modal>
-
-      <div
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => e.preventDefault()}
-        className="dark:text-white h-[183.5px] w-fill mx-5 space-y-2.5 mb-3.5 !rounded-[4px] !border-[5px] !border-white dark:!border-[rgba(38,38,38,1)] !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)]"
-      >
-        {file ? (
-          <div
-            onClick={openModal}
-            onDrop={handleChange}
-            className="w-full h-full flex items-center justify-center relative"
-          >
-            <div className="hover absolute inset-0 bg-black/50 flex items-center justify-center transition-opacity">
-              <button
-                onClick={() => setFile(null)}
-                className="bg-red-500 text-white p-2 rounded-full mx-2"
-              >
-                🗑️
-              </button>
-              <button
-                onClick={openModal}
-                className="bg-blue-500 text-white p-2 rounded-full mx-2"
-              >
-                ✏️
-              </button>
-            </div>
-            <img
-              src={originalFile ? URL.createObjectURL(originalFile): null}
-              alt="Thumbnail"
-              style={{ objectFit: "fit", maxWidth: "100%", maxHeight: "100%" }}
+      <div className="dark:text-white w-full px-5 mb-3">
+        <div className="flex flex-row items-center justify-between w-full mb-2">
+          <Dropdown options={menuOptions} value={source} onChange={setSource} />
+          <span className="flex items-center gap-2 pointer-events-auto">
+            <Grip
+              className="opacity-75 hover:opacity-100 cursor-pointer"
+              size={20}
+              onClick={() => {
+                const curr = device.grain;
+                setDevice((prevDevice) => ({
+                  ...prevDevice,
+                  grain: !curr,
+                }));
+              }}
             />
-          </div>
-        ) : (
-          <div
-            onDrop={handleChange}
+          </span>
+        </div>
+        <div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => e.preventDefault()}
+          className="dark:text-white h-[183.5px] w-fill mb-0.5 !rounded-[4px] !border-[5px] !border-white dark:!border-[rgba(38,38,38,1)] !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)]"
+        >
+          {file ? (
+            <div
+              onClick={openModal}
+              onDrop={handleChange}
+              className="w-full h-full flex items-center justify-center relative"
+            >
+              <div className="hover absolute inset-0 bg-black/50 flex items-center justify-center transition-opacity">
+                <button
+                  onClick={() => setFile(null)}
+                  className="bg-red-500 text-white p-2 rounded-full mx-2"
+                >
+                  🗑️
+                </button>
+                <button
+                  onClick={openModal}
+                  className="bg-blue-500 text-white p-2 rounded-full mx-2"
+                >
+                  ✏️
+                </button>
+              </div>
+              <img
+                src={originalFile ? URL.createObjectURL(originalFile) : null}
+                alt="Thumbnail"
+                style={{
+                  objectFit: "fit",
+                  maxWidth: "100%",
+                  maxHeight: "100%",
+                }}
+              />
+            </div>
+          ) : (
+            <div
+              onDrop={handleChange}
+              onClick={() => {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = fileTypes
+                  .map((type) => `.${type.toLowerCase()}`)
+                  .join(",");
+                input.onchange = (event) => {
+                  const selectedFile = event.target.files[0];
+                  if (selectedFile) {
+                    setOriginalFile(selectedFile);
+                    setModalOpen(true);
+                  }
+                };
+                input.click();
+              }}
+              className="dark:text-white dark:hover:bg-white/5 hover:bg-black/5 w-full h-full dark:bg-neutral-800 flex flex-col items-center justify-center text-center text-md p-5 gap-1 relative cursor-pointer"
+            >
+              <Upload size={48} />
+              Drop your image here or browse to select a file
+              <span className="text-xs italic text-black/65 dark:text-white/65">
+                Supported formats: JPEG, PNG, GIF, SVG, JPG, WEBP
+              </span>
+            </div>
+          )}
+        </div>
+        <span className="text-xs text-[var(--contrast)] p-1"> File Name </span>
+        <div
+          className="dark:text-white w-fill h-full dark:bg-neutral-800 px-2 py-1 border text-sm
+            border-neutral-200 dark:border-neutral-700 rounded-md flex items-center justify-between"
+        >
+          <span>{originalFile ? originalFile.name : "No image selected"}</span>
+          <Trash2
+            size={16}
             onClick={() => {
-              const input = document.createElement("input");
-              input.type = "file";
-              input.accept = fileTypes.map((type) => `.${type.toLowerCase()}`).join(",");
-              input.onchange = (event) => {
-                const selectedFile = event.target.files[0];
-                if (selectedFile) {
-                  setOriginalFile(selectedFile);
-                  setModalOpen(true);
-                }
-              };
-              input.click();
+              setOriginalFile(null);
             }}
-            className="dark:text-white dark:hover:bg-white/5 hover:bg-black/5 w-full h-full dark:bg-neutral-800 flex flex-col items-center justify-center text-center text-md p-5 gap-1 relative cursor-pointer"
-          >
-            <Upload size={48}/>
-            Drop your image here or browse to select a file
-            <span className="text-xs italic text-black/65 dark:text-white/65">Supported formats: JPEG, PNG, GIF, SVG, JPG, WEBP</span>
-          </div>
-        )}
-      </div>
-      <div
-            className="dark:text-white w-fill h-full dark:bg-neutral-800 mx-5 px-2 py-1 border text-sm
-            border-neutral-200 dark:border-neutral-700 rounded-md flex items-center justify-between">
-              <span>{originalFile ? originalFile.name : "No image selected"}</span>
-                <Trash2 size={16} onClick={()=>{setOriginalFile(null)}}/>
+          />
+        </div>
       </div>
     </>
   );
@@ -177,7 +213,17 @@ function getCroppedImg(imageSrc, crop) {
       canvas.height = height;
 
       const ctx = canvas.getContext("2d");
-      ctx.drawImage(image, x, y, width, height, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(
+        image,
+        x,
+        y,
+        width,
+        height,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
 
       canvas.toBlob((blob) => resolve(blob), "image/jpeg");
     };

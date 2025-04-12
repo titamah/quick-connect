@@ -8,6 +8,8 @@ import {
   ArrowLeftRight,
   RotateCcw,
   RotateCw,
+  Grip,
+  Waves,
 } from "lucide-react";
 
 function GradientSelector() {
@@ -183,6 +185,16 @@ function GradientSelector() {
           onChange={handleMenuClick}
         />
         <span className="flex items-center gap-2 pointer-events-auto">
+          <Grip
+            className="opacity-75 hover:opacity-100 cursor-pointer"
+            size={20}
+            onClick={() => {
+                const curr = device.grain;
+                setDevice((prevDevice) => ({
+              ...prevDevice,
+              grain: !curr
+            }));
+            }}/>
           <BetweenVerticalEnd
             className="opacity-75 hover:opacity-100 cursor-pointer"
             size={20}
@@ -237,8 +249,6 @@ function GradientSelector() {
         >
           {stops.map(
             ([percent, color], index) => (
-              console.log(color),
-              console.log(index),
               (
                 <Slider
                   id={`gradient-slider-${index}`}
@@ -263,7 +273,7 @@ function GradientSelector() {
         {type === "linear" ? (
           <React.Fragment>
             <RotateCcw
-              className="my-3"
+            className="my-4 opacity-75 hover:opacity-100 cursor-pointer"
               size={20}
               onMouseDown={() => {
                 handleMouseDown(-1);
@@ -280,7 +290,7 @@ function GradientSelector() {
               onChange={handleAngleChange}
             />
             <RotateCw
-              className="my-3"
+            className="my-4 opacity-75 hover:opacity-100 cursor-pointer"
               size={20}
               onMouseDown={() => {
                 handleMouseDown(1);
@@ -290,7 +300,7 @@ function GradientSelector() {
             />
           </React.Fragment>
         ) : (
-          <div className="flex flex-row gap-2 h-[28px] p-1 text-sm my-2 justify-between w-full bg-neutral-200/50 dark:bg-neutral-900/50 rounded">
+          <div className="flex flex-row gap-2 h-[28px] p-1 text-sm my-3 justify-between w-full bg-neutral-200/50 dark:bg-neutral-900/50 rounded">
             Position
             <span className="flex flex-row gap-1">
               <input

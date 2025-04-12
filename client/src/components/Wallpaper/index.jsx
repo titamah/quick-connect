@@ -8,6 +8,18 @@ const Wallpaper = forwardRef(
     const windowSize = useWindowSize();
     const [patternImage, setPatternImage] = useState(null);
     const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+    const [grain, setGrain] = useState(null);
+
+    useEffect(() => {
+      const img = new Image();
+      img.src = "/grain.jpeg";
+      img.onload = () => {
+        console.log(img);
+        setGrain(img);
+      ref.current.batchDraw();
+      };
+    },[]);
+     
 
     const getStageScale = () => {
       let panelX, panelY;
@@ -138,7 +150,7 @@ const Wallpaper = forwardRef(
       const rawX = Math.max(0, Math.min(shape.x(), stageWidth - shapeWidth));
       const rawY = Math.max(0, Math.min(shape.y(), stageHeight - shapeHeight));
       let targetX, targetY;
-      
+
       if (Math.abs(rawX - middleX) < snapTolerance) {
         setIsCenterX(true);
         targetX = middleX;
@@ -288,16 +300,16 @@ const Wallpaper = forwardRef(
               fillLinearGradientStartPoint={
                 device.style === "gradient" && device.gradient.type == "linear"
                   ? {
-                      x:  device.gradient.angle.start.x,
-                      y:  device.gradient.angle.start.y,
+                      x: device.gradient.angle.start.x,
+                      y: device.gradient.angle.start.y,
                     }
                   : undefined
               }
               fillLinearGradientEndPoint={
                 device.style === "gradient" && device.gradient.type == "linear"
                   ? {
-                      x:  device.gradient.angle.end.x,
-                      y:  device.gradient.angle.end.y,
+                      x: device.gradient.angle.end.x,
+                      y: device.gradient.angle.end.y,
                     }
                   : undefined
               }
@@ -342,6 +354,17 @@ const Wallpaper = forwardRef(
                 device.style === "image" ? "no-repeat" : undefined
               }
               fillPriority={device.style === "image" ? "pattern" : "color"}
+            />
+            <Rect
+              width={device.size.x}
+              height={device.size.y}
+              x={0}
+              y={0}
+              fillPatternImage={grain}
+              fillPatternRepeat="repeat"
+              fillPriority="pattern"
+              globalCompositeOperation= 'luminosity'
+              opacity={device.grain ? .065 : 0}
             />
           </Layer>
           <Layer

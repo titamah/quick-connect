@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@floating-ui/react": "^0.27.5",
+    "colorthief": "^2.6.0",
     "lucide-react": "^0.487.0",
     "react-drag-drop-files": "^3.0.1",
     "react-gradient-color-picker": "^0.1.3",
