@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useContext } from "react";
 import { DeviceContext } from "../../App";
-import { Modal } from "antd";
+import { Col, Modal } from "antd";
 import { ReactCrop, makeAspectCrop, centerCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import { Grip, Trash2, Upload, Waves } from "lucide-react";
+import { Grip, Trash2, Upload } from "lucide-react";
+import ColorThief from "colorthief";
 import Dropdown from "./Dropdown";
 
 function ImageUploader() {
@@ -69,6 +70,49 @@ function ImageUploader() {
       setDevice((prev) => ({ ...prev, bg: url }));
     }
   }, [file]);
+
+
+  useEffect(() => {
+    if (!originalFile) {
+      setDevice((prevDevice) => ({
+        ...prevDevice,
+        palette: [
+          ...prevDevice.palette.slice(0, 5),
+          null, // This becomes device.palette[5]
+        ],
+      }));
+      
+    }else {
+  
+    // Create an image from the original file
+    const img = new Image();
+    img.crossOrigin = "Anonymous"; // Ensure crossOrigin is set for ColorThief
+    img.src = URL.createObjectURL(originalFile);
+  
+    img.onload = () => {
+    const colorThiefInstance = new ColorThief();
+      const paletteArray = colorThiefInstance.getPalette(img, 4);
+
+      const rgbPalette = paletteArray.map(
+        (color) => `rgb(${color[0]}, ${color[1]}, ${color[2]})`
+      );
+  
+      setDevice((prevDevice) => ({
+        ...prevDevice,
+        palette: [
+          ...prevDevice.palette.slice(0, 5),
+          rgbPalette, // This becomes device.palette[5]
+        ],
+      }));
+  
+      // Optionally log the new palette for debugging
+      console.log("New color palette:", rgbPalette);
+      console.log("device palette:", device.palette);
+    };
+  }
+  }, [originalFile]);
+  
+  
 
   return (
     <>

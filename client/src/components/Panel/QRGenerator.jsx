@@ -11,8 +11,8 @@ function QRGenerator(panelSize) {
   );
 
   useEffect(() => {
-    setQRSize(Math.min(device.size.x, device.size.y) / 2)
-  },[device.size])
+    setQRSize(Math.min(device.size.x, device.size.y) / 2);
+  }, [device.size]);
 
   useEffect(() => {
     const svgElement = qrCodeRef.current.querySelector("svg");
@@ -37,15 +37,14 @@ function QRGenerator(panelSize) {
     });
   }, [panelSize]);
 
-  useEffect(()=>{
+  useEffect(() => {
     const QRImage = document.getElementById("#QRImage");
-  },[])
+  }, []);
 
   const getColorString = (String) => {
     setDevice((prevDevice) => ({
       ...prevDevice,
-      qr: {url: prevDevice.qr.url, custom: prevDevice.qr.custom}
-
+      qr: { url: prevDevice.qr.url, custom: prevDevice.qr.custom },
     }));
     return typeof String === "string" ? String : String?.toHexString();
   };
@@ -95,6 +94,22 @@ function QRGenerator(panelSize) {
           className="qr-color-picker"
           onChange={(e) => {
             setColor(getColorString(e));
+            setDevice((prevDevice) => ({
+              ...prevDevice,
+              palette: [
+              prevDevice.palette[0],
+              e.toHexString(),
+              ...prevDevice.palette.slice(2),
+              ],
+              qr: {
+                url: prevDevice.qr.url,
+                custom: {
+                  borderSize: prevDevice.qr.custom.borderSize,
+                  borderColor: e.toHexString(),
+                  cornerRadius: prevDevice.qr.custom.cornerRadius,
+                },
+              },
+            }));
           }}
           format="hex"
           size="small"
@@ -108,7 +123,24 @@ function QRGenerator(panelSize) {
           placement="bottomRight"
           className="qr-color-picker"
           onChange={(e) => {
-            setBGColor(getColorString(e));
+            setBGColor(getColorString(e))
+            setDevice((prevDevice) => ({
+              ...prevDevice,
+              palette: [
+              prevDevice.palette[0],
+              prevDevice.palette[1],
+              e.toHexString(),
+              ...prevDevice.palette.slice(3),
+              ],
+              qr: {
+                url: prevDevice.qr.url,
+                custom: {
+                  borderSize: prevDevice.qr.custom.borderSize,
+                  borderColor: e.toHexString(),
+                  cornerRadius: prevDevice.qr.custom.cornerRadius,
+                },
+              },
+            }));
           }}
           format="hex"
           size="small"
@@ -117,9 +149,9 @@ function QRGenerator(panelSize) {
       </div>
       Border Size
       <div className="flex justify-between py-2">
-              <input
-                type="range"
-                className="w-full bg-transparent cursor-pointer appearance-none disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden
+        <input
+          type="range"
+          className="w-full bg-transparent cursor-pointer appearance-none disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden
   [&::-webkit-slider-thumb]:w-2.5
   [&::-webkit-slider-thumb]:h-2.5
   [&::-webkit-slider-thumb]:-mt-0.5
@@ -153,19 +185,26 @@ function QRGenerator(panelSize) {
   [&::-moz-range-track]:h-2
   [&::-moz-range-track]:bg-gray-100
   [&::-moz-range-track]:rounded-full"
-                id="steps-range-slider-usage"
-                aria-orientation="horizontal"
-                min="0"
-                max={qrSize * 2}
-                step="1"
-                value={device.qr.custom.borderSize}
-                onChange={(e) => {
-                    setDevice((prevDevice) => ({
-                      ...prevDevice,
-                      qr: { url: prevDevice.qr.url, custom: {borderSize:e.target.value, borderColor: prevDevice.qr.custom.borderColor, cornerRadius: prevDevice.qr.custom.cornerRadius} },
-                    }))}
-                }
-              ></input>
+          id="steps-range-slider-usage"
+          aria-orientation="horizontal"
+          min="0"
+          max={qrSize * 2}
+          step="1"
+          value={device.qr.custom.borderSize}
+          onChange={(e) => {
+            setDevice((prevDevice) => ({
+              ...prevDevice,
+              qr: {
+                url: prevDevice.qr.url,
+                custom: {
+                  borderSize: e.target.value,
+                  borderColor: prevDevice.qr.custom.borderColor,
+                  cornerRadius: prevDevice.qr.custom.cornerRadius,
+                },
+              },
+            }));
+          }}
+        ></input>
       </div>
       Border Color
       <div className="flex justify-between py-2">
@@ -176,8 +215,16 @@ function QRGenerator(panelSize) {
           onChange={(e) => {
             setDevice((prevDevice) => ({
               ...prevDevice,
-              qr: { url: prevDevice.qr.url, custom: {borderSize: prevDevice.qr.custom.borderSize, borderColor: e.toHexString(), cornerRadius: prevDevice.qr.custom.cornerRadius} },
-            }))
+              palette: [e.toHexString(), ...prevDevice.palette.slice(1)],
+              qr: {
+                url: prevDevice.qr.url,
+                custom: {
+                  borderSize: prevDevice.qr.custom.borderSize,
+                  borderColor: e.toHexString(),
+                  cornerRadius: prevDevice.qr.custom.cornerRadius,
+                },
+              },
+            }));
           }}
           format="hex"
           size="small"
@@ -186,9 +233,9 @@ function QRGenerator(panelSize) {
       </div>
       Corner Radius
       <div className="flex justify-between py-2">
-              <input
-                type="range"
-                className="w-full bg-transparent cursor-pointer appearance-none disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden
+        <input
+          type="range"
+          className="w-full bg-transparent cursor-pointer appearance-none disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden
   [&::-webkit-slider-thumb]:w-2.5
   [&::-webkit-slider-thumb]:h-2.5
   [&::-webkit-slider-thumb]:-mt-0.5
@@ -222,19 +269,26 @@ function QRGenerator(panelSize) {
   [&::-moz-range-track]:h-2
   [&::-moz-range-track]:bg-gray-100
   [&::-moz-range-track]:rounded-full"
-                id="steps-range-slider-usage"
-                aria-orientation="horizontal"
-                min="0"
-                max={qrSize}
-                step="1"
-                value={device.qr.custom.cornerRadius}
-                onChange={(e) => {
-                    setDevice((prevDevice) => ({
-                      ...prevDevice,
-                      qr: { url: prevDevice.qr.url, custom: {borderSize: prevDevice.qr.custom.borderSize, borderColor: prevDevice.qr.custom.borderColor, cornerRadius:e.target.value} },
-                    }))}
-                }
-              ></input>
+          id="steps-range-slider-usage"
+          aria-orientation="horizontal"
+          min="0"
+          max={qrSize}
+          step="1"
+          value={device.qr.custom.cornerRadius}
+          onChange={(e) => {
+            setDevice((prevDevice) => ({
+              ...prevDevice,
+              qr: {
+                url: prevDevice.qr.url,
+                custom: {
+                  borderSize: prevDevice.qr.custom.borderSize,
+                  borderColor: prevDevice.qr.custom.borderColor,
+                  cornerRadius: e.target.value,
+                },
+              },
+            }));
+          }}
+        ></input>
       </div>
     </div>
   );

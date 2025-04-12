@@ -158,6 +158,7 @@ function GradientSelector() {
     }
   };
 
+
   useEffect(() => {
     setDevice((prevDevice) => ({
       ...prevDevice,
@@ -167,7 +168,14 @@ function GradientSelector() {
         angle: anglePercent,
         pos: posPercent,
       },
+      palette: [
+        ...prevDevice.palette.slice(0,3),
+        stops.map(([, color]) => color),
+        prevDevice.palette[4],
+        prevDevice.palette[5],
+      ],
     }));
+    console.log(device.palette);
   }, [stops, type, anglePercent, posPercent]);
 
   const handleMenuClick = (e) => {

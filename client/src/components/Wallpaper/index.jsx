@@ -1,25 +1,17 @@
 import { Stage, Rect, Layer, Transformer, Line, Group } from "react-konva";
 import React, { forwardRef, useEffect, useState, useRef, use } from "react";
 import useWindowSize from "../../hooks/useWindowSize";
+import ColorThief from "colorthief";
 import Konva from "konva";
 
 const Wallpaper = forwardRef(
-  ({ device, panelSize, isOpen, locked, setIsZoomEnabled }, ref) => {
+  (
+    { device, panelSize, isOpen, locked, setIsZoomEnabled },
+    ref
+  ) => {
     const windowSize = useWindowSize();
     const [patternImage, setPatternImage] = useState(null);
     const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
-    const [grain, setGrain] = useState(null);
-
-    useEffect(() => {
-      const img = new Image();
-      img.src = "/grain.jpeg";
-      img.onload = () => {
-        console.log(img);
-        setGrain(img);
-      ref.current.batchDraw();
-      };
-    },[]);
-     
 
     const getStageScale = () => {
       let panelX, panelY;
@@ -134,6 +126,18 @@ const Wallpaper = forwardRef(
         y: imageSize.height * getScaleFactors().y,
       };
     };
+
+    const [grain, setGrain] = useState(null);
+
+    useEffect(() => {
+      const img = new Image();
+      img.src = "/grain.jpeg";
+      img.onload = () => {
+        console.log(img);
+        setGrain(img);
+        ref.current.batchDraw();
+      };
+    }, []);
 
     const handleDragMove = (e) => {
       const shape = e.target;
@@ -363,8 +367,8 @@ const Wallpaper = forwardRef(
               fillPatternImage={grain}
               fillPatternRepeat="repeat"
               fillPriority="pattern"
-              globalCompositeOperation= 'luminosity'
-              opacity={device.grain ? .065 : 0}
+              globalCompositeOperation="luminosity"
+              opacity={device.grain ? 0.065 : 0}
             />
           </Layer>
           <Layer

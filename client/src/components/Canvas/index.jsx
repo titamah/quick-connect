@@ -5,7 +5,7 @@ import { DeviceContext } from "../../App";
 import Wallpaper from '../Wallpaper/index'
 import ExportButton from "./ExportButton";
 
-function Canvas({ isOpen, panelSize, wallpaperRef }) {
+function Canvas({ isOpen, panelSize, wallpaperRef, setPalette }) {
   const { device } = useContext(DeviceContext);
   const previewRef = useRef(null);
   const canvasRef = useRef(null);
@@ -51,8 +51,8 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
       : (0.85 * (window.innerHeight - 52)) / device.size.y;
     const scale = Math.min(scaleX, scaleY);
     setPreviewSize({
-      x: (device.size.x * scale) + 20,
-      y: (device.size.y * scale) + 1,
+      x: device.size.x * scale,
+      y: device.size.y * scale,
     });
   }, [device, panelSize, isOpen]);
 
@@ -184,6 +184,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
                 isOpen={isOpen}
                 device={device}
                 locked={!isZoomEnabled}
+                setPalette={setPalette}
                 setIsZoomEnabled={setIsZoomEnabled}
               />
             )}

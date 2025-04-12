@@ -6,6 +6,7 @@ import { ConfigProvider, theme } from "antd";
 import Header from "./components/Header/index";
 import Panel from "./components/Panel/index";
 import Canvas from "./components/Canvas/index";
+import { Palette } from "lucide-react";
 
 export const DeviceContext = createContext();
 
@@ -40,6 +41,8 @@ function App() {
       url: "https://www.linkedin.com/in/titamah",
       custom: { borderSize: 0, borderColor: "#000000", cornerRadius: 0 },
     },
+    grain: false,
+    palette:[],
   });
 
   const [isDarkMode, setIsDarkMode] = useState(false);
