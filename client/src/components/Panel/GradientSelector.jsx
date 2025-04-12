@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState, useContext, use } from "react";
 import { DeviceContext } from "../../App";
 import Slider from "../Slider";
-import { DownOutlined } from "@ant-design/icons";
-import { ColorPicker, Button, Dropdown, Space, Tooltip } from "antd";
+import Dropdown from "./Dropdown";
+import { ColorPicker, Button, Space, Tooltip } from "antd";
 import {
   BetweenVerticalEnd,
   ArrowLeftRight,
@@ -172,22 +172,16 @@ function GradientSelector() {
     setType(type === "linear" ? "radial" : "linear");
   };
 
-  const menuProps = {
-    items: [{ label: type === "linear" ? "Radial" : "Linear", key: "1" }],
-    onClick: handleMenuClick,
-  };
+  const menuOptions = type === "linear" ? ["Radial"] : ["Linear"];
 
   return (
-    <div className="dark:text-white w-full px-5 space-y-2.5">
+    <div className="dark:text-white w-full px-5">
       <div className="flex flex-row items-center justify-between w-full mb-2">
-        <Dropdown menu={menuProps}>
-          <Button>
-            <Space>
-              {type.charAt(0).toUpperCase() + type.slice(1)}
-              <DownOutlined />
-            </Space>
-          </Button>
-        </Dropdown>
+        <Dropdown
+          options={menuOptions}
+          value={type}
+          onChange={handleMenuClick}
+        />
         <span className="flex items-center gap-2 pointer-events-auto">
           <BetweenVerticalEnd
             className="opacity-75 hover:opacity-100 cursor-pointer"
@@ -241,24 +235,28 @@ function GradientSelector() {
               .join(", ")})`,
           }}
         >
-          {stops.map(([percent, color], index) => (
-            console.log(color),
-            console.log(index),
-            <Slider
-            id={`gradient-slider-${index}`}
-              index={index + 1}
-              min="0"
-              max="100"
-              color={color}
-              value={percent * 100}
-              onChange={(e) => {
-                const newPercent = Number(e.target.value) / 100;
-                const newStops = [...stops];
-                newStops[index][0] = newPercent;
-                updateStops(newStops);
-              }}
-            />
-          ))}
+          {stops.map(
+            ([percent, color], index) => (
+              console.log(color),
+              console.log(index),
+              (
+                <Slider
+                  id={`gradient-slider-${index}`}
+                  index={index + 1}
+                  min="0"
+                  max="100"
+                  color={color}
+                  value={percent * 100}
+                  onChange={(e) => {
+                    const newPercent = Number(e.target.value) / 100;
+                    const newStops = [...stops];
+                    newStops[index][0] = newPercent;
+                    updateStops(newStops);
+                  }}
+                />
+              )
+            )
+          )}
         </div>
       </div>
       <div className="flex flex-row items-center justify-center w-full space-x-1">
@@ -292,21 +290,24 @@ function GradientSelector() {
             />
           </React.Fragment>
         ) : (
-          <div className="flex gap-2 h-[20px] text-sm">
-            <input
-              type="number"
-              value={pos.x}
-              onChange={(e) => setPos({ ...pos, x: e.target.value })}
-              className="w-full h-full px-2 border rounded dark:bg-neutral-900/50 dark:border-neutral-700/50"
-              placeholder="X Position"
-            />
-            <input
-              type="number"
-              value={pos.y}
-              onChange={(e) => setPos({ ...pos, y: e.target.value })}
-              className="w-full h-full px-2 border rounded dark:bg-neutral-900/50 dark:border-neutral-700/50"
-              placeholder="Y Position"
-            />
+          <div className="flex flex-row gap-2 h-[28px] p-1 text-sm my-2 justify-between w-full bg-neutral-200/50 dark:bg-neutral-900/50 rounded">
+            Position
+            <span className="flex flex-row gap-1">
+              <input
+                type="number"
+                value={pos.x}
+                onChange={(e) => setPos({ ...pos, x: e.target.value })}
+                className="pl-2 border w-[51px] rounded bg-white border-neutral-300/50 dark:bg-neutral-900/50 dark:border-neutral-700/50"
+                placeholder="X"
+              />
+              <input
+                type="number"
+                value={pos.y}
+                onChange={(e) => setPos({ ...pos, y: e.target.value })}
+                className="pl-2 w-[51px] border rounded bg-white border-neutral-300/50 dark:bg-neutral-900/50 dark:border-neutral-700/50"
+                placeholder="Y"
+              />
+            </span>
           </div>
         )}
       </div>

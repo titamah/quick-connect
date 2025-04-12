@@ -77,13 +77,13 @@ function ColorSelector() {
 return (
   <>
     <div id="ColorSelectPanel" ref={pickerRef} className="dark:text-white w-full px-5 space-y-2.5 mb-3.5">
-        <HexColorPicker color={color} onChange={(e) => updateColors(e)} className="space-y-1 !w-full"/>
-        <div className="w-full">
             <input
                 value={getColorString(color)}
                 onChange={(e) => updateColors(e.target.value)}
                 className="p-1 border-1 border-black/10 dark:border-white/10 mb-2 text-neutral-600 dark:text-neutral-200/75 text-sm align-center rounded-sm px-[15px] w-[95px]"
             />
+        <HexColorPicker color={color} onChange={(e) => updateColors(e)} className="space-y-1 !w-full"/>
+        <div className="w-full">
             <div className="flex flex-wrap  my-[5px] gap-[5px]">
             {getColorCircle}
             </div>
