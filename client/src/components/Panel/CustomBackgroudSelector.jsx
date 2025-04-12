@@ -5,7 +5,7 @@ import ImageUploader from "./ImageUploader";
 import ColorSelector from "./ColorSelector";
 import GradientSelector from "./GradientSelector";
 
-function CustomBackgroundSelector() {
+function CustomBackgroundSelector(panelSize) {
   const [activeTab, setActiveTab] = useState(1);
   const { device, setDevice } = useContext(DeviceContext);
 
@@ -167,7 +167,7 @@ function CustomBackgroundSelector() {
           role="tabpanel"
           aria-labelledby="custom-tabs-with-underline-item-1"
         >
-          <ColorSelector/>
+          <ColorSelector panelSize={panelSize}/>
         </div>
         <div
           id="custom-tabs-with-underline-2"

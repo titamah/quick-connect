@@ -6,7 +6,7 @@ import "./styles.css";
 import { Grid, Grip, Waves } from "lucide-react";
 import chroma from "chroma-js";
 
-function ColorSelector(palette) {
+function ColorSelector(panelSize) {
   const { device, setDevice } = useContext(DeviceContext);
   const pickerRef = useRef(null);
   const [color, setColor] = useState("#ffad6c");
@@ -49,6 +49,7 @@ function ColorSelector(palette) {
         debounceTimer = setTimeout(() => func.apply(this, args), delay);
       };
     };
+    setInputText(c);
     const debouncedUpdateColors = debounce((c) => {
       console.log(c);
       setDevice((prevDevice) => ({
@@ -60,14 +61,16 @@ function ColorSelector(palette) {
   };
 
   const setColorCombo = (c) => {
-    console.log(c);
     setColor(c);
   };
 
   useEffect(() => {
+    const num = (panelSize.panelSize.panelSize.width / (44));
+    console.log(panelSize.panelSize.panelSize.width);
+    console.log(num);
     const val = device.palette.flat().slice(0,3).filter((e) => e !== undefined && e !== null);
     const validColors = val.filter((color) => chroma.valid(color));
-    const chromaTest = chroma.scale(validColors.length > 0 ? validColors : ["#ffffff"]).mode("lab").colors(10);
+    const chromaTest = chroma.scale(validColors.length > 0 ? validColors : ["#ffffff"]).mode("lab").colors(num );
     console.log(chromaTest);
     setColorCircles(
       chromaTest.map((e) => (
@@ -79,15 +82,14 @@ function ColorSelector(palette) {
         ></div>
       ))
     );
-  }, [device.palette]);
+  }, [device.palette, panelSize.panelSize.panelSize.width]);
 
   useEffect(() => {
     setDevice((prevDevice) => ({
       ...prevDevice,
-      color: color ? color : prevDevice.color,
+      color: color ,
       palette: [...prevDevice.palette.slice(0, 4), color, prevDevice.palette[5]],
     }));
-    console.log(device.palette);
   }, [color]);
 
   const getColorString = (x) => {
@@ -137,7 +139,11 @@ function ColorSelector(palette) {
           className="space-y-1 !w-full"
         />
         <div className="w-full">
-          <div className="flex flex-wrap my-3 gap-[5px]">{colorCircles}</div>
+          <div
+            className="flex flex-row w-full my-3 gap-2 overflow-hidden"
+          >
+            {colorCircles}
+          </div>
         </div>
       </div>
     </>

@@ -191,7 +191,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
                 aria-labelledby="hs-basic-with-title-and-arrow-stretched-heading-one"
               >
                  {/* <BackgroundSelector/> */}
-                 <CustomBackgroundSelector/>
+                 <CustomBackgroundSelector panelSize={panelSize}/>
 
               </div>
             </div>
