@@ -35,7 +35,6 @@ function App() {
       ],
       angle: {x:0, y:0},
       pos: {x:0, y:0},
-
     },
     qr: {
       url: "https://www.linkedin.com/in/titamah",
@@ -53,15 +52,15 @@ function App() {
   }, []);
 
   return (
-    <ConfigProvider
-      theme={{
-        token: {
-          colorPrimary: "#00b96b",
-          borderRadius: 4,
-        },
-        algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
-      }}
-    >
+    // <ConfigProvider
+    //   theme={{
+    //     token: {
+    //       colorPrimary: "#00b96b",
+    //       borderRadius: 4,
+    //     },
+    //     algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
+    //   }}
+    // >
       <DeviceContext.Provider value={{ device, setDevice }}>
         <ToastContainer />
         <Header />
@@ -78,7 +77,6 @@ function App() {
           wallpaperRef={wallpaperRef}
         />
       </DeviceContext.Provider>
-    </ConfigProvider>
   );
 }
 

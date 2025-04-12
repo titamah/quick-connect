@@ -75,6 +75,7 @@ function ColorSelector() {
   };
 
 return (
+  <>
     <div id="ColorSelectPanel" ref={pickerRef} className="dark:text-white w-full px-5 space-y-2.5 mb-3.5">
         <HexColorPicker color={color} onChange={(e) => updateColors(e)} className="space-y-1 !w-full"/>
         <div className="w-full">
@@ -88,6 +89,7 @@ return (
             </div>
         </div>
     </div>
+      </>
 );
 }
 

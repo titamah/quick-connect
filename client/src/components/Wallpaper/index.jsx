@@ -288,16 +288,16 @@ const Wallpaper = forwardRef(
               fillLinearGradientStartPoint={
                 device.style === "gradient" && device.gradient.type == "linear"
                   ? {
-                      x: device.size.x * device.gradient.angle.start.x,
-                      y: device.size.y * device.gradient.angle.start.y,
+                      x:  device.gradient.angle.start.x,
+                      y:  device.gradient.angle.start.y,
                     }
                   : undefined
               }
               fillLinearGradientEndPoint={
                 device.style === "gradient" && device.gradient.type == "linear"
                   ? {
-                      x: device.size.x * device.gradient.angle.end.x,
-                      y: device.size.x * device.gradient.angle.end.y,
+                      x:  device.gradient.angle.end.x,
+                      y:  device.gradient.angle.end.y,
                     }
                   : undefined
               }

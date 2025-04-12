@@ -8,11 +8,23 @@
     margin-top: 7.5px !important;
     height: 5px !important;
 }
+
 .react-colorful__pointer {
-    height: 15px !important;
-    width: 15px !important;
-    border: 1.5px solid white!important;
-}
+    border: 2px solid var(--bg-main) !important;
+    border-radius: 50% !important;
+    height: 10px !important;
+    width: 10px !important;
+    cursor: pointer !important;
+    pointer-events: all !important;
+    appearance: none !important;
+    box-shadow: 0 0 0 1px var(--contrast-sheer) !important;
+  }
+
+  .react-colorful__pointer:hover {
+    height: 12px!important;
+    width: 12px!important;
+    box-shadow: 0 0 0 1px var(--accent);
+  }
 
 .recent-color {
     transition-duration: 250ms;
