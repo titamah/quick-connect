@@ -5,12 +5,15 @@ import { ReactCrop, makeAspectCrop, centerCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { Grip, Trash2, Upload } from "lucide-react";
 import ColorThief from "colorthief";
-import Dropdown from "./Dropdown";
+import Dropdown from "../Panel/Dropdown";
+import ImageLibrary from "../Panel/ImageLibrary";
+import { Resizable } from "react-resizable";
 
 function ImageUploader() {
   const { device, setDevice } = useContext(DeviceContext);
 
   const [source, setSource] = useState("Upload");
+  // const [source, setSource] = useState("Upload");
   const menuOptions = source !== "Upload" ? ["Upload"] : ["Library"];
 
   const [file, setFile] = useState(null);
@@ -19,6 +22,9 @@ function ImageUploader() {
   const [crop, setCrop] = useState();
 
   const fileTypes = ["JPEG", "PNG", "GIF", "SVG", "JPG", "WEBP"];
+
+  const openModal = () => setModalOpen(true);
+  const closeModal = () => setModalOpen(false);
 
   function handleChange(file) {
     file.preventDefault();
@@ -29,7 +35,7 @@ function ImageUploader() {
       const currFile = item.kind === "file" ? item.getAsFile?.() || item : item;
       if (currFile) setOriginalFile(currFile);
     }
-    setModalOpen(true);
+    openModal();
   }
 
   const initCrop = (e) => {
@@ -49,8 +55,39 @@ function ImageUploader() {
     }
   };
 
-  const openModal = () => setModalOpen(true);
-  const closeModal = () => setModalOpen(false);
+  const [height, setHeight] = useState(236);
+  const [minMax, setMinMax] = useState([236, Infinity]);
+
+  const changeSource = (e) => {
+    setSource(e);
+  };
+
+  useEffect(() => {
+    if (source == "Library") {
+      setMinMax([236, Infinity]);
+      setHeight(236);
+    } else {
+      setMinMax([180.5, 180.5]);
+      setHeight(180.5);
+    }
+  }, [source]);
+
+  useEffect(() => {
+    if (file) {
+      const newMinMax = [180.5, 180.5];
+      setMinMax(newMinMax);
+      setHeight(newMinMax[0]);
+    } else {
+      const newMinMax = source == "Upload" ? [180.5, 180.5] : [236, Infinity];
+      setMinMax(newMinMax);
+      setHeight(newMinMax[0]);
+
+    }
+  }, [file]);
+
+  useEffect(() => {
+    deleteFile();
+  }, [source]);
 
   const cropImage = async () => {
     const croppedBlob = await getCroppedImg(
@@ -71,48 +108,51 @@ function ImageUploader() {
     }
   }, [file]);
 
-
   useEffect(() => {
     if (!originalFile) {
+      // setModalOpen(false);
       setDevice((prevDevice) => ({
         ...prevDevice,
-        palette: [
-          ...prevDevice.palette.slice(0, 5),
-          null, // This becomes device.palette[5]
-        ],
+        palette: {
+          ...prevDevice.palette,
+          image: [], // This becomes device.palette[5]
+        },
       }));
-      
-    }else {
-  
-    // Create an image from the original file
-    const img = new Image();
-    img.crossOrigin = "Anonymous"; // Ensure crossOrigin is set for ColorThief
-    img.src = URL.createObjectURL(originalFile);
-  
-    img.onload = () => {
-    const colorThiefInstance = new ColorThief();
-      const paletteArray = colorThiefInstance.getPalette(img, 4);
+    } else {
+      setModalOpen(true);
+      // Create an image from the original file
+      const img = new Image();
+      img.crossOrigin = "Anonymous"; // Ensure crossOrigin is set for ColorThief
+      img.src = URL.createObjectURL(originalFile);
 
-      const rgbPalette = paletteArray.map(
-        (color) => `rgb(${color[0]}, ${color[1]}, ${color[2]})`
-      );
-  
-      setDevice((prevDevice) => ({
-        ...prevDevice,
-        palette: [
-          ...prevDevice.palette.slice(0, 5),
-          rgbPalette, // This becomes device.palette[5]
-        ],
-      }));
-  
-      // Optionally log the new palette for debugging
-      console.log("New color palette:", rgbPalette);
-      console.log("device palette:", device.palette);
-    };
-  }
+      img.onload = () => {
+        const colorThiefInstance = new ColorThief();
+        const paletteArray = colorThiefInstance.getPalette(img, 4);
+
+        const rgbPalette = paletteArray.map(
+          (color) => `rgb(${color[0]}, ${color[1]}, ${color[2]})`
+        );
+
+        setDevice((prevDevice) => ({
+          ...prevDevice,
+          palette: {
+            ...prevDevice.palette,
+            image: rgbPalette, // This becomes device.palette[5]
+          },
+        }));
+
+        // Optionally log the new palette for debugging
+        console.log("New color palette:", rgbPalette);
+        console.log("device palette:", device.palette);
+      };
+    }
   }, [originalFile]);
-  
-  
+
+  const deleteFile = () => {
+    setOriginalFile(null);
+    setFile(null);
+    closeModal();
+  };
 
   return (
     <>
@@ -140,9 +180,13 @@ function ImageUploader() {
           />
         </ReactCrop>
       </Modal>
-      <div className="dark:text-white w-full px-5 mb-3">
+      <div className="dark:text-white w-full px-5 mb-4">
         <div className="flex flex-row items-center justify-between w-full mb-2">
-          <Dropdown options={menuOptions} value={source} onChange={setSource} />
+          <Dropdown
+            options={menuOptions}
+            value={source}
+            onChange={changeSource}
+          />
           <span className="flex items-center gap-2 pointer-events-auto">
             <Grip
               className="opacity-75 hover:opacity-100 cursor-pointer"
@@ -157,82 +201,100 @@ function ImageUploader() {
             />
           </span>
         </div>
-        <div
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => e.preventDefault()}
-          className="dark:text-white h-[183.5px] w-fill mb-0.5 !rounded-[4px] !border-[5px] !border-white dark:!border-[rgba(38,38,38,1)] !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)]"
+        <Resizable
+          height={height}
+          width={Infinity}
+          minConstraints={[0, minMax[0]]}
+          maxConstraints={[Infinity, minMax[1]]}
+          resizeHandles={["s"]}
+          onResize={(e, { size }) => setHeight(size.height)}
+          handle={
+            <div className="absolute h-3 bottom-0 w-full cursor-row-resize translate-y-1 z-1500"></div>
+          }
         >
-          {file ? (
-            <div
-              onClick={openModal}
-              onDrop={handleChange}
-              className="w-full h-full flex items-center justify-center relative"
-            >
-              <div className="hover absolute inset-0 bg-black/50 flex items-center justify-center transition-opacity">
-                <button
-                  onClick={() => setFile(null)}
-                  className="bg-red-500 text-white p-2 rounded-full mx-2"
-                >
-                  🗑️
-                </button>
-                <button
-                  onClick={openModal}
-                  className="bg-blue-500 text-white p-2 rounded-full mx-2"
-                >
-                  ✏️
-                </button>
+          <div
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => e.preventDefault()}
+            style={{ height }}
+            className="dark:text-white w-fill mb-[1.5px] !rounded-[4px] !border-[5px] !border-white dark:!border-[rgba(38,38,38,1)] !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)]"
+          >
+            {file ? (
+              <div
+                onDrop={handleChange}
+                className="w-full h-[170.5px] flex items-center justify-center relative"
+              >
+                <div className="hover absolute inset-0 bg-black/50 flex items-center justify-center transition-opacity">
+                  <button
+                    onClick={deleteFile}
+                    className="bg-red-500 text-white p-2 z-1500 rounded-full mx-2"
+                  >
+                    🗑️
+                  </button>
+                  <button
+                    onClick={openModal}
+                    className="bg-blue-500 text-white p-2 z-1500 rounded-full mx-2"
+                  >
+                    ✏️
+                  </button>
+                </div>
+                <img
+                  src={originalFile ? URL.createObjectURL(originalFile) : null}
+                  alt="Thumbnail"
+                  style={{
+                    objectFit: "fit",
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                  }}
+                />
               </div>
-              <img
-                src={originalFile ? URL.createObjectURL(originalFile) : null}
-                alt="Thumbnail"
-                style={{
-                  objectFit: "fit",
-                  maxWidth: "100%",
-                  maxHeight: "100%",
+            ) : source === "Upload" ? (
+              <div
+                onDrop={handleChange}
+                onClick={() => {
+                  const input = document.createElement("input");
+                  input.type = "file";
+                  input.accept = fileTypes
+                    .map((type) => `.${type.toLowerCase()}`)
+                    .join(",");
+                  input.onchange = (event) => {
+                    const selectedFile = event.target.files[0];
+                    if (selectedFile) {
+                      setOriginalFile(selectedFile);
+                      setModalOpen(true);
+                    }
+                  };
+                  input.click();
                 }}
-              />
-            </div>
-          ) : (
+                className="dark:text-white dark:hover:bg-white/5  h-[170.5px] hover:bg-black/5 w-full dark:bg-neutral-800 flex flex-col items-center justify-center text-center text-md p-5 gap-1 relative cursor-pointer"
+              >
+                <Upload size={48} />
+                Drop your image here or browse to select a file
+                <span className="text-xs italic text-black/65 dark:text-white/65">
+                  Supported formats: JPEG, PNG, GIF, SVG, JPG, WEBP
+                </span>
+              </div>
+            ) : (
+              <ImageLibrary setOriginalFile={setOriginalFile} />
+            )}
+          </div>
+        </Resizable>
+        {(source == "Upload" || file) && (
+          <>
+            <span className="text-xs text-[var(--contrast)] p-1">
+              {" "}
+              File Name{" "}
+            </span>
             <div
-              onDrop={handleChange}
-              onClick={() => {
-                const input = document.createElement("input");
-                input.type = "file";
-                input.accept = fileTypes
-                  .map((type) => `.${type.toLowerCase()}`)
-                  .join(",");
-                input.onchange = (event) => {
-                  const selectedFile = event.target.files[0];
-                  if (selectedFile) {
-                    setOriginalFile(selectedFile);
-                    setModalOpen(true);
-                  }
-                };
-                input.click();
-              }}
-              className="dark:text-white dark:hover:bg-white/5 hover:bg-black/5 w-full h-full dark:bg-neutral-800 flex flex-col items-center justify-center text-center text-md p-5 gap-1 relative cursor-pointer"
-            >
-              <Upload size={48} />
-              Drop your image here or browse to select a file
-              <span className="text-xs italic text-black/65 dark:text-white/65">
-                Supported formats: JPEG, PNG, GIF, SVG, JPG, WEBP
-              </span>
-            </div>
-          )}
-        </div>
-        <span className="text-xs text-[var(--contrast)] p-1"> File Name </span>
-        <div
-          className="dark:text-white w-fill h-full dark:bg-neutral-800 px-2 py-1 border text-sm
+              className="dark:text-white w-fill h-full dark:bg-neutral-800 px-2 py-1 border text-sm
             border-neutral-200 dark:border-neutral-700 rounded-md flex items-center justify-between"
-        >
-          <span>{originalFile ? originalFile.name : "No image selected"}</span>
-          <Trash2
-            size={16}
-            onClick={() => {
-              setOriginalFile(null);
-            }}
-          />
-        </div>
+            >
+              <span>
+                {originalFile ? originalFile.name : "No image selected"}
+              </span>
+              <Trash2 size={16} onClick={deleteFile} />
+            </div>{" "}
+          </>
+        )}
       </div>
     </>
   );

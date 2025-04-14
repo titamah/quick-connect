@@ -1,15 +1,57 @@
 :root {
-    --bg-main: #ffffff;
-    --contrast:  rgba(38, 38, 38);
-    --contrast-sheer:  rgba(38, 38, 38, 0.1);
+  --bg-main: #ffffff;
+  --contrast: rgba(38, 38, 38);
+  --contrast-sheer: rgba(38, 38, 38, 0.1);
+  --accent: rgb(255, 71, 29);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-main: rgb(38, 38, 38);
+    --contrast: #ffffff;
+    --contrast-sheer: rgba(255, 255, 255, 0.1);
     --accent: rgb(255, 71, 29);
   }
-  
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg-main: rgb(38, 38, 38);
-      --contrast: #ffffff;
-      --contrast-sheer: rgba(255, 255, 255, 0.1);
-      --accent: rgb(255, 71, 29);
-    }
-  }
+}
+
+input[type="range"]::-moz-range-thumb {
+  transition: ease-in-out !important;
+  border: 2px solid var(--bg-main) !important;
+  border-radius: 50% !important;
+  height: 12px !important;
+  width: 12px !important;
+  cursor: pointer !important;
+  pointer-events: all !important;
+  appearance: none !important;
+  box-shadow: 0 0 0 1px var(--contrast-sheer) !important;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  transition: ease-in-out !important;
+  border: 2px solid var(--bg-main) !important;
+  border-radius: 50% !important;
+  height: 12px !important;
+  width: 12px !important;
+  cursor: pointer !important;
+  pointer-events: all !important;
+  appearance: none !important;
+  box-shadow: 0 0 0 1px var(--contrast-sheer) !important;
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+  height: 13px!important;
+  width: 13px!important;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  height: 13px!important;
+  width: 13px!important;
+}
+
+input[type="range"]::-moz-range-thumb:active {
+  box-shadow: 0 0 0 1px var(--accent)!important;
+}
+
+input[type="range"]::-webkit-slider-thumb:active {
+  box-shadow: 0 0 0 1px var(--accent)!important;
+}

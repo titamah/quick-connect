@@ -40,19 +40,19 @@ function GradientSelector() {
     setAngle(value);
   };
 
-  const handleMouseDown = (val) => {
-    if (intervalRef.current) return; // Prevent multiple intervals
+  const handleMouseDown = (val, lim) => {
+    if (intervalRef.current) return;
 
     intervalRef.current = setInterval(() => {
       setAngle((prevAngle) => {
-        if (prevAngle >= 360) {
+        if (prevAngle == lim) {
           clearInterval(intervalRef.current);
           intervalRef.current = null;
-          return 360;
+          return lim;
         }
         return prevAngle + val;
       });
-    }, 20); // use ~10ms for smooth increments
+    }, 20);
   };
   const handleMouseUp = () => {
     clearInterval(intervalRef.current);
@@ -168,12 +168,14 @@ function GradientSelector() {
         angle: anglePercent,
         pos: posPercent,
       },
-      palette: [
-        ...prevDevice.palette.slice(0,3),
-        stops.map(([, color]) => color),
-        prevDevice.palette[4],
-        prevDevice.palette[5],
-      ],
+      palette: {
+        ...prevDevice.palette,
+        gradient: stops.map((stop) => {
+            if (typeof stop === "string" && stop.startsWith("rgb")) {
+              return rgbToHex(stop);
+            }
+          }),
+        },
     }));
     console.log(device.palette);
   }, [stops, type, anglePercent, posPercent]);
@@ -284,7 +286,7 @@ function GradientSelector() {
             className="my-4 opacity-75 hover:opacity-100 cursor-pointer"
               size={20}
               onMouseDown={() => {
-                handleMouseDown(-1);
+                handleMouseDown(-1, 0);
               }}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
@@ -301,7 +303,7 @@ function GradientSelector() {
             className="my-4 opacity-75 hover:opacity-100 cursor-pointer"
               size={20}
               onMouseDown={() => {
-                handleMouseDown(1);
+                handleMouseDown(1 , 360);
               }}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}

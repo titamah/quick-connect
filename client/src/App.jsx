@@ -17,6 +17,12 @@ function App() {
     height: window.innerHeight / 3,
   });
   const wallpaperRef = useRef(null);
+
+  const rgbToHex = (rgb) => {
+    const result = rgb.match(/\d+/g).map((num) => parseInt(num, 10).toString(16).padStart(2, '0'));
+    return `#${result.join('')}`;
+  };
+
   const [device, setDevice] = useState({
     name: "Sample iPhone Wallpaper",
     type: "iPhone 12 Pro Max",
@@ -34,15 +40,22 @@ function App() {
         1,
         "rgb(177,99,232)",
       ],
-      angle: {x:0, y:0},
-      pos: {x:0, y:0},
+      angle: { x: 0, y: 0 },
+      pos: { x: 0, y: 0 },
     },
     qr: {
       url: "https://www.linkedin.com/in/titamah",
       custom: { borderSize: 0, borderColor: "#000000", cornerRadius: 0 },
     },
     grain: false,
-    palette:[],
+    palette: {
+      qr: "#000000",
+      bg: "#FFFFFF",
+      border: "#000000",
+      solid: "#ffad6c",
+      gradient: ["#ffaa00", "#e458bf", "#b163e8"],
+      image: ["red", "orange", "yellow", "green", "blue"]
+    },
   });
 
   const [isDarkMode, setIsDarkMode] = useState(false);

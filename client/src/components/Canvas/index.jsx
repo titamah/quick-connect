@@ -103,7 +103,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef, setPalette }) {
 
   return (
     <div
-      className="w-screen h-[calc(100%-52px)]
+      className="w-screen h-[calc(100%-52px)] top-[51px] absolute
           bg-white dark:bg-neutral-900 
           bg-[image:repeating-linear-gradient(315deg,var(--pattern-fg)_0,var(--pattern-fg)_1px,transparent_0,transparent_50%)] 
           bg-[size:10px_10px] 

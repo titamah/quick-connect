@@ -3,23 +3,15 @@ import "preline/preline";
 import { DeviceContext } from "../../App";
 import { HexColorPicker } from "react-colorful";
 import "./styles.css";
-import { Grid, Grip, Waves } from "lucide-react";
+import { Grip } from "lucide-react";
 import chroma from "chroma-js";
 
 function ColorSelector(panelSize) {
   const { device, setDevice } = useContext(DeviceContext);
   const pickerRef = useRef(null);
   const [color, setColor] = useState("#ffad6c");
-  const [recentColors] = useState([]);
   const [colorCircles, setColorCircles] = useState(null);
 
-  // const getColorCircle = palette.palette.palette.map((e) => (
-  //   <div
-  //     className="recent-color my-auto border-black/25 dark:border-black/75"
-  //     style={{ backgroundColor: `rgb(${e[0]}, ${e[1]}, ${e[2]})` }}
-  //     onClick={() => setColorCombo(e)}
-  //   ></div>
-  // ));
 
   useEffect(() => {
     const pickerElement = pickerRef.current;
@@ -65,12 +57,9 @@ function ColorSelector(panelSize) {
   };
 
   useEffect(() => {
-    const num = (panelSize.panelSize.panelSize.width / (44));
-    console.log(panelSize.panelSize.panelSize.width);
-    console.log(num);
-    const val = device.palette.flat().slice(0,3).filter((e) => e !== undefined && e !== null);
-    const validColors = val.filter((color) => chroma.valid(color));
-    const chromaTest = chroma.scale(validColors.length > 0 ? validColors : ["#ffffff"]).mode("lab").colors(num );
+    const num = Math.round((panelSize.panelSize.panelSize.width - 20) / 40);
+    const validColors = [device.palette.qr, device.palette.bg, device.palette.border]
+    const chromaTest = chroma.scale(validColors).mode("lch").colors(num);
     console.log(chromaTest);
     setColorCircles(
       chromaTest.map((e) => (
@@ -88,7 +77,7 @@ function ColorSelector(panelSize) {
     setDevice((prevDevice) => ({
       ...prevDevice,
       color: color ,
-      palette: [...prevDevice.palette.slice(0, 4), color, prevDevice.palette[5]],
+      palette: {...prevDevice.palette, solid: color},
     }));
   }, [color]);
 
@@ -107,7 +96,7 @@ function ColorSelector(panelSize) {
       <div
         id="ColorSelectPanel"
         ref={pickerRef}
-        className="dark:text-white w-full px-5 space-y-2.5 mb-3"
+        className="dark:text-white w-full h-[290px] px-5 space-y-2.5"
       >
         <span className="flex flex-row items-center justify-between w-full mb-2 ">
           <input
@@ -138,9 +127,9 @@ function ColorSelector(panelSize) {
           onChange={(e) => updateColors(e)}
           className="space-y-1 !w-full"
         />
-        <div className="w-full">
+        <div className="w-full mb-3">
           <div
-            className="flex flex-row w-full my-3 gap-2 overflow-hidden"
+            className="flex flex-row flex-nowrap overflow-show w-full my-3 gap-2.5 "
           >
             {colorCircles}
           </div>

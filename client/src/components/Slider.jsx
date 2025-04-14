@@ -40,43 +40,10 @@ const Slider = ({ id, index, value, onChange, color, min = 0, max = 100 }) => {
         min={min}
         max={max}
         onChange={onChange}
-        className={`appearance-none w-full absolute -translate-y-1/4 ${ index ? "" : "rounded-full cursor-pointer relative mt-[7.5px] h-[5px] bg-[var(--contrast-sheer)]"}`}
+        className={`appearance-none w-full absolute -translate-y-[2px] ${ index ? "" : "rounded-full cursor-pointer relative mt-[7.5px] h-[8px] bg-[var(--contrast-sheer)]"}`}
       />
       <style jsx>
         {`
-          input[type="range"]::-moz-range-thumb {
-            border: 2px solid var(--bg-main);
-            border-radius: 50%;
-            height: 10px;
-            width: 10px;
-            cursor: pointer;
-            pointer-events: all;
-            appearance: none;
-            box-shadow: 0 0 0 1px var(--contrast-sheer);
-          }
-
-          input[type="range"]::-webkit-slider-thumb {
-            border: 2px solid var(--bg-main);
-            border-radius: 50%;
-            height: 10px;
-            width: 10px;
-            cursor: pointer;
-            pointer-events: all;
-            appearance: none;
-            box-shadow: 0 0 0 1px var(--contrast-sheer);
-          }
-
-          input[type="range"]::-moz-range-thumb:hover {
-            height: 12px;
-            width: 12px;
-            box-shadow: 0 0 0 1px var(--accent);
-          }
-
-          input[type="range"]::-webkit-slider-thumb:hover {
-            height: 12px;
-            width: 12px;
-            box-shadow: 0 0 0 1px var(--accent);
-          }
 
           #${id}::-webkit-slider-thumb {
             background-color: ${color}!important;

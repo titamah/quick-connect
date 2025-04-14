@@ -2,6 +2,7 @@ import { useState, useContext, useEffect, useRef } from "react";
 import "preline/preline";
 import { DeviceContext } from "../../App";
 import { QRCode, ColorPicker } from "antd";
+import Slider from "../Slider";
 
 function QRGenerator(panelSize) {
   const { device, setDevice } = useContext(DeviceContext);
@@ -96,18 +97,9 @@ function QRGenerator(panelSize) {
             setColor(getColorString(e));
             setDevice((prevDevice) => ({
               ...prevDevice,
-              palette: [
-              prevDevice.palette[0],
-              e.toHexString(),
-              ...prevDevice.palette.slice(2),
-              ],
-              qr: {
-                url: prevDevice.qr.url,
-                custom: {
-                  borderSize: prevDevice.qr.custom.borderSize,
-                  borderColor: e.toHexString(),
-                  cornerRadius: prevDevice.qr.custom.cornerRadius,
-                },
+              palette: {
+              ...prevDevice.palette,
+              qr: e.toHexString(),
               },
             }));
           }}
@@ -116,31 +108,22 @@ function QRGenerator(panelSize) {
           showText
         />
       </div>
-      Background Color
+      BG Color
       <div className="flex justify-between py-2">
         <ColorPicker
-          value={bgColor}
+          value={color}
           placement="bottomRight"
           className="qr-color-picker"
           onChange={(e) => {
-            setBGColor(getColorString(e))
+            // setColor(getColorString(e));
             setDevice((prevDevice) => ({
               ...prevDevice,
-              palette: [
-              prevDevice.palette[0],
-              prevDevice.palette[1],
-              e.toHexString(),
-              ...prevDevice.palette.slice(3),
-              ],
-              qr: {
-                url: prevDevice.qr.url,
-                custom: {
-                  borderSize: prevDevice.qr.custom.borderSize,
-                  borderColor: e.toHexString(),
-                  cornerRadius: prevDevice.qr.custom.cornerRadius,
-                },
+              palette: {
+              ...prevDevice.palette,
+              bg: e.toHexString(),
               },
             }));
+            setBGColor(getColorString(e));
           }}
           format="hex"
           size="small"
@@ -149,44 +132,7 @@ function QRGenerator(panelSize) {
       </div>
       Border Size
       <div className="flex justify-between py-2">
-        <input
-          type="range"
-          className="w-full bg-transparent cursor-pointer appearance-none disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden
-  [&::-webkit-slider-thumb]:w-2.5
-  [&::-webkit-slider-thumb]:h-2.5
-  [&::-webkit-slider-thumb]:-mt-0.5
-  [&::-webkit-slider-thumb]:appearance-none
-  [&::-webkit-slider-thumb]:bg-white
-  [&::-webkit-slider-thumb]:shadow-[0_0_0_4px_rgba(37,99,235,1)]
-  [&::-webkit-slider-thumb]:rounded-full
-  [&::-webkit-slider-thumb]:transition-all
-  [&::-webkit-slider-thumb]:duration-150
-  [&::-webkit-slider-thumb]:ease-in-out
-  dark:[&::-webkit-slider-thumb]:bg-neutral-700
-
-  [&::-moz-range-thumb]:w-2.5
-  [&::-moz-range-thumb]:h-2.5
-  [&::-moz-range-thumb]:appearance-none
-  [&::-moz-range-thumb]:bg-white
-  [&::-moz-range-thumb]:border-4
-  [&::-moz-range-thumb]:border-blue-600
-  [&::-moz-range-thumb]:rounded-full
-  [&::-moz-range-thumb]:transition-all
-  [&::-moz-range-thumb]:duration-150
-  [&::-moz-range-thumb]:ease-in-out
-
-  [&::-webkit-slider-runnable-track]:w-full
-  [&::-webkit-slider-runnable-track]:h-2
-  [&::-webkit-slider-runnable-track]:bg-gray-100
-  [&::-webkit-slider-runnable-track]:rounded-full
-  dark:[&::-webkit-slider-runnable-track]:bg-neutral-700
-
-  [&::-moz-range-track]:w-full
-  [&::-moz-range-track]:h-2
-  [&::-moz-range-track]:bg-gray-100
-  [&::-moz-range-track]:rounded-full"
-          id="steps-range-slider-usage"
-          aria-orientation="horizontal"
+        <Slider
           min="0"
           max={qrSize * 2}
           step="1"
@@ -195,16 +141,14 @@ function QRGenerator(panelSize) {
             setDevice((prevDevice) => ({
               ...prevDevice,
               qr: {
-                url: prevDevice.qr.url,
-                custom: {
-                  borderSize: e.target.value,
-                  borderColor: prevDevice.qr.custom.borderColor,
-                  cornerRadius: prevDevice.qr.custom.cornerRadius,
-                },
+              ...prevDevice.qr,
+              custom: {
+                ...prevDevice.qr.custom,
+                borderSize: e.target.value,
+              },
               },
             }));
-          }}
-        ></input>
+          }}/>
       </div>
       Border Color
       <div className="flex justify-between py-2">
@@ -215,14 +159,16 @@ function QRGenerator(panelSize) {
           onChange={(e) => {
             setDevice((prevDevice) => ({
               ...prevDevice,
-              palette: [e.toHexString(), ...prevDevice.palette.slice(1)],
               qr: {
-                url: prevDevice.qr.url,
+                ...prevDevice.qr,
                 custom: {
-                  borderSize: prevDevice.qr.custom.borderSize,
+                  ...prevDevice.qr.custom,
                   borderColor: e.toHexString(),
-                  cornerRadius: prevDevice.qr.custom.cornerRadius,
                 },
+              },
+              palette: {
+              ...prevDevice.palette,
+              border: e.toHexString(),
               },
             }));
           }}
@@ -233,44 +179,7 @@ function QRGenerator(panelSize) {
       </div>
       Corner Radius
       <div className="flex justify-between py-2">
-        <input
-          type="range"
-          className="w-full bg-transparent cursor-pointer appearance-none disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden
-  [&::-webkit-slider-thumb]:w-2.5
-  [&::-webkit-slider-thumb]:h-2.5
-  [&::-webkit-slider-thumb]:-mt-0.5
-  [&::-webkit-slider-thumb]:appearance-none
-  [&::-webkit-slider-thumb]:bg-white
-  [&::-webkit-slider-thumb]:shadow-[0_0_0_4px_rgba(37,99,235,1)]
-  [&::-webkit-slider-thumb]:rounded-full
-  [&::-webkit-slider-thumb]:transition-all
-  [&::-webkit-slider-thumb]:duration-150
-  [&::-webkit-slider-thumb]:ease-in-out
-  dark:[&::-webkit-slider-thumb]:bg-neutral-700
-
-  [&::-moz-range-thumb]:w-2.5
-  [&::-moz-range-thumb]:h-2.5
-  [&::-moz-range-thumb]:appearance-none
-  [&::-moz-range-thumb]:bg-white
-  [&::-moz-range-thumb]:border-4
-  [&::-moz-range-thumb]:border-blue-600
-  [&::-moz-range-thumb]:rounded-full
-  [&::-moz-range-thumb]:transition-all
-  [&::-moz-range-thumb]:duration-150
-  [&::-moz-range-thumb]:ease-in-out
-
-  [&::-webkit-slider-runnable-track]:w-full
-  [&::-webkit-slider-runnable-track]:h-2
-  [&::-webkit-slider-runnable-track]:bg-gray-100
-  [&::-webkit-slider-runnable-track]:rounded-full
-  dark:[&::-webkit-slider-runnable-track]:bg-neutral-700
-
-  [&::-moz-range-track]:w-full
-  [&::-moz-range-track]:h-2
-  [&::-moz-range-track]:bg-gray-100
-  [&::-moz-range-track]:rounded-full"
-          id="steps-range-slider-usage"
-          aria-orientation="horizontal"
+        <Slider
           min="0"
           max={qrSize}
           step="1"
@@ -279,16 +188,14 @@ function QRGenerator(panelSize) {
             setDevice((prevDevice) => ({
               ...prevDevice,
               qr: {
-                url: prevDevice.qr.url,
+                ...prevDevice.qr,
                 custom: {
-                  borderSize: prevDevice.qr.custom.borderSize,
-                  borderColor: prevDevice.qr.custom.borderColor,
+                  ...prevDevice.qr.custom,
                   cornerRadius: e.target.value,
                 },
               },
             }));
-          }}
-        ></input>
+          }}/>
       </div>
     </div>
   );
