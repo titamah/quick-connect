@@ -3,6 +3,7 @@ import { DeviceContext } from "../../App";
 import Slider from "../Slider";
 import Dropdown from "./Dropdown";
 import { ColorPicker, Button, Space, Tooltip } from "antd";
+import chroma from "chroma-js";
 import {
   BetweenVerticalEnd,
   ArrowLeftRight,
@@ -15,7 +16,7 @@ import {
 function GradientSelector() {
   const { device, setDevice } = useContext(DeviceContext);
   const [type, setType] = useState(device.gradient.type);
-  const gradientPreview = useRef(null);
+  const gradientBar = useRef(null);
   const [angle, setAngle] = useState(180);
   const [anglePercent, setAnglePercent] = useState({
     start: { x: 0.5, y: 0 },
@@ -158,6 +159,46 @@ function GradientSelector() {
     }
   };
 
+  function rgbToHex(rgbString) {
+    const match = rgbString.match(/\d+/g); // extracts ["255", "170", "0"]
+    if (!match) return "#000000"; // fallback
+    return (
+      "#" +
+      match.map((num) => parseInt(num).toString(16).padStart(2, "0")).join("")
+    );
+  }
+
+  const handleClick = (e) => {
+    const rect = gradientBar.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percent = clickX / rect.width;
+
+    let newStop = [parseFloat(percent.toFixed(2)), "???"];
+    let prevStops = [...stops];
+    prevStops.push(newStop);
+    prevStops = prevStops.sort((a, b) => a[0] - b[0]);
+
+    const addedStop = prevStops.findIndex((i) => i[1] === "???");
+
+    let preStop = null;
+    let postStop = null;
+    if (addedStop > 0) {
+      preStop = prevStops[addedStop - 1];
+    }
+    if (addedStop < prevStops.length - 1) {
+      postStop = prevStops[addedStop + 1];
+    }
+    if (preStop && postStop) {
+      let mix =
+        (prevStops[addedStop][0] - preStop[0]) / (postStop[0] - preStop[0]);
+      prevStops[addedStop][1] = chroma.mix(preStop[1], postStop[1], mix).css();
+    } else if (!preStop) {
+      prevStops[addedStop][1] = postStop[1];
+    } else if (!postStop) {
+      prevStops[addedStop][1] = preStop[1];
+    }
+    setStops(prevStops);
+  };
 
   useEffect(() => {
     setDevice((prevDevice) => ({
@@ -170,15 +211,34 @@ function GradientSelector() {
       },
       palette: {
         ...prevDevice.palette,
-        gradient: stops.map((stop) => {
+        gradient: stops
+          .flat()
+          .map((stop) => {
             if (typeof stop === "string" && stop.startsWith("rgb")) {
               return rgbToHex(stop);
             }
-          }),
-        },
+          })
+          .filter(Boolean), // Remove undefined values
+      },
     }));
     console.log(device.palette);
   }, [stops, type, anglePercent, posPercent]);
+
+  function buildHexArray(excludeKey) {
+    const items = [];
+    for (const key in device.palette) {
+      if (key === excludeKey) {
+        continue;
+      }
+      const value = device.palette[key];
+      if (Array.isArray(value)) {
+        items.push(...value);
+      } else {
+        items.push(value);
+      }
+    }
+    return [...new Set(items)];
+  }
 
   const handleMenuClick = (e) => {
     setType(type === "linear" ? "radial" : "linear");
@@ -199,12 +259,13 @@ function GradientSelector() {
             className="opacity-75 hover:opacity-100 cursor-pointer"
             size={20}
             onClick={() => {
-                const curr = device.grain;
-                setDevice((prevDevice) => ({
-              ...prevDevice,
-              grain: !curr
-            }));
-            }}/>
+              const curr = device.grain;
+              setDevice((prevDevice) => ({
+                ...prevDevice,
+                grain: !curr,
+              }));
+            }}
+          />
           <BetweenVerticalEnd
             className="opacity-75 hover:opacity-100 cursor-pointer"
             size={20}
@@ -233,57 +294,74 @@ function GradientSelector() {
         </span>
       </div>
       <div className="react-colorful space-y-1 !w-full">
-        <ColorPicker
+        {/* <ColorPicker
           ref={gradientPreview}
           value={processedStops}
           size="large"
-          placement="bottomRight"
+          placement="topRight"
           mode="gradient"
           disabledAlpha
           onChange={(color) => {
             updateStops(color.toCssString());
           }}
-        >
-          <div
-            className="react-colorful__saturation !w-full !border-radius-[4px] !border-[5px] !border-white dark:!border-[rgba(38,38,38,1)] !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)]"
-            style={{ background: gradientCSS }}
-          />
-        </ColorPicker>
+        > */}
         <div
-          className="w-full h-3 rounded-full cursor-pointer react-colorful__hue"
-          style={{
-            background: `linear-gradient(90deg, ${processedStops
-              .map(({ color, percent }) => `${color} ${percent}%`)
-              .join(", ")})`,
-          }}
-        >
-          {stops.map(
-            ([percent, color], index) => (
-              (
-                <Slider
-                  id={`gradient-slider-${index}`}
-                  index={index + 1}
-                  min="0"
-                  max="100"
-                  color={color}
-                  value={percent * 100}
-                  onChange={(e) => {
-                    const newPercent = Number(e.target.value) / 100;
-                    const newStops = [...stops];
-                    newStops[index][0] = newPercent;
-                    updateStops(newStops);
-                  }}
-                />
-              )
-            )
-          )}
+          className="react-colorful__saturation !w-full !border-radius-[4px] !border-[5px] !border-white dark:!border-[rgba(38,38,38,1)] !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)]"
+          style={{ background: gradientCSS }}
+        />
+        {/* </ColorPicker> */}
+        <div className="relative h-3">
+          <div
+            ref={gradientBar}
+            className="w-full h-3 rounded-full cursor-pointer relative react-colorful__hue"
+            onClick={handleClick}
+            style={{
+              background: `linear-gradient(90deg, ${processedStops
+                .map(({ color, percent }) => `${color} ${percent}%`)
+                .join(", ")})`,
+            }}
+          ></div>
+          <div className="absolute w-full top-2/3">
+            {stops.map(([percent, color], index) => (
+              <Slider
+                id={`gradient-slider-${index}`}
+                index={index}
+                stacked
+                deleteStop={(e) => {
+                  const newStops = [...stops]
+                  newStops.splice(index, 1);
+                  setStops(newStops);
+                }}
+                min="0"
+                max="100"
+                color={color}
+                presets={[
+                  { label: "Recently Used", colors: buildHexArray("") },
+                ]}
+                value={percent * 100}
+                onChange={(e) => {
+                  console.log(e);
+                  const newPercent = Number(e.target.value) / 100;
+                  const newStops = [...stops];
+                  newStops[index][0] = newPercent;
+                  updateStops(newStops);
+                }}
+                changeColor={(e) => {
+                  console.log(e);
+                  const newStops = [...stops];
+                  newStops[index][1] = e.toHexString();
+                  updateStops(newStops);
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
       <div className="flex flex-row items-center justify-center w-full space-x-1">
         {type === "linear" ? (
           <React.Fragment>
             <RotateCcw
-            className="my-4 opacity-75 hover:opacity-100 cursor-pointer"
+              className="my-4 opacity-75 hover:opacity-100 cursor-pointer"
               size={20}
               onMouseDown={() => {
                 handleMouseDown(-1, 0);
@@ -300,10 +378,10 @@ function GradientSelector() {
               onChange={handleAngleChange}
             />
             <RotateCw
-            className="my-4 opacity-75 hover:opacity-100 cursor-pointer"
+              className="my-4 opacity-75 hover:opacity-100 cursor-pointer"
               size={20}
               onMouseDown={() => {
-                handleMouseDown(1 , 360);
+                handleMouseDown(1, 360);
               }}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}

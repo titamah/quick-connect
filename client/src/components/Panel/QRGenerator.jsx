@@ -3,6 +3,7 @@ import "preline/preline";
 import { DeviceContext } from "../../App";
 import { QRCode, ColorPicker } from "antd";
 import Slider from "../Slider";
+import chroma from "chroma-js";
 
 function QRGenerator(panelSize) {
   const { device, setDevice } = useContext(DeviceContext);
@@ -15,6 +16,23 @@ function QRGenerator(panelSize) {
     setQRSize(Math.min(device.size.x, device.size.y) / 2);
   }, [device.size]);
 
+  function buildHexArray(excludeKey) {
+    const items = [];
+    for (const key in device.palette) {
+      if (key === excludeKey) {
+        continue;
+      }
+      const value = device.palette[key];
+      if (Array.isArray(value)) {
+        items.push(...value);
+      } else {
+        items.push(value);
+      }
+    }
+    return [...new Set(items)];
+  }
+  
+
   useEffect(() => {
     const svgElement = qrCodeRef.current.querySelector("svg");
     svgElement.style.width = panelSize.width;
@@ -26,16 +44,16 @@ function QRGenerator(panelSize) {
     const currWidth = qrCodeRef.current.offsetWidth;
     qrCodeRef.current.style.height = `${currWidth}px`;
 
-    const colorPickers = document.querySelectorAll(".qr-color-picker");
-    colorPickers.forEach((c) => {
-      c.style.width = "100%";
-      c.style.display = "flex";
-      c.style.flexDirection = "row-reverse";
-      c.style.justifyContent = "space-between";
-      c.style.backgroundColor = "rgba(0,0,0,.1)";
-      c.style.border = "0";
-      c.style.color = "rgb(255,255,255)";
-    });
+    // const colorPickers = document.querySelectorAll(".qr-color-picker");
+    // colorPickers.forEach((c) => {
+    //   c.style.width = "100%";
+    //   c.style.display = "flex";
+    //   c.style.flexDirection = "row-reverse";
+    //   c.style.justifyContent = "space-between";
+    //   c.style.backgroundColor = "rgba(0,0,0,.1)";
+    //   c.style.border = "0";
+    //   c.style.color = "rgb(255,255,255)";
+    // });
   }, [panelSize]);
 
   useEffect(() => {
@@ -92,14 +110,15 @@ function QRGenerator(panelSize) {
         <ColorPicker
           value={color}
           placement="bottomRight"
+          presets={[{label: "Recently Used", colors: buildHexArray('qr')}]}
           className="qr-color-picker"
           onChange={(e) => {
             setColor(getColorString(e));
             setDevice((prevDevice) => ({
               ...prevDevice,
               palette: {
-              ...prevDevice.palette,
-              qr: e.toHexString(),
+                ...prevDevice.palette,
+                qr: e.toHexString(),
               },
             }));
           }}
@@ -111,16 +130,17 @@ function QRGenerator(panelSize) {
       BG Color
       <div className="flex justify-between py-2">
         <ColorPicker
-          value={color}
+          value={bgColor}
           placement="bottomRight"
           className="qr-color-picker"
+          presets={[{label: "Recently Used", colors: buildHexArray('bg')}]}
           onChange={(e) => {
             // setColor(getColorString(e));
             setDevice((prevDevice) => ({
               ...prevDevice,
               palette: {
-              ...prevDevice.palette,
-              bg: e.toHexString(),
+                ...prevDevice.palette,
+                bg: e.toHexString(),
               },
             }));
             setBGColor(getColorString(e));
@@ -134,27 +154,29 @@ function QRGenerator(panelSize) {
       <div className="flex justify-between py-2">
         <Slider
           min="0"
-          max={qrSize * 2}
+          max={qrSize * 2.25}
           step="1"
           value={device.qr.custom.borderSize}
           onChange={(e) => {
             setDevice((prevDevice) => ({
               ...prevDevice,
               qr: {
-              ...prevDevice.qr,
-              custom: {
-                ...prevDevice.qr.custom,
-                borderSize: e.target.value,
-              },
+                ...prevDevice.qr,
+                custom: {
+                  ...prevDevice.qr.custom,
+                  borderSize: e.target.value,
+                },
               },
             }));
-          }}/>
+          }}
+        />
       </div>
       Border Color
       <div className="flex justify-between py-2">
         <ColorPicker
           value={device.qr.custom.borderColor}
           placement="bottomRight"
+          presets={[{label: "Recently Used", colors: buildHexArray('border')}]}
           className="qr-color-picker"
           onChange={(e) => {
             setDevice((prevDevice) => ({
@@ -167,8 +189,8 @@ function QRGenerator(panelSize) {
                 },
               },
               palette: {
-              ...prevDevice.palette,
-              border: e.toHexString(),
+                ...prevDevice.palette,
+                border: e.toHexString(),
               },
             }));
           }}
@@ -181,10 +203,11 @@ function QRGenerator(panelSize) {
       <div className="flex justify-between py-2">
         <Slider
           min="0"
-          max={qrSize}
+          max={0.75 * qrSize}
           step="1"
           value={device.qr.custom.cornerRadius}
           onChange={(e) => {
+            console.log(e)
             setDevice((prevDevice) => ({
               ...prevDevice,
               qr: {
@@ -195,7 +218,8 @@ function QRGenerator(panelSize) {
                 },
               },
             }));
-          }}/>
+          }}
+        />
       </div>
     </div>
   );

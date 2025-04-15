@@ -1,8 +1,12 @@
+import { ColorPicker } from "antd";
 import React, { useState, useRef, useEffect } from "react";
 
-const Slider = ({ id, index, value, onChange, color, min = 0, max = 100 }) => {
+const Slider = ({ id, presets, stacked, deleteStop, value, onChange, changeColor, color, min = 0, max = 100 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [thumbLeft, setThumbLeft] = useState(0);
+  const [openPicker, setOpenPicker] = useState(false);
+  const [drag, setDrag] = useState(false);
+  const containerRef = useRef(null);
   const sliderRef = useRef(null);
 
   const updateThumbPosition = () => {
@@ -17,11 +21,25 @@ const Slider = ({ id, index, value, onChange, color, min = 0, max = 100 }) => {
     updateThumbPosition();
   }, [value]);
 
+  useEffect(() => {
+    const arrow = containerRef.current.querySelector('.ant-popover-arrow');
+    if (arrow) { arrow.style.left = `${thumbLeft * 0.95}px` }
+    const popUp = containerRef.current.querySelector('.ant-popover');
+    if (popUp) { popUp.style.pointerEvents = "all" }
+
+  }, [openPicker, thumbLeft]);
+
   return (
     <div
-      className= {`${ index ? "absolute pointer-events-none" : ""} w-full h-full`}
-      onMouseDown={() => setShowTooltip(true)}
-      onMouseUp={() => setShowTooltip(false)}
+    ref={containerRef}
+      className= {`${ stacked ? "absolute pointer-events-none" : ""} w-full h-full`}
+      onMouseDown={() => setShowTooltip(true && !openPicker)}
+      onMouseUp={(e) => { setShowTooltip(false) }}
+      onKeyDownCapture={(e) => {
+        if (openPicker && e.key === "Backspace") {
+          deleteStop();
+        }
+      }}
     >
       {showTooltip && (
         <div
@@ -31,24 +49,61 @@ const Slider = ({ id, index, value, onChange, color, min = 0, max = 100 }) => {
           {Math.round(value)}%
         </div>
       )}
-
+      <div
+    ref={containerRef}
+      className= {`relative`}>
+        {stacked ? (
+<ColorPicker
+          value={color}
+          open={openPicker}
+          mode="solid"
+          disabledAlpha
+          presets={presets}
+          onChange={changeColor}
+          onOpenChange={(e)=>{
+            setOpenPicker(e && !drag)
+          }}
+          getPopupContainer={() => containerRef.current}
+          popupStyle={{
+            position: 'absolute',
+            inset: `auto auto ${thumbLeft} auto`,
+            transform: `translateX(${thumbLeft}px)`,
+          }}
+          >
       <input
         ref={sliderRef}
-        id={id ? id : null}
+        id={id ? `${id}-input` : null}
         type="range"
         value={value}
         min={min}
         max={max}
+        onChangeCapture={(e)=>{setDrag(true)}}
+        onMouseDown={()=>{setDrag(false)}}
         onChange={onChange}
-        className={`appearance-none w-full absolute -translate-y-[2px] ${ index ? "" : "rounded-full cursor-pointer relative mt-[7.5px] h-[8px] bg-[var(--contrast-sheer)]"}`}
+        className={`appearance-none w-full absolute -translate-y-[2px] ${ stacked ? "" : "rounded-full relative mt-[7.5px] h-[8px] bg-[var(--contrast-sheer)]"}`}
       />
+      </ColorPicker>)
+      :(
+              <input
+                ref={sliderRef}
+                id={id ? `${id}-input` : null}
+                type="range"
+                value={value}
+                min={min}
+                max={max}
+                onChangeCapture={(e)=>{setDrag(true)}}
+                onMouseDown={()=>{setDrag(false)}}
+                onChange={onChange}
+                className={`appearance-none w-full absolute -translate-y-[2px] ${ stacked ? "" : "rounded-full relative mt-[7.5px] h-[8px] bg-[var(--contrast-sheer)]"}`}
+              />)}
+      </div>
       <style jsx>
         {`
 
-          #${id}::-webkit-slider-thumb {
+          #${id}-input::-webkit-slider-thumb {
             background-color: ${color}!important;
           }
-          #${id}::-moz-range-thumb {
+          #${id}-input::-moz-range-thumb {
             background-color: ${color}!important;
           }
         `}

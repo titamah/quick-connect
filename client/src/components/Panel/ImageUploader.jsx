@@ -81,7 +81,6 @@ function ImageUploader() {
       const newMinMax = source == "Upload" ? [180.5, 180.5] : [236, Infinity];
       setMinMax(newMinMax);
       setHeight(newMinMax[0]);
-
     }
   }, [file]);
 
@@ -129,9 +128,11 @@ function ImageUploader() {
         const colorThiefInstance = new ColorThief();
         const paletteArray = colorThiefInstance.getPalette(img, 4);
 
-        const rgbPalette = paletteArray.map(
-          (color) => `rgb(${color[0]}, ${color[1]}, ${color[2]})`
-        );
+        const rgbPalette = paletteArray.map((color) => {
+          const hex =
+            "#" + color.map((v) => v.toString(16).padStart(2, "0")).join("");
+          return hex;
+        });
 
         setDevice((prevDevice) => ({
           ...prevDevice,
