@@ -172,9 +172,15 @@ function GradientSelector() {
     const rect = gradientBar.current.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const percent = clickX / rect.width;
-
-    let newStop = [parseFloat(percent.toFixed(2)), "???"];
     let prevStops = [...stops];
+
+    if (stops.length < 1){ 
+      let newStop = [parseFloat(percent.toFixed(2)), chroma.random().css()];
+      prevStops.push(newStop);
+
+    } else {
+      
+    let newStop = [parseFloat(percent.toFixed(2)), "???"];
     prevStops.push(newStop);
     prevStops = prevStops.sort((a, b) => a[0] - b[0]);
 
@@ -197,6 +203,7 @@ function GradientSelector() {
     } else if (!postStop) {
       prevStops[addedStop][1] = preStop[1];
     }
+  }
     setStops(prevStops);
   };
 
@@ -214,8 +221,12 @@ function GradientSelector() {
         gradient: stops
           .flat()
           .map((stop) => {
-            if (typeof stop === "string" && stop.startsWith("rgb")) {
-              return rgbToHex(stop);
+            if (typeof stop === "string" && chroma.valid(stop)) {
+              if (stop.startsWith("rgb")) {
+                return rgbToHex(stop)
+              } else {
+                return stop;
+              }
             }
           })
           .filter(Boolean), // Remove undefined values

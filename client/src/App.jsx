@@ -68,15 +68,23 @@ function App() {
   }, []);
 
   return (
-    // <ConfigProvider
-    //   theme={{
-    //     token: {
-    //       colorPrimary: "#00b96b",
-    //       borderRadius: 4,
-    //     },
-    //     algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
-    //   }}
-    // >
+    <ConfigProvider
+      theme={{components: {
+        Tabs: {
+          // horizontalItemGutter: 0,
+          // horizontalItemMargin: 0,
+          horizontalItemPadding: 0,
+          // verticalItemMargin: 0,
+          // verticalItemPadding:0,
+        },
+      },
+        token: {
+          colorPrimary: "#00b96b",
+          borderRadius: 4,
+        },
+        algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
+      }}
+    >
       <DeviceContext.Provider value={{ device, setDevice }}>
         <ToastContainer />
         <Header />
@@ -93,6 +101,7 @@ function App() {
           wallpaperRef={wallpaperRef}
         />
       </DeviceContext.Provider>
+      </ConfigProvider>
   );
 }
 

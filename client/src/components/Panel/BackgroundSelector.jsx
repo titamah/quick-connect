@@ -28,7 +28,7 @@ function BackgroundSelector() {
 
   return (
     <>
-      <div className="border-b-[.5px] border-gray-200 dark:border-neutral-700">
+      <div className="border-b-[.5px] border-gray-200 dark:border-neutral-700 h-full">
         <nav
           className="flex gap-x-2.5 text-x px-4"
           aria-label="Tabs"

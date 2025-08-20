@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef, useContext } from "react";
 import "preline/preline";
+import { Tabs } from "antd";
+import { QrCode, Proportions, Image } from "lucide-react";
 import { Resizable } from "react-resizable";
 import { DeviceContext } from "../../App";
-import QRGenerator from "./QRGenerator"
-import DeviceTypeSelector from "./DeviceTypeSelector"
+import QRGenerator from "./QRGenerator";
+import DeviceTypeSelector from "./DeviceTypeSelector";
 import ToggleButtonArrow from "./ToggleButtonArrow";
-import BackgroundSelector from "./BackgroundSelector"
+import BackgroundSelector from "./BackgroundSelector";
 import CustomBackgroundSelector from "./CustomBackgroudSelector";
 
 function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
@@ -23,7 +25,6 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
     }));
   };
 
-
   // Panel Box
   const panelRef = useRef(null);
   const [maxHeight, setMaxHeight] = useState(0);
@@ -34,6 +35,20 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
   const onResizeBottom = (event, { size }) => {
     setPanelSize({ width: panelSize.width, height: size.height });
   };
+
+  const [activeTab, setActiveTab] = useState("1");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const panelElement = panelRef.current;
+      if (!panelElement) return;
+      const tabpanels = panelElement.querySelectorAll('[role="tabpanel"]');
+      tabpanels.forEach((el) => {
+        el.style.paddingLeft = "0px";
+      });
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [activeTab]);
 
   useEffect(() => {
     import("preline/preline").then((module) => {
@@ -57,6 +72,24 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
       : setActiveAccordions([...activeAccordions, accordionId]);
   };
 
+  const items = [
+    {
+      key: "1",
+      label: <Proportions className="size-7.5" />,
+      children: <DeviceTypeSelector />,
+    },
+    {
+      key: "2",
+      label: <QrCode className="size-7.5" />,
+      children: <QRGenerator panelSize={panelSize} />,
+    },
+    {
+      key: "3",
+      label: <Image className="size-7.5" />,
+      children: <CustomBackgroundSelector panelSize={panelSize} />,
+    },
+  ];
+
   return (
     <>
       <Resizable
@@ -69,8 +102,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
         resizeHandles={["e"]}
         handle={
           <div className="fixed z-1500 right-0 top-0 h-full w-[10px] cursor-col-resize">
-            <div className="fixed right-0 top-1/2 cursor-pointer z-200">
-            </div>
+            <div className="fixed right-0 top-1/2 cursor-pointer z-200"></div>
           </div>
         }
       >
@@ -85,150 +117,40 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
           role="dialog"
           aria-labelledby="hs-offcanvas-example-label"
         >
-        <span
-          className="absolute top-1/2 right-0 translate-x-1/2 block w-5 h-7 flex items-center bg-white border border-gray-200 text-gray-400 rounded-md  hover:bg-gray-100 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-600 dark:hover:bg-neutral-900"
-          onClick={togglePanel}
-        >
-          <svg
-            className="shrink-0 size-4.5"
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+          <span
+            className="absolute top-1/2 right-0 translate-x-1/2 block w-5 h-7 flex items-center bg-white border border-gray-200 text-gray-400 rounded-md  hover:bg-gray-100 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-600 dark:hover:bg-neutral-900"
+            onClick={togglePanel}
           >
-            <circle cx="8" cy="12" r="1" />
-            <circle cx="8" cy="5" r="1" />
-            <circle cx="8" cy="19" r="1" />
-            <circle cx="16" cy="12" r="1" />
-            <circle cx="16" cy="5" r="1" />
-            <circle cx="16" cy="19" r="1" />
-          </svg>
-        </span>
-        <div className="" >
-          <div
-            id="device-info"
-            className="flex-col justify-between items-center py-1  px-5"
-          >
-            <h3 className="font-bold text-gray-800 dark:text-white block">
-              <input
-                type="text"
-                className="text-xl w-full py-[5px] border-b-2 dark:border-neutral-700 dark:text-neutral-400 "
-                value={device.name}
-                onChange={handleNameChange}
-              />
-            </h3>
-            <DeviceTypeSelector/>
-          </div>
-          <div
-            id="panel-sections"
-            className="hs-accordion-group"
-            data-hs-accordion-always-open
-          >
-            <div
-              className={`hs-accordion border-t border-neutral-300/50 dark:border-neutral-700/50 py-2 ${
-                activeAccordions.includes("accordion-one") ? "active" : ""
-              }`}
-              id="hs-basic-with-title-and-arrow-stretched-heading-one"
+            <svg
+              className="shrink-0 size-4.5"
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
             >
-              <button
-                className={`${
-                  activeAccordions.includes("accordion-one")
-                    ? "opacity-100"
-                    : "opacity-66"
-                } hs-accordion-toggle inline-flex text-sm items-center justify-between gap-x-3 w-full font-medium text-gray-800 hover:text-gray-500 dark:text-neutral-200 dark:hover:text-neutral-400 px-5`}
-                aria-expanded={activeAccordions.includes("accordion-one")}
-                aria-controls="hs-basic-with-title-and-arrow-stretched-collapse-one"
-                onClick={() => toggleAccordion("accordion-one")}
-              >
-                <text> QR Code</text>
-                <ToggleButtonArrow isOpen={activeAccordions.includes("accordion-one")}/>
-              </button>
-              <div
-                id="hs-basic-with-title-and-arrow-stretched-collapse-one"
-                className={`hs-accordion-content w-full transition-[height] duration-300 ${
-                  activeAccordions.includes("accordion-one")
-                    ? "block"
-                    : "hidden"
-                }`}
-                role="region"
-                aria-labelledby="hs-basic-with-title-and-arrow-stretched-heading-one"
-              >
-                <QRGenerator panelSize={panelSize}/>
-              </div>
-            </div>
-            <div
-              className={`hs-accordion  border-y  border-neutral-300/50 dark:border-neutral-700/50  ${
-                activeAccordions.includes("accordion-two") ? "active" : ""
-              }`}
-              id="hs-basic-with-title-and-arrow-stretched-heading-one"
-            >
-              <button
-                className={`${
-                  activeAccordions.includes("accordion-two")
-                    ? "opacity-100"
-                    : "opacity-66"
-                } hs-accordion-toggle py-3 px-5 inline-flex text-sm items-center justify-between gap-x-3 w-full font-medium text-gray-800 hover:text-gray-500 dark:text-neutral-200 dark:hover:text-neutral-400`}
-                aria-expanded={activeAccordions.includes("accordion-two")}
-                aria-controls="hs-basic-with-title-and-arrow-stretched-collapse-one"
-                onClick={() => toggleAccordion("accordion-two")}
-              >
-                <text> Background </text>
-                <ToggleButtonArrow isOpen={activeAccordions.includes("accordion-two")}/>
-              </button>
-              <div
-                id="hs-basic-with-title-and-arrow-stretched-collapse-one"
-                className={`hs-accordion-content w-full transition-[height] duration-300 ${
-                  activeAccordions.includes("accordion-two")
-                    ? "block"
-                    : "hidden"
-                }`}
-                role="region"
-                aria-labelledby="hs-basic-with-title-and-arrow-stretched-heading-one"
-              >
-                 {/* <BackgroundSelector/> */}
-                 <CustomBackgroundSelector panelSize={panelSize}/>
-
-              </div>
-            </div>
-            <div 
-              className={`hs-accordion  py-3  px-5  ${
-                activeAccordions.includes("accordion-three") ? "active" : ""
-              }`}
-              id="hs-basic-with-title-and-arrow-stretched-heading-one"
-            >
-              <button
-                className={`${
-                  activeAccordions.includes("accordion-three")
-                    ? "opacity-100"
-                    : "opacity-66"
-                } hs-accordion-toggle inline-flex text-sm items-center justify-between gap-x-3 w-full font-medium text-gray-800 hover:text-gray-500 dark:text-neutral-200 dark:hover:text-neutral-400`}
-                aria-expanded={activeAccordions.includes("accordion-three")}
-                aria-controls="hs-basic-with-title-and-arrow-stretched-collapse-one"
-                onClick={() => toggleAccordion("accordion-three")}
-              >
-                <text> Border </text>
-                
-                <ToggleButtonArrow isOpen={activeAccordions.includes("accordion-three")}/>
-              </button>
-              <div
-                id="hs-basic-with-title-and-arrow-stretched-collapse-one"
-                className={`hs-accordion-content w-full transition-[height] duration-300 ${
-                  activeAccordions.includes("accordion-three")
-                    ? "block"
-                    : "hidden"
-                }`}
-                role="region"
-                aria-labelledby="hs-basic-with-title-and-arrow-stretched-heading-one"
-              >
-                QR Code Visual Stuff
-              </div>
-            </div>
-          </div>
+              <circle cx="8" cy="12" r="1" />
+              <circle cx="8" cy="5" r="1" />
+              <circle cx="8" cy="19" r="1" />
+              <circle cx="16" cy="12" r="1" />
+              <circle cx="16" cy="5" r="1" />
+              <circle cx="16" cy="19" r="1" />
+            </svg>
+          </span>
+          <div className="h-full">
+            <Tabs
+              onTabClick={(key) => {
+                setActiveTab(key);
+              }}
+              tabBarStyle={{ marginTop: "24px" }}
+              className="h-full"
+              tabPosition="left"
+              items={items}
+            />
           </div>
         </div>
       </Resizable>

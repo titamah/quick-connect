@@ -82,7 +82,7 @@ function QRGenerator(panelSize) {
       <input
         id="qr-input"
         type="text"
-        className="text-sm !select-all w-full p-[5px] me-[7.5px] -mx-[0.5px] inline-flex rounded-md bg-black/10 dark:border-neutral-700 dark:text-neutral-400 "
+        className="text-sm !select-all w-full p-[5px] ms-[7.5px] -mx-[0.5px] inline-flex rounded-md bg-black/10 dark:border-neutral-700 dark:text-neutral-400 "
         value={device.qr.url}
         onChange={(e) =>
           setDevice((prevDevice) => ({

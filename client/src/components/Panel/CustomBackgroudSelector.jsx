@@ -36,7 +36,7 @@ function CustomBackgroundSelector(panelSize) {
       aria-labelledby="tabs-with-underline-item-1"
       // onClick={setActive(0}
     >
-      <div className="border-b-[.5px] border-gray-200 dark:border-neutral-700">
+      <div className="border-b-[.5px] border-gray-200 dark:border-neutral-700 pt-[26px]">
         <nav
           className="flex gap-x-2.5 text-x px-4 py-1"
           aria-label="Tabs"
