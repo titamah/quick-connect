@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState, useContext, use } from "react";
-import { DeviceContext } from "../../App";
+import React, { useEffect, useRef, useState} from "react";
+import { useDevice } from "../../contexts/DeviceContext";
 import Slider from "../Slider";
 import Dropdown from "./Dropdown";
 import { ColorPicker, Button, Space, Tooltip } from "antd";
@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 function GradientSelector() {
-  const { device, setDevice } = useContext(DeviceContext);
+  const { device, updateBackground, updateQRConfig, updateDeviceInfo } = useDevice();
   const [type, setType] = useState(device.gradient.type);
   const gradientBar = useRef(null);
   const [angle, setAngle] = useState(180);
@@ -208,30 +208,14 @@ function GradientSelector() {
   };
 
   useEffect(() => {
-    setDevice((prevDevice) => ({
-      ...prevDevice,
+    updateBackground({
       gradient: {
         type: type,
         stops: stops.flat(),
         angle: anglePercent,
         pos: posPercent,
-      },
-      palette: {
-        ...prevDevice.palette,
-        gradient: stops
-          .flat()
-          .map((stop) => {
-            if (typeof stop === "string" && chroma.valid(stop)) {
-              if (stop.startsWith("rgb")) {
-                return rgbToHex(stop)
-              } else {
-                return stop;
-              }
-            }
-          })
-          .filter(Boolean), // Remove undefined values
-      },
-    }));
+      }
+    });
     console.log(device.palette);
   }, [stops, type, anglePercent, posPercent]);
 
@@ -266,17 +250,13 @@ function GradientSelector() {
           onChange={handleMenuClick}
         />
         <span className="flex items-center gap-2 pointer-events-auto">
-          <Grip
-            className="opacity-75 hover:opacity-100 cursor-pointer"
-            size={20}
-            onClick={() => {
-              const curr = device.grain;
-              setDevice((prevDevice) => ({
-                ...prevDevice,
-                grain: !curr,
-              }));
-            }}
-          />
+        <Grip 
+  className="opacity-75 hover:opacity-100 cursor-pointer"
+  size={20}
+  onClick={() => {
+    updateBackground({ grain: !device.grain });
+  }}
+/>
           <BetweenVerticalEnd
             className="opacity-75 hover:opacity-100 cursor-pointer"
             size={20}

@@ -1,6 +1,6 @@
 // hooks/useStageCalculations.js
 import { useMemo } from 'react';
-import { useWindowSize } from './useWindowSize';
+import useWindowSize from './useWindowSize';
 
 const STAGE_PADDING = 0.85;
 const HEADER_HEIGHT = 52;

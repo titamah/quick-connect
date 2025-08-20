@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useContext } from "react";
-import { DeviceContext } from "../../App";
+import React, { useState, useEffect } from "react";
+import { useDevice } from "../../contexts/DeviceContext";
 import { Grip, Trash2, Upload } from "lucide-react";
 import { MasonryPhotoAlbum } from "react-photo-album";
 import InfiniteScroll from "react-photo-album/scroll";
@@ -8,7 +8,7 @@ import { Resizable } from "react-resizable";
 import "react-resizable/css/styles.css";
 
 function ImageLibrary({setOriginalFile}) {
-  const { device, setDevice } = useContext(DeviceContext);
+  const { device, updateBackground, updateQRConfig, updateDeviceInfo } = useDevice();
 
   const [search, setSearch] = useState("");
   const [searchVal, setSearchVal] = useState(null);

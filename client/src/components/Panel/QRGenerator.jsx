@@ -1,12 +1,12 @@
-import { useState, useContext, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import "preline/preline";
-import { DeviceContext } from "../../App";
+import { useDevice } from "../../contexts/DeviceContext";
 import { QRCode, ColorPicker } from "antd";
 import Slider from "../Slider";
 import chroma from "chroma-js";
 
 function QRGenerator(panelSize) {
-  const { device, setDevice } = useContext(DeviceContext);
+  const { device, updateQRConfig } = useDevice();
   const qrCodeRef = useRef(null);
   const [qrSize, setQRSize] = useState(
     Math.min(device.size.x, device.size.y) / 2
@@ -32,50 +32,26 @@ function QRGenerator(panelSize) {
     return [...new Set(items)];
   }
   
-
   useEffect(() => {
-    const svgElement = qrCodeRef.current.querySelector("svg");
-    svgElement.style.width = panelSize.width;
-    svgElement.style.height = panelSize.width;
-    qrCodeRef.current.style.maxWidth = "250px";
-    qrCodeRef.current.style.maxHeight = "250px";
-    qrCodeRef.current.style.minWidth = panelSize.width;
-    qrCodeRef.current.style.minHeight = panelSize.width;
-    const currWidth = qrCodeRef.current.offsetWidth;
-    qrCodeRef.current.style.height = `${currWidth}px`;
-
-    // const colorPickers = document.querySelectorAll(".qr-color-picker");
-    // colorPickers.forEach((c) => {
-    //   c.style.width = "100%";
-    //   c.style.display = "flex";
-    //   c.style.flexDirection = "row-reverse";
-    //   c.style.justifyContent = "space-between";
-    //   c.style.backgroundColor = "rgba(0,0,0,.1)";
-    //   c.style.border = "0";
-    //   c.style.color = "rgb(255,255,255)";
-    // });
+    const svgElement = qrCodeRef.current?.querySelector("svg");
+    if (svgElement && qrCodeRef.current) {
+      svgElement.style.width = panelSize.width;
+      svgElement.style.height = panelSize.width;
+      qrCodeRef.current.style.maxWidth = "250px";
+      qrCodeRef.current.style.maxHeight = "250px";
+      qrCodeRef.current.style.minWidth = panelSize.width;
+      qrCodeRef.current.style.minHeight = panelSize.width;
+      const currWidth = qrCodeRef.current.offsetWidth;
+      qrCodeRef.current.style.height = `${currWidth}px`;
+    }
   }, [panelSize]);
 
-  useEffect(() => {
-    const QRImage = document.getElementById("#QRImage");
-  }, []);
-
-  const getColorString = (String) => {
-    setDevice((prevDevice) => ({
-      ...prevDevice,
-      qr: { url: prevDevice.qr.url, custom: prevDevice.qr.custom },
-    }));
-    return typeof String === "string" ? String : String?.toHexString();
+  const getColorString = (colorObj) => {
+    return typeof colorObj === "string" ? colorObj : colorObj?.toHexString();
   };
 
   const [color, setColor] = useState("#000");
-
   const [bgColor, setBGColor] = useState("#fff");
-  const [borderColor, setBorderColor] = useState("#fff");
-  const [borderSize, setBorderSize] = useState(0);
-
-  const [icon, setIcon] = useState(null);
-  const [iconSize, setIconSize] = useState(null);
 
   return (
     <div id="qr-input-box" className="dark:text-white text-sm px-5">
@@ -85,13 +61,12 @@ function QRGenerator(panelSize) {
         className="text-sm !select-all w-full p-[5px] ms-[7.5px] -mx-[0.5px] inline-flex rounded-md bg-black/10 dark:border-neutral-700 dark:text-neutral-400 "
         value={device.qr.url}
         onChange={(e) =>
-          setDevice((prevDevice) => ({
-            ...prevDevice,
-            qr: { url: e.target.value, custom: prevDevice.qr.custom },
-          }))
+          updateQRConfig({ 
+            url: e.target.value
+          })
         }
       />
-      <div className="w-full flex justify-center py-2" style={{}}>
+      <div className="w-full flex justify-center py-2">
         <QRCode
           ref={qrCodeRef}
           value={device.qr.url || "www.titamah.com"}
@@ -101,8 +76,6 @@ function QRGenerator(panelSize) {
           size={qrSize}
           color={color}
           bgColor={bgColor}
-          //    icon={icon}
-          //    iconSize={iconSize}
         />
       </div>
       QR Color
@@ -114,13 +87,6 @@ function QRGenerator(panelSize) {
           className="qr-color-picker"
           onChange={(e) => {
             setColor(getColorString(e));
-            setDevice((prevDevice) => ({
-              ...prevDevice,
-              palette: {
-                ...prevDevice.palette,
-                qr: e.toHexString(),
-              },
-            }));
           }}
           format="hex"
           size="small"
@@ -135,14 +101,6 @@ function QRGenerator(panelSize) {
           className="qr-color-picker"
           presets={[{label: "Recently Used", colors: buildHexArray('bg')}]}
           onChange={(e) => {
-            // setColor(getColorString(e));
-            setDevice((prevDevice) => ({
-              ...prevDevice,
-              palette: {
-                ...prevDevice.palette,
-                bg: e.toHexString(),
-              },
-            }));
             setBGColor(getColorString(e));
           }}
           format="hex"
@@ -158,16 +116,12 @@ function QRGenerator(panelSize) {
           step="1"
           value={device.qr.custom.borderSize}
           onChange={(e) => {
-            setDevice((prevDevice) => ({
-              ...prevDevice,
-              qr: {
-                ...prevDevice.qr,
-                custom: {
-                  ...prevDevice.qr.custom,
-                  borderSize: e.target.value,
-                },
-              },
-            }));
+            updateQRConfig({
+              custom: {
+                ...device.qr.custom,
+                borderSize: e.target.value,
+              }
+            });
           }}
         />
       </div>
@@ -179,20 +133,12 @@ function QRGenerator(panelSize) {
           presets={[{label: "Recently Used", colors: buildHexArray('border')}]}
           className="qr-color-picker"
           onChange={(e) => {
-            setDevice((prevDevice) => ({
-              ...prevDevice,
-              qr: {
-                ...prevDevice.qr,
-                custom: {
-                  ...prevDevice.qr.custom,
-                  borderColor: e.toHexString(),
-                },
-              },
-              palette: {
-                ...prevDevice.palette,
-                border: e.toHexString(),
-              },
-            }));
+            updateQRConfig({
+              custom: {
+                ...device.qr.custom,
+                borderColor: e.toHexString(),
+              }
+            });
           }}
           format="hex"
           size="small"
@@ -207,17 +153,12 @@ function QRGenerator(panelSize) {
           step="1"
           value={device.qr.custom.cornerRadius}
           onChange={(e) => {
-            console.log(e)
-            setDevice((prevDevice) => ({
-              ...prevDevice,
-              qr: {
-                ...prevDevice.qr,
-                custom: {
-                  ...prevDevice.qr.custom,
-                  cornerRadius: e.target.value,
-                },
-              },
-            }));
+            updateQRConfig({
+              custom: {
+                ...device.qr.custom,
+                cornerRadius: e.target.value,
+              }
+            });
           }}
         />
       </div>

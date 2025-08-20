@@ -1,9 +1,9 @@
-import { useState, useContext, forwardRef } from "react";
-import { DeviceContext } from "../../App";
+import { useState, forwardRef } from "react";
+import { useDevice } from "../../contexts/DeviceContext";
 import { toast } from "react-toastify";
 
 const ExportButton = forwardRef(({}, ref) => {
-  const { device } = useContext(DeviceContext);
+  const { device, updateBackground, updateQRConfig, updateDeviceInfo } = useDevice();
   const [downloadSettings, setDownloadSettings] = useState({
     isPng: true,
     size: 1,

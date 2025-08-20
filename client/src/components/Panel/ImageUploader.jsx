@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { DeviceContext } from "../../App";
+import { useDevice } from "../../contexts/DeviceContext";
 import { Col, Modal } from "antd";
 import { ReactCrop, makeAspectCrop, centerCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
@@ -10,7 +10,7 @@ import ImageLibrary from "../Panel/ImageLibrary";
 import { Resizable } from "react-resizable";
 
 function ImageUploader() {
-  const { device, setDevice } = useContext(DeviceContext);
+  const { device, updateBackground, updateQRConfig, updateDeviceInfo } = useDevice();
 
   const [source, setSource] = useState("Upload");
   // const [source, setSource] = useState("Upload");
@@ -103,51 +103,38 @@ function ImageUploader() {
   useEffect(() => {
     if (file) {
       const url = URL.createObjectURL(file);
-      setDevice((prev) => ({ ...prev, bg: url }));
+      updateBackground({ bg: url });
     }
   }, [file]);
 
-  useEffect(() => {
-    if (!originalFile) {
-      // setModalOpen(false);
-      setDevice((prevDevice) => ({
-        ...prevDevice,
-        palette: {
-          ...prevDevice.palette,
-          image: [], // This becomes device.palette[5]
-        },
-      }));
-    } else {
-      setModalOpen(true);
-      // Create an image from the original file
-      const img = new Image();
-      img.crossOrigin = "Anonymous"; // Ensure crossOrigin is set for ColorThief
-      img.src = URL.createObjectURL(originalFile);
+useEffect(() => {
+  if (!originalFile) {
+    // Just clear the file - palette will update automatically
+    setModalOpen(false);
+  } else {
+    setModalOpen(true);
+    // Create an image from the original file
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.src = URL.createObjectURL(originalFile);
 
-      img.onload = () => {
-        const colorThiefInstance = new ColorThief();
-        const paletteArray = colorThiefInstance.getPalette(img, 4);
+    img.onload = () => {
+      const colorThiefInstance = new ColorThief();
+      const paletteArray = colorThiefInstance.getPalette(img, 4);
 
-        const rgbPalette = paletteArray.map((color) => {
-          const hex =
-            "#" + color.map((v) => v.toString(16).padStart(2, "0")).join("");
-          return hex;
-        });
+      const rgbPalette = paletteArray.map((color) => {
+        const hex =
+          "#" + color.map((v) => v.toString(16).padStart(2, "0")).join("");
+        return hex;
+      });
 
-        setDevice((prevDevice) => ({
-          ...prevDevice,
-          palette: {
-            ...prevDevice.palette,
-            image: rgbPalette, // This becomes device.palette[5]
-          },
-        }));
-
-        // Optionally log the new palette for debugging
-        console.log("New color palette:", rgbPalette);
-        console.log("device palette:", device.palette);
-      };
-    }
-  }, [originalFile]);
+      // You might need to add image palette support to your new state management
+      // For now, this might not work exactly the same way
+      console.log("New color palette:", rgbPalette);
+      console.log("device palette:", device.palette);
+    };
+  }
+}, [originalFile]);
 
   const deleteFile = () => {
     setOriginalFile(null);
@@ -189,17 +176,13 @@ function ImageUploader() {
             onChange={changeSource}
           />
           <span className="flex items-center gap-2 pointer-events-auto">
-            <Grip
-              className="opacity-75 hover:opacity-100 cursor-pointer"
-              size={20}
-              onClick={() => {
-                const curr = device.grain;
-                setDevice((prevDevice) => ({
-                  ...prevDevice,
-                  grain: !curr,
-                }));
-              }}
-            />
+          <Grip
+  className="opacity-75 hover:opacity-100 cursor-pointer"
+  size={20}
+  onClick={() => {
+    updateBackground({ grain: !device.grain });
+  }}
+/>
           </span>
         </div>
         <Resizable

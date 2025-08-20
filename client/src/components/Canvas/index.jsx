@@ -1,12 +1,12 @@
-import { useEffect, useState, useRef, useContext } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useDevice } from "../../contexts/DeviceContext";
 import "preline/preline";
 import { zoom, select, zoomIdentity } from "d3";
-import { DeviceContext } from "../../App";
-import Wallpaper from '../Wallpaper/index'
+import OptimizedWallpaper from '../Wallpaper/OptimizedWallpaper';
 import ExportButton from "./ExportButton";
 
 function Canvas({ isOpen, panelSize, wallpaperRef, setPalette }) {
-  const { device } = useContext(DeviceContext);
+  const { device, updateDeviceInfo } = useDevice();
   const previewRef = useRef(null);
   const canvasRef = useRef(null);
   const [scale, setScale] = useState(1);
@@ -178,7 +178,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef, setPalette }) {
                 ></div>
               </div>
             ) : (
-              <Wallpaper
+              <OptimizedWallpaper
                 ref={wallpaperRef}
                 panelSize={panelSize}
                 isOpen={isOpen}

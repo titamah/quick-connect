@@ -1,9 +1,9 @@
-import { useState, useContext } from "react";
+import { useState } from "react";
 import "preline/preline";
-import { DeviceContext } from "../../App";
+import { useDevice } from "../../contexts/DeviceContext";
 
 function QRGenerator() {
-  const { device, setDevice } = useContext(DeviceContext);
+  const { device, updateBackground, updateQRConfig, updateDeviceInfo } = useDevice();
   const [deviceSize, setDeviceSize] = useState(device.size);
   const [deviceName, setDeviceName] = useState(device.size);
 
@@ -28,13 +28,13 @@ function QRGenerator() {
     const updateDevice = (i) => {
       setDeviceName(i.name);
       setDeviceSize(i.size);
-      setDevice((prevDevice) => ({
-        ...prevDevice,
+      updateDeviceInfo({
         type: i.name,
         size: i.size,
-      }));
+      });
     };
-
+  
+    // Move this code INSIDE the function:
     let deviceCount = -1;
     const deviceSizeOptions = devicesSizes.map((i) => {
       deviceCount++;
@@ -49,23 +49,24 @@ function QRGenerator() {
         </div>
       );
     });
+  
     return (
       <div className="p-1 w-max max-h-[40vh] overflow-y-scroll space-y-0.5">
         <div
           key={0}
           onClick={() => {
-            console.log(key);
+            console.log("custom size clicked");
           }}
           className="flex text-xs w-full h-fit items-center gap-x-3.5 py-[7.5px] px-[5px] rounded-lg text-gray-800 hover:bg-gray-100 dark:text-neutral-400 dark:hover:bg-neutral-700"
         >
           <span className="font-thin text-xl">{"+"}</span>
           Custom Size
         </div>
-
         {deviceSizeOptions}
       </div>
     );
-  }
+  } 
+
 
   return (
     <div id="device-type-dropdown" className="hs-dropdown relative -mx-1 py-2 ">

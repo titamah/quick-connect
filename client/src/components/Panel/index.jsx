@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, useContext } from "react";
+import { useState, useEffect, useRef } from "react";
 import "preline/preline";
 import { Tabs } from "antd";
 import { QrCode, Proportions, Image } from "lucide-react";
 import { Resizable } from "react-resizable";
-import { DeviceContext } from "../../App";
+import { useDevice } from "../../contexts/DeviceContext";
 import QRGenerator from "./QRGenerator";
 import DeviceTypeSelector from "./DeviceTypeSelector";
 import ToggleButtonArrow from "./ToggleButtonArrow";
@@ -11,7 +11,7 @@ import BackgroundSelector from "./BackgroundSelector";
 import CustomBackgroundSelector from "./CustomBackgroudSelector";
 
 function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
-  const { device, setDevice } = useContext(DeviceContext);
+  const { device, updateDeviceInfo } = useDevice();
   const [activeAccordions, setActiveAccordions] = useState([
     // "accordion-one",
     "accordion-two",
@@ -19,10 +19,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
   ]);
 
   const handleNameChange = (event) => {
-    setDevice((prevDevice) => ({
-      ...prevDevice,
-      name: event.target.value,
-    }));
+    updateDeviceInfo({ name: event.target.value });
   };
 
   // Panel Box

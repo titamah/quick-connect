@@ -1,31 +1,21 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useDevice } from "../../contexts/DeviceContext";
 import "preline/preline";
-import { DeviceContext } from "../../App";
 import ImageUploader from "./ImageUploader";
-import ColorSelector from "./ColorSelector";
+import OptimizedColorSelector from "./OptimizedColorSelector";
 import GradientSelector from "./GradientSelector";
 
 function CustomBackgroundSelector(panelSize) {
   const [activeTab, setActiveTab] = useState(1);
-  const { device, setDevice } = useContext(DeviceContext);
+  const { device, updateBackground, updateQRConfig, updateDeviceInfo } = useDevice();
 
   const setBGStyle = (index) => {
-    if (index == 1){
-      setDevice((prevDevice) => ({
-        ...prevDevice,
-        style: "solid",
-      }));
-    } else if (index == 2){
-      setDevice((prevDevice) => ({
-        ...prevDevice,
-        style: "gradient",
-      }));
-    }
-    else if (index == 3){
-      setDevice((prevDevice) => ({
-        ...prevDevice,
-        style: "image",
-      }));
+    if (index == 1) {
+      updateBackground({ style: "solid" });
+    } else if (index == 2) {
+      updateBackground({ style: "gradient" });
+    } else if (index == 3) {
+      updateBackground({ style: "image" });
     }
   };
 
@@ -167,7 +157,7 @@ function CustomBackgroundSelector(panelSize) {
           role="tabpanel"
           aria-labelledby="custom-tabs-with-underline-item-1"
         >
-          <ColorSelector panelSize={panelSize}/>
+          <OptimizedColorSelector panelSize={panelSize}/>
         </div>
         <div
           id="custom-tabs-with-underline-2"

@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState } from "react";
 import "preline/preline";
 // import { DeviceContext } from "../../App";
 // import ImageUploader from "./ImageUpload";
@@ -28,7 +28,7 @@ function BackgroundSelector() {
 
   return (
     <>
-      <div className="border-b-[.5px] border-gray-200 dark:border-neutral-700 h-full">
+      <div className="border-b-[.5px] border-gray-200 dark:border-neutral-700 !h-full">
         <nav
           className="flex gap-x-2.5 text-x px-4"
           aria-label="Tabs"
