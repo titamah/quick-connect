@@ -7,7 +7,6 @@ import { useDevice } from "../../contexts/DeviceContext";
 import QRGenerator from "./QRGenerator";
 import DeviceTypeSelector from "./DeviceTypeSelector";
 import ToggleButtonArrow from "./ToggleButtonArrow";
-import BackgroundSelector from "./BackgroundSelector";
 import CustomBackgroundSelector from "./CustomBackgroudSelector";
 import "./styles.css";
 

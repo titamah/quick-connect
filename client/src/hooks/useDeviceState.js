@@ -26,7 +26,7 @@ export const useDeviceState = () => {
 
   // QR Code configuration
   const [qrConfig, setQRConfig] = useState({
-    url: "https://www.linkedin.com/in/titamah",
+    url: "www.qrki.xyz",
     custom: { 
       borderSize: 0, 
       borderColor: "#000000", 

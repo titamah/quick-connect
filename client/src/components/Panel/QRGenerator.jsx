@@ -54,7 +54,10 @@ function QRGenerator(panelSize) {
   const [bgColor, setBGColor] = useState("#fff");
 
   return (
-    <div id="qr-input-box" className="dark:text-white text-sm px-5">
+    <div id="qr-input-box" className="dark:text-white text-sm">
+    <label className="block ">
+      QR URL
+    </label>
       <input
         id="qr-input"
         type="text"
@@ -69,7 +72,7 @@ function QRGenerator(panelSize) {
       <div className="w-full flex justify-center py-2">
         <QRCode
           ref={qrCodeRef}
-          value={device.qr.url || "www.titamah.com"}
+          value={device.qr.url || "www.qrki.xyz"}
           id="QRCode"
           type="svg"
           bordered={false}
@@ -78,8 +81,11 @@ function QRGenerator(panelSize) {
           bgColor={bgColor}
         />
       </div>
-      QR Color
-      <div className="flex justify-between py-2">
+    <label className="block">
+      Color
+    </label>
+      <div className="flex justify-between py-2 text-xs font-medium mb-2 ">
+      <div className="min-w-[75px]"> Primary </div>
         <ColorPicker
           value={color}
           placement="bottomRight"
@@ -93,8 +99,8 @@ function QRGenerator(panelSize) {
           showText
         />
       </div>
-      BG Color
-      <div className="flex justify-between py-2">
+      <div className="flex justify-between py-2 text-xs font-medium mb-2 ">
+      <div className="min-w-[75px]"> Secondary </div>
         <ColorPicker
           value={bgColor}
           placement="bottomRight"
@@ -108,25 +114,11 @@ function QRGenerator(panelSize) {
           showText
         />
       </div>
-      Border Size
-      <div className="flex justify-between py-2">
-        <Slider
-          min="0"
-          max={qrSize * 2.25}
-          step="1"
-          value={device.qr.custom.borderSize}
-          onChange={(e) => {
-            updateQRConfig({
-              custom: {
-                ...device.qr.custom,
-                borderSize: e.target.value,
-              }
-            });
-          }}
-        />
-      </div>
-      Border Color
-      <div className="flex justify-between py-2">
+    <label className="block">
+      Border
+    </label>
+      <div className="flex justify-between py-2 text-xs font-medium mb-2 ">
+      <div className="min-w-[75px]"> Color</div>
         <ColorPicker
           value={device.qr.custom.borderColor}
           placement="bottomRight"
@@ -145,8 +137,25 @@ function QRGenerator(panelSize) {
           showText
         />
       </div>
-      Corner Radius
-      <div className="flex justify-between py-2">
+      <div className="flex justify-between py-2 text-xs font-medium mb-2 ">
+      <div className="min-w-[75px]"> Width</div>
+        <Slider
+          min="0"
+          max={qrSize * 2.25}
+          step="1"
+          value={device.qr.custom.borderSize}
+          onChange={(e) => {
+            updateQRConfig({
+              custom: {
+                ...device.qr.custom,
+                borderSize: e.target.value,
+              }
+            });
+          }}
+        />
+      </div>
+      <div className="flex justify-between py-2 text-xs font-medium mb-2 ">
+      <div className="min-w-[75px]"> Radius</div>
         <Slider
           min="0"
           max={0.75 * qrSize}
