@@ -12,6 +12,7 @@ import {
   Grip,
   Waves,
 } from "lucide-react";
+import "./styles.css";
 
 function GradientSelector() {
   const { device, updateBackground, updateQRConfig, updateDeviceInfo } = useDevice();
@@ -242,7 +243,7 @@ function GradientSelector() {
   const menuOptions = type === "linear" ? ["Radial"] : ["Linear"];
 
   return (
-    <div className="dark:text-white w-full px-5">
+    <div className="dark:text-white w-full">
       <div className="flex flex-row items-center justify-between w-full mb-2">
         <Dropdown
           options={menuOptions}

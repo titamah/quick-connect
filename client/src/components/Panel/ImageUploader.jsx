@@ -168,7 +168,7 @@ useEffect(() => {
           />
         </ReactCrop>
       </Modal>
-      <div className="dark:text-white w-full px-5 mb-4">
+      <div className="dark:text-white w-full mb-4">
         <div className="flex flex-row items-center justify-between w-full mb-2">
           <Dropdown
             options={menuOptions}

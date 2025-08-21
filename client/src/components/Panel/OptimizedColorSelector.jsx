@@ -1,6 +1,7 @@
 // components/Panel/OptimizedColorSelector.jsx
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { HexColorPicker } from "react-colorful";
+import "./styles.css";
 import { Grip } from "lucide-react";
 import chroma from "chroma-js";
 import { useDevice } from "../../contexts/DeviceContext";
@@ -108,7 +109,7 @@ const OptimizedColorSelector = ({ panelSize }) => {
     <div
       id="ColorSelectPanel"
       ref={pickerRef}
-      className="dark:text-white w-full h-[290px] px-5 space-y-2.5"
+      className="dark:text-white w-full h-[290px] space-y-2.5"
     >
       {/* Color input and grain toggle */}
       <div className="flex flex-row items-center justify-between w-full mb-2">

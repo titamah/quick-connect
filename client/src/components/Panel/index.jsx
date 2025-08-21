@@ -93,7 +93,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
         className="duration-100"
         width={panelSize.width}
         height={0}
-        minConstraints={[200, 0]}
+        minConstraints={[350, 0]}
         onResize={onResizeSide}
         // onResizeStop={onResizeSide}
         resizeHandles={["e"]}

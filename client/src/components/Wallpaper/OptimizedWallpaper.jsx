@@ -27,6 +27,9 @@ const OptimizedWallpaper = forwardRef(
       y: deviceInfo.size.y / 1.75,
     }));
     
+    // Grain image state
+    const [grainImage, setGrainImage] = useState(null);
+    
     const qrSize = useMemo(() => 
       Math.min(deviceInfo.size.x, deviceInfo.size.y) * QR_SIZE_RATIO,
       [deviceInfo.size.x, deviceInfo.size.y]
@@ -155,6 +158,22 @@ const OptimizedWallpaper = forwardRef(
       return () => clearTimeout(timeoutId);
     }, [qrConfig]);
 
+    // Load grain image
+    useEffect(() => {
+      const img = new Image();
+      img.src = "/grain.jpeg";
+      img.onload = () => {
+        setGrainImage(img);
+        // Force a re-render of the stage when grain loads
+        if (ref.current) {
+          ref.current.batchDraw();
+        }
+      };
+      img.onerror = () => {
+        console.error('Failed to load grain texture from /grain.jpeg');
+      };
+    }, []);
+
     // Update draggable state
     useEffect(() => {
       setIsDraggable(locked);
@@ -167,6 +186,63 @@ const OptimizedWallpaper = forwardRef(
         y: deviceInfo.size.y / 1.75,
       });
     }, [deviceInfo.size]);
+
+    // Set up QR interaction event handlers
+    useEffect(() => {
+      if (!shapeRef.current || !transformerRef.current) return;
+
+      const qrGroup = shapeRef.current;
+      const transformer = transformerRef.current;
+
+      // Handle QR click/dragend to show transformer
+      const handleQRSelect = (e) => {
+        setTimeout(() => {
+          setIsDragging(false);
+          transformer.nodes([qrGroup]);
+          transformer.getLayer().batchDraw();
+        }, 5);
+      };
+
+      // Handle drag start to hide transformer and show snap lines
+      const handleDragStart = (e) => {
+        setTimeout(() => {
+          setIsDragging(true);
+          transformer.nodes([]);
+          transformer.getLayer().batchDraw();
+        }, 5);
+      };
+
+      // Handle transformer end to keep QR selected
+      const handleTransformEnd = (e) => {
+        setTimeout(() => {
+          transformer.nodes([qrGroup]);
+          transformer.getLayer().batchDraw();
+        }, 5);
+      };
+
+      qrGroup.on("click dragend", handleQRSelect);
+      qrGroup.on("dragstart", handleDragStart);
+      transformer.on("transformend", handleTransformEnd);
+
+      // Handle clicks outside QR/Canvas to deselect
+      const handleOutsideClick = (e) => {
+        if (transformer.nodes().length > 0) {
+          transformer.nodes([]);
+          transformer.getLayer().batchDraw();
+          setIsZoomEnabled(false);
+        }
+      };
+
+      document.getElementById("Canvas")?.addEventListener("mouseup", handleOutsideClick);
+
+      // Clean up event listeners
+      return () => {
+        qrGroup.off("click dragend", handleQRSelect);
+        qrGroup.off("dragstart", handleDragStart);
+        transformer.off("transformend", handleTransformEnd);
+        document.getElementById("Canvas")?.removeEventListener("mouseup", handleOutsideClick);
+      };
+    }, []);
 
     return (
       <div
@@ -190,9 +266,18 @@ const OptimizedWallpaper = forwardRef(
           }}
           ref={ref}
           onMouseDown={(e) => {
+            // Only deselect if clicking on the stage background, not on QR or transformer
             if (e.target === e.target.getStage()) {
               transformerRef.current?.nodes([]);
               transformerRef.current?.getLayer()?.batchDraw();
+            }
+          }}
+          onMouseUp={(e) => {
+            // Handle clicks outside QR to deselect transformer
+            if (transformerRef.current?.nodes().length > 0) {
+              transformerRef.current.nodes([]);
+              transformerRef.current.getLayer().batchDraw();
+              setIsZoomEnabled(false);
             }
           }}
         >
@@ -201,13 +286,13 @@ const OptimizedWallpaper = forwardRef(
             <Rect {...backgroundProps} />
             
             {/* Grain overlay */}
-            {background.grain && (
+            {background.grain && grainImage && (
               <Rect
                 width={deviceInfo.size.x}
                 height={deviceInfo.size.y}
                 x={0}
                 y={0}
-                fillPatternImage="/grain.jpeg" // You'll need to load this properly
+                fillPatternImage={grainImage}
                 fillPatternRepeat="repeat"
                 fillPriority="pattern"
                 globalCompositeOperation="luminosity"
@@ -217,7 +302,13 @@ const OptimizedWallpaper = forwardRef(
           </Layer>
 
           {/* QR Layer */}
-          <Layer>
+          <Layer
+            onMouseUp={() => {
+              setTimeout(() => {
+                setIsZoomEnabled(false);
+              }, 10);
+            }}
+          >
             <Group
               draggable={isDraggable}
               onDragMove={handleDragMove}
@@ -226,6 +317,16 @@ const OptimizedWallpaper = forwardRef(
               y={qrPos.y - (qrConfig.custom.borderSize / 2) * stageScale}
               height={qrSize + qrConfig.custom.borderSize * stageScale}
               width={qrSize + qrConfig.custom.borderSize * stageScale}
+              onMouseDown={(e) => {
+                // Prevent event bubbling to stage
+                e.cancelBubble = true;
+                // If transformer is active, prevent zoom/device movement
+                if (transformerRef.current?.nodes().length > 0) {
+                  setTimeout(() => {
+                    setIsZoomEnabled(false);
+                  }, 10);
+                }
+              }}
             >
               {/* QR Border */}
               <Rect
@@ -256,9 +357,14 @@ const OptimizedWallpaper = forwardRef(
               anchorStroke="red"
               anchorStrokeWidth={1 / stageScale}
               anchorCornerRadius={7.5 / stageScale}
-              rotateEnabled={false}
+              rotateEnabled={true}
               flipEnabled={false}
               ref={transformerRef}
+              onTransformEnd={() => {
+                setTimeout(() => {
+                  setIsZoomEnabled(false);
+                }, 10);
+              }}
             />
 
             {/* Snap lines */}
