@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
+import "./styles.css";
 
 function DeviceTypeSelector() {
   const { device, updateBackground, updateQRConfig, updateDeviceInfo } = useDevice();
@@ -11,64 +12,89 @@ function DeviceTypeSelector() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const devicesSizes = [
-    // === PHONES - FLAGSHIP ===
-    { name: "iPhone 16 Pro Max", size: { x: 1320, y: 2868 }, category: "Phone" },
-    { name: "iPhone 16 Pro", size: { x: 1206, y: 2622 }, category: "Phone" },
-    { name: "iPhone 16", size: { x: 1179, y: 2556 }, category: "Phone" },
-    { name: "iPhone 15", size: { x: 1179, y: 2556 }, category: "Phone" },
-    { name: "iPhone SE (3rd gen)", size: { x: 750, y: 1334 }, category: "Phone" },
-    { name: "Samsung Galaxy S25 Ultra", size: { x: 1440, y: 3120 }, category: "Phone" },
-    { name: "Samsung Galaxy S25", size: { x: 1080, y: 2340 }, category: "Phone" },
-    { name: "Google Pixel 9 Pro", size: { x: 1344, y: 2992 }, category: "Phone" },
-    { name: "Google Pixel 9", size: { x: 1080, y: 2424 }, category: "Phone" },
+    // === IPHONE ===
+    { name: "iPhone 16 Pro Max", size: { x: 1320, y: 2868 }, category: "iPhone" },
+    { name: "iPhone 15 Pro Max", size: { x: 1290, y: 2796 }, category: "iPhone" },
+    { name: "iPhone 14 Pro Max / 13 Pro Max / 12 Pro Max", size: { x: 1284, y: 2778 }, category: "iPhone" },
+    { name: "iPhone 16 Pro / 15 Pro", size: { x: 1206, y: 2622 }, category: "iPhone" },
+    { name: "iPhone 14 Pro / 13 Pro / 12 Pro", size: { x: 1170, y: 2532 }, category: "iPhone" },
+    { name: "iPhone 16 / 15 / 14 / 13 / 12", size: { x: 1179, y: 2556 }, category: "iPhone" },
+    { name: "iPhone SE (3rd gen)", size: { x: 750, y: 1334 }, category: "iPhone" },
+    { name: "iPhone 13 Mini / 12 Mini", size: { x: 1080, y: 2340 }, category: "iPhone" },
     
-    // === PHONES - MID-RANGE & BUDGET ===
-    { name: "Samsung Galaxy A55", size: { x: 1080, y: 2340 }, category: "Phone" },
-    { name: "Google Pixel 8a", size: { x: 1080, y: 2400 }, category: "Phone" },
-    { name: "OnePlus Nord 4", size: { x: 1080, y: 2412 }, category: "Phone" },
-    { name: "Nothing Phone (2)", size: { x: 1080, y: 2412 }, category: "Phone" },
+    // === SAMSUNG ===
+    { name: "Samsung Galaxy S25 Ultra", size: { x: 1440, y: 3120 }, category: "Samsung" },
+    { name: "Samsung Galaxy S24 Ultra / S23 Ultra", size: { x: 1440, y: 3088 }, category: "Samsung" },
+    { name: "Samsung Galaxy S22 Ultra / Note 20 Ultra", size: { x: 1440, y: 3088 }, category: "Samsung" },
+    { name: "Samsung Galaxy S25 / S24 / S23", size: { x: 1080, y: 2340 }, category: "Samsung" },
+    { name: "Samsung Galaxy S22 / S21", size: { x: 1080, y: 2400 }, category: "Samsung" },
+    { name: "Samsung Galaxy S20", size: { x: 1440, y: 3200 }, category: "Samsung" },
+    { name: "Samsung Galaxy A55 / A54 / A53", size: { x: 1080, y: 2340 }, category: "Samsung" },
+    
+    // === GOOGLE PIXEL ===
+    { name: "Google Pixel 9 Pro XL / 8 Pro / 7 Pro", size: { x: 1344, y: 2992 }, category: "Google Pixel" },
+    { name: "Google Pixel 9 Pro", size: { x: 1280, y: 2856 }, category: "Google Pixel" },
+    { name: "Google Pixel 9 / 8 / 7", size: { x: 1080, y: 2424 }, category: "Google Pixel" },
+    { name: "Google Pixel 6 Pro", size: { x: 1440, y: 3120 }, category: "Google Pixel" },
+    { name: "Google Pixel 6 / 6a", size: { x: 1080, y: 2400 }, category: "Google Pixel" },
+    { name: "Google Pixel 8a / 7a / 6a", size: { x: 1080, y: 2400 }, category: "Google Pixel" },
+    
+    // === OTHER PHONES ===
+    { name: "OnePlus 12 / 11", size: { x: 1440, y: 3216 }, category: "Other" },
+    { name: "OnePlus Nord 4 / Nord 3", size: { x: 1080, y: 2412 }, category: "Other" },
+    { name: "Nothing Phone (2) / (1)", size: { x: 1080, y: 2412 }, category: "Other" },
     
     // === FOLDABLES ===
     { name: "Samsung Galaxy Z Fold 6 (Unfolded)", size: { x: 1856, y: 2160 }, category: "Foldable" },
+    { name: "Samsung Galaxy Z Fold 5 / 4 (Unfolded)", size: { x: 1812, y: 2176 }, category: "Foldable" },
+    { name: "Samsung Galaxy Z Fold 3 (Unfolded)", size: { x: 1768, y: 2208 }, category: "Foldable" },
     { name: "Samsung Galaxy Z Fold 6 (Folded)", size: { x: 904, y: 2316 }, category: "Foldable" },
-    { name: "Samsung Galaxy Z Flip 6 (Unfolded)", size: { x: 1080, y: 2640 }, category: "Foldable" },
-    { name: "Samsung Galaxy Z Flip 6 (Folded)", size: { x: 720, y: 748 }, category: "Foldable" },
+    { name: "Samsung Galaxy Z Fold 5 / 4 / 3 (Folded)", size: { x: 832, y: 2268 }, category: "Foldable" },
+    
+    { name: "Samsung Galaxy Z Flip 6 / 5 (Unfolded)", size: { x: 1080, y: 2640 }, category: "Foldable" },
+    { name: "Samsung Galaxy Z Flip 4 / 3 (Unfolded)", size: { x: 1080, y: 2636 }, category: "Foldable" },
+    { name: "Samsung Galaxy Z Flip 6 / 5 (Folded)", size: { x: 720, y: 748 }, category: "Foldable" },
+    { name: "Samsung Galaxy Z Flip 4 / 3 (Folded)", size: { x: 720, y: 512 }, category: "Foldable" },
+    
     { name: "Google Pixel Fold (Unfolded)", size: { x: 1840, y: 2208 }, category: "Foldable" },
     { name: "OnePlus Open (Unfolded)", size: { x: 1916, y: 2156 }, category: "Foldable" },
     
     // === TABLETS - IPAD ===
-    { name: "iPad Pro 12.9\" (M4)", size: { x: 2048, y: 2732 }, category: "Tablet" },
-    { name: "iPad Pro 11\" (M4)", size: { x: 1668, y: 2388 }, category: "Tablet" },
-    { name: "iPad Air 11\"", size: { x: 1668, y: 2388 }, category: "Tablet" },
-    { name: "iPad Air 13\"", size: { x: 2048, y: 2732 }, category: "Tablet" },
-    { name: "iPad (10th gen)", size: { x: 1620, y: 2160 }, category: "Tablet" },
-    { name: "iPad Mini (6th gen)", size: { x: 1488, y: 2266 }, category: "Tablet" },
+    { name: "iPad Pro 12.9\" (M4 / M2 / M1)", size: { x: 2048, y: 2732 }, category: "Tablet" },
+    { name: "iPad Pro 11\" (M4 / M2 / M1)", size: { x: 1668, y: 2388 }, category: "Tablet" },
+    { name: "iPad Air 13\" (M2)", size: { x: 2048, y: 2732 }, category: "Tablet" },
+    { name: "iPad Air 11\" / 10.9\" (M2 / M1)", size: { x: 1668, y: 2388 }, category: "Tablet" },
+    { name: "iPad (10th / 9th gen)", size: { x: 1620, y: 2160 }, category: "Tablet" },
+    { name: "iPad (8th / 7th gen)", size: { x: 1620, y: 2160 }, category: "Tablet" },
+    { name: "iPad Mini (6th / 5th gen)", size: { x: 1488, y: 2266 }, category: "Tablet" },
     
     // === TABLETS - ANDROID & WINDOWS ===
-    { name: "Samsung Galaxy Tab S9 Ultra", size: { x: 1848, y: 2960 }, category: "Tablet" },
-    { name: "Samsung Galaxy Tab S9+", size: { x: 1752, y: 2800 }, category: "Tablet" },
-    { name: "Samsung Galaxy Tab S9", size: { x: 1600, y: 2560 }, category: "Tablet" },
-    { name: "Surface Pro 11", size: { x: 1920, y: 2880 }, category: "Tablet" },
-    { name: "Surface Laptop Studio 2", size: { x: 2400, y: 1600 }, category: "Tablet" },
+    { name: "Samsung Galaxy Tab S9 Ultra / S8 Ultra", size: { x: 1848, y: 2960 }, category: "Tablet" },
+    { name: "Samsung Galaxy Tab S9+ / S8+", size: { x: 1752, y: 2800 }, category: "Tablet" },
+    { name: "Samsung Galaxy Tab S9 / S8 / S7", size: { x: 1600, y: 2560 }, category: "Tablet" },
+    { name: "Surface Pro 11 / 10 / 9", size: { x: 1920, y: 2880 }, category: "Tablet" },
+    { name: "Surface Pro 8 / 7", size: { x: 2880, y: 1920 }, category: "Tablet" },
+    { name: "Surface Laptop Studio 2 / 1", size: { x: 2400, y: 1600 }, category: "Tablet" },
     
     // === WEARABLES ===
     { name: "Apple Watch Series 10 (46mm)", size: { x: 416, y: 496 }, category: "Wearable" },
     { name: "Apple Watch Series 10 (42mm)", size: { x: 374, y: 446 }, category: "Wearable" },
+    { name: "Apple Watch Series 9 / 8 / 7 (45mm)", size: { x: 396, y: 484 }, category: "Wearable" },
+    { name: "Apple Watch Series 9 / 8 / 7 (41mm)", size: { x: 352, y: 430 }, category: "Wearable" },
+    { name: "Apple Watch SE (44mm / 40mm)", size: { x: 368, y: 448 }, category: "Wearable" },
     { name: "Samsung Galaxy Watch Ultra", size: { x: 480, y: 480 }, category: "Wearable" },
-    { name: "Samsung Galaxy Watch 7", size: { x: 432, y: 432 }, category: "Wearable" },
+    { name: "Samsung Galaxy Watch 7 / 6 / 5 / 4", size: { x: 432, y: 432 }, category: "Wearable" },
     
     // === E-READERS & GAMING ===
-    { name: "Kindle Paperwhite", size: { x: 1236, y: 1648 }, category: "E-Reader" },
-    { name: "Kindle Oasis", size: { x: 1264, y: 1680 }, category: "E-Reader" },
+    { name: "Kindle Paperwhite (11th / 10th gen)", size: { x: 1236, y: 1648 }, category: "E-Reader" },
+    { name: "Kindle Oasis (10th / 9th gen)", size: { x: 1264, y: 1680 }, category: "E-Reader" },
     { name: "Kindle Scribe", size: { x: 1860, y: 2480 }, category: "E-Reader" },
-    { name: "Steam Deck", size: { x: 1280, y: 800 }, category: "Gaming" },
-    { name: "Nintendo Switch", size: { x: 1280, y: 720 }, category: "Gaming" },
-    { name: "ASUS ROG Ally", size: { x: 1920, y: 1080 }, category: "Gaming" },
+    { name: "Kindle (11th / 10th gen)", size: { x: 758, y: 1024 }, category: "E-Reader" },
     
-    // === LEGACY/COMPACT ===
-    { name: "iPhone 13 Mini", size: { x: 1080, y: 2340 }, category: "Phone" },
-    { name: "iPhone 12 Mini", size: { x: 1080, y: 2340 }, category: "Phone" },
-    { name: "Samsung Galaxy S22", size: { x: 1080, y: 2340 }, category: "Phone" },
+    { name: "Steam Deck OLED / LCD", size: { x: 1280, y: 800 }, category: "Gaming" },
+    { name: "Nintendo Switch OLED / Original", size: { x: 1280, y: 720 }, category: "Gaming" },
+    { name: "ASUS ROG Ally X / ROG Ally", size: { x: 1920, y: 1080 }, category: "Gaming" },
+    { name: "Lenovo Legion Go", size: { x: 2560, y: 1600 }, category: "Gaming" },
   ];
   
   const updateDevice = (deviceInfo) => {
@@ -123,7 +149,7 @@ function DeviceTypeSelector() {
     }, {});
   }, [filteredDevices]);
 
-  const categoryOrder = ["Phone", "Foldable", "Tablet", "Wearable", "Gaming", "E-Reader"];
+  const categoryOrder = ["iPhone", "Samsung", "Google Pixel", "Other", "Foldable", "Tablet", "Wearable", "Gaming", "E-Reader"];
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -187,7 +213,7 @@ function DeviceTypeSelector() {
 
       {/* Custom Size Input */}
       {showCustomSizeInput && (
-        <div className="mb-3 p-3 border border-gray-200 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900">
+        <div className="flex-shrink-0 mb-3 p-3 border border-gray-200 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900">
           <div className="flex flex-col gap-2">
             <label className="text-xs font-medium text-gray-800 dark:text-white">
               Custom Dimensions
@@ -227,38 +253,40 @@ function DeviceTypeSelector() {
         </div>
       )}
 
-      {/* Device Categories */}
-      <div className="flex-1 overflow-y-auto space-y-4">
-        {categoryOrder.map(category => {
-          const devices = devicesByCategory[category];
-          if (!devices || devices.length === 0) return null;
-          
-          return (
-            <div key={category}>
-              <div className="px-1 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide dark:text-neutral-400 border-b border-gray-100 dark:border-neutral-700 mb-2">
-                {category}
+      {/* SCROLLABLE DEVICE LIST - Dynamic height using remaining space */}
+      <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="space-y-4 pr-2 h-full"> {/* Added h-full here */}
+          {categoryOrder.map(category => {
+            const devices = devicesByCategory[category];
+            if (!devices || devices.length === 0) return null;
+            
+            return (
+              <div key={category}>
+                <div className="px-1 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide dark:text-neutral-400 border-b border-gray-100 dark:border-neutral-700 mb-2">
+                  {category}
+                </div>
+                <div className="space-y-1">
+                  {devices.map((deviceInfo, index) => (
+                    <button
+                      key={`${category}-${index}`}
+                      onClick={() => updateDevice(deviceInfo)}
+                      className={`flex justify-between text-xs w-full h-fit items-center gap-x-3 py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-700 cursor-pointer transition-colors ${
+                        device.type === deviceInfo.name
+                          ? 'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
+                          : 'text-gray-800 dark:text-neutral-400'
+                      }`}
+                    >
+                      <span className="truncate flex-1 min-w-0 text-left">{deviceInfo.name}</span>
+                      <span className="font-thin text-xs italic text-gray-500 dark:text-neutral-500 whitespace-nowrap ml-2">
+                        {deviceInfo.size.x} × {deviceInfo.size.y}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="space-y-1">
-                {devices.map((deviceInfo, index) => (
-                  <button
-                    key={`${category}-${index}`}
-                    onClick={() => updateDevice(deviceInfo)}
-                    className={`flex justify-between text-xs w-full h-fit items-center gap-x-3 py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-700 cursor-pointer transition-colors ${
-                      device.type === deviceInfo.name
-                        ? 'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
-                        : 'text-gray-800 dark:text-neutral-400'
-                    }`}
-                  >
-                    <span className="truncate flex-1 min-w-0 text-left">{deviceInfo.name}</span>
-                    <span className="font-thin text-xs italic text-gray-500 dark:text-neutral-500 whitespace-nowrap ml-2">
-                      {deviceInfo.size.x} × {deviceInfo.size.y}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

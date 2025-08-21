@@ -3,9 +3,7 @@
   --contrast: rgba(38, 38, 38);
   --contrast-sheer: rgba(38, 38, 38, 0.1);
   --accent: rgb(255, 71, 29);
-  overflow-y:hidden;
 }
-
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -14,6 +12,10 @@
     --contrast-sheer: rgba(255, 255, 255, 0.1);
     --accent: rgb(255, 71, 29);
   }
+}
+
+body {
+  overflow: hidden; 
 }
 
 input[type="range"]::-moz-range-thumb {

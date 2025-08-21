@@ -9,6 +9,7 @@ import DeviceTypeSelector from "./DeviceTypeSelector";
 import ToggleButtonArrow from "./ToggleButtonArrow";
 import BackgroundSelector from "./BackgroundSelector";
 import CustomBackgroundSelector from "./CustomBackgroudSelector";
+import "./styles.css";
 
 function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
   const { device, updateDeviceInfo } = useDevice();
