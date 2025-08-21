@@ -24,9 +24,10 @@ const OptimizedWallpaper = forwardRef(
     // QR Code state
     const [qrImg, setQRImg] = useState(null);
     const [qrPos, setQRPos] = useState(() => ({
-      x: deviceInfo.size.x / 4,
-      y: deviceInfo.size.y / 1.75,
-    }));
+        x: deviceInfo.size.x / 4 + (Math.min(deviceInfo.size.x, deviceInfo.size.y) * QR_SIZE_RATIO) / 2,  // Left edge at 25% + half QR width to get center
+        y: deviceInfo.size.y / 1.75 + (Math.min(deviceInfo.size.x, deviceInfo.size.y) * QR_SIZE_RATIO) / 2,  // Top edge at 57% + half QR height to get center
+      }));
+    
     
     // Grain image state
     const [grainImage, setGrainImage] = useState(null);
@@ -53,7 +54,7 @@ const actualBorderSize = useMemo(() =>
     return maxRadius * (qrConfig.custom.cornerRadiusRatio / 100);
   }, [qrSize, actualBorderSize, qrConfig.custom.cornerRadiusRatio]);
 
-  
+
     // Add ref for our hidden QR component
     const qrRef = useRef(null);
 
@@ -117,48 +118,47 @@ const actualBorderSize = useMemo(() =>
       }
     }, [background, deviceInfo.size, imageSize, patternImage]);
 
-    // Optimized drag handler with useCallback
-    // Optimized drag handler with useCallback
-const handleDragMove = useCallback((e) => {
-    const shape = e.target;
-    const layer = shape.getLayer();
-    const stage = layer.getStage();
-    const stageWidth = stage.width();
-    const stageHeight = stage.height();
-    const shapeWidth = shape.width() * shape.scaleX();
-    const shapeHeight = shape.height() * shape.scaleY();
-    const middleX = (stageWidth - shapeWidth) / 2;
-    const middleY = (stageHeight - shapeHeight) / 2;
-  
-    const rawX = Math.max(0, Math.min(shape.x(), stageWidth - shapeWidth));
-    const rawY = Math.max(0, Math.min(shape.y(), stageHeight - shapeHeight));
-    
-    let targetX, targetY;
-  
-    if (Math.abs(rawX - middleX) < SNAP_TOLERANCE) {
-      setIsCenterX(true);
-      targetX = middleX;
-    } else {
-      setIsCenterX(false);
-      targetX = rawX;
-    }
-  
-    if (Math.abs(rawY - middleY) < SNAP_TOLERANCE) {
-      setIsCenterY(true);
-      targetY = middleY;
-    } else {
-      setIsCenterY(false);
-      targetY = rawY;
-    }
-    
-    shape.x(targetX);
-    shape.y(targetY);
-    
-    setQRPos({
-      x: targetX + (actualBorderSize / 2),  // FIXED: Use actualBorderSize
-      y: targetY + (actualBorderSize / 2),  // FIXED: Use actualBorderSize
-    });
-  }, [actualBorderSize]); // FIXED: Update dependency
+    const handleDragMove = useCallback((e) => {
+        const shape = e.target;
+        const layer = shape.getLayer();
+        const stage = layer.getStage();
+        const stageWidth = stage.width();
+        const stageHeight = stage.height();
+        const shapeWidth = shape.width() * shape.scaleX();
+        const shapeHeight = shape.height() * shape.scaleY();
+        const middleX = (stageWidth - shapeWidth) / 2;
+        const middleY = (stageHeight - shapeHeight) / 2;
+      
+        const rawX = Math.max(0, Math.min(shape.x(), stageWidth - shapeWidth));
+        const rawY = Math.max(0, Math.min(shape.y(), stageHeight - shapeHeight));
+        
+        let targetX, targetY;
+      
+        if (Math.abs(rawX - middleX) < SNAP_TOLERANCE) {
+          setIsCenterX(true);
+          targetX = middleX;
+        } else {
+          setIsCenterX(false);
+          targetX = rawX;
+        }
+      
+        if (Math.abs(rawY - middleY) < SNAP_TOLERANCE) {
+          setIsCenterY(true);
+          targetY = middleY;
+        } else {
+          setIsCenterY(false);
+          targetY = rawY;
+        }
+        
+        shape.x(targetX);
+        shape.y(targetY);
+        
+        // Update QR position to be the center of the group
+        setQRPos({
+          x: targetX + (qrSize + actualBorderSize) / 2,
+          y: targetY + (qrSize + actualBorderSize) / 2,
+        });
+      }, [actualBorderSize, qrSize]);
 
 // Generate QR code directly in this component
 useEffect(() => {
@@ -233,11 +233,12 @@ useEffect(() => {
 
     // Update QR position when device size changes
     useEffect(() => {
-      setQRPos({
-        x: deviceInfo.size.x / 4,
-        y: deviceInfo.size.y / 1.75,
-      });
-    }, [deviceInfo.size]);
+        const newQRSize = Math.min(deviceInfo.size.x, deviceInfo.size.y) * QR_SIZE_RATIO;
+        setQRPos({
+          x: deviceInfo.size.x * 0.25 + newQRSize / 2,  // 25% from left + half QR width
+          y: deviceInfo.size.y * 0.57 + newQRSize / 2,  // 57% from top + half QR height
+        });
+      }, [deviceInfo.size]);
 
     // Set up QR interaction event handlers
     useEffect(() => {
@@ -375,24 +376,22 @@ useEffect(() => {
             }}
           >
             <Group
-              draggable={isDraggable}
-              onDragMove={handleDragMove}
-              ref={shapeRef}
-              x={qrPos.x - (actualBorderSize / 2)}
-              y={qrPos.y - (actualBorderSize / 2)}
-              height={qrSize + actualBorderSize}
-              width={qrSize + actualBorderSize}
-              onMouseDown={(e) => {
-                // Prevent event bubbling to stage
-                e.cancelBubble = true;
-                // If transformer is active, prevent zoom/device movement
-                if (transformerRef.current?.nodes().length > 0) {
-                  setTimeout(() => {
-                    setIsZoomEnabled(false);
-                  }, 10);
-                }
-              }}
-            >
+  draggable={isDraggable}
+  onDragMove={handleDragMove}
+  ref={shapeRef}
+  x={qrPos.x - (qrSize + actualBorderSize) / 2}  // Center the entire group
+  y={qrPos.y - (qrSize + actualBorderSize) / 2}  // Center the entire group
+  height={qrSize + actualBorderSize}
+  width={qrSize + actualBorderSize}
+  onMouseDown={(e) => {
+    e.cancelBubble = true;
+    if (transformerRef.current?.nodes().length > 0) {
+      setTimeout(() => {
+        setIsZoomEnabled(false);
+      }, 10);
+    }
+  }}
+>
               {/* QR Border */}
               <Rect
                 fill={qrConfig.custom.borderColor}
