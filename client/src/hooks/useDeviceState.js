@@ -24,10 +24,12 @@ export const useDeviceState = () => {
     grain: false,
   });
 
-  // QR Code configuration
+  // QR Code configuration - UPDATED to include primary and secondary colors
   const [qrConfig, setQRConfig] = useState({
     url: "www.qrki.xyz",
     custom: { 
+      primaryColor: "#000000",    // QR foreground color
+      secondaryColor: "#ffffff",  // QR background color
       borderSize: 0, 
       borderColor: "#000000", 
       cornerRadius: 0 
@@ -36,9 +38,9 @@ export const useDeviceState = () => {
 
   // Color palette (derived state)
   const palette = useMemo(() => ({
-    qr: "#000000",
-    bg: "#FFFFFF",
-    border: "#000000",
+    qr: qrConfig.custom.primaryColor || "#000000",
+    bg: qrConfig.custom.secondaryColor || "#FFFFFF", 
+    border: qrConfig.custom.borderColor || "#000000",
     solid: background.color,
     gradient: background.gradient.stops
       .filter((_, i) => i % 2 === 1)
@@ -50,7 +52,7 @@ export const useDeviceState = () => {
         return color;
       }),
     image: [], // Will be updated when image is processed
-  }), [background.color, background.gradient.stops]);
+  }), [background.color, background.gradient.stops, qrConfig.custom.primaryColor, qrConfig.custom.secondaryColor, qrConfig.custom.borderColor]);
 
   // Optimized update functions
   const updateDeviceInfo = useCallback((updates) => {

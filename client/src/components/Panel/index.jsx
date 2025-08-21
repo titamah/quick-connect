@@ -147,6 +147,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
               className="h-full"
               tabPosition="left"
               items={items}
+              destroyInactiveTabPane={false}
             />
           </div>
         </div>

@@ -50,8 +50,9 @@ function QRGenerator(panelSize) {
     return typeof colorObj === "string" ? colorObj : colorObj?.toHexString();
   };
 
-  const [color, setColor] = useState("#000");
-  const [bgColor, setBGColor] = useState("#fff");
+  // Get current colors from QR config (with fallbacks)
+  const primaryColor = device.qr.custom?.primaryColor || "#000";
+  const secondaryColor = device.qr.custom?.secondaryColor || "#fff";
 
   return (
     <div id="qr-input-box" className="dark:text-white text-sm">
@@ -69,7 +70,7 @@ function QRGenerator(panelSize) {
           })
         }
       />
-      <div className="w-[0px] h-[0px] flex justify-center py-2">
+      <div className="hidden">
         <QRCode
           ref={qrCodeRef}
           value={device.qr.url || "www.qrki.xyz"}
@@ -77,8 +78,8 @@ function QRGenerator(panelSize) {
           type="svg"
           bordered={false}
           size={qrSize}
-          color={color}
-          bgColor={bgColor}
+          color={primaryColor}
+          bgColor={secondaryColor}
         />
       </div>
     <label className="block">
@@ -87,12 +88,17 @@ function QRGenerator(panelSize) {
       <div className="flex justify-between py-2 text-xs font-medium mb-2 ">
       <div className="min-w-[75px]"> Primary </div>
         <ColorPicker
-          value={color}
+          value={primaryColor}
           placement="bottomRight"
           presets={[{label: "Recently Used", colors: buildHexArray('qr')}]}
           className="qr-color-picker"
-          onChange={(e) => {
-            setColor(getColorString(e));
+          onChange={(color) => {
+            updateQRConfig({
+              custom: {
+                ...device.qr.custom,
+                primaryColor: getColorString(color),
+              }
+            });
           }}
           format="hex"
           size="small"
@@ -102,12 +108,17 @@ function QRGenerator(panelSize) {
       <div className="flex justify-between py-2 text-xs font-medium mb-2 ">
       <div className="min-w-[75px]"> Secondary </div>
         <ColorPicker
-          value={bgColor}
+          value={secondaryColor}
           placement="bottomRight"
           className="qr-color-picker"
           presets={[{label: "Recently Used", colors: buildHexArray('bg')}]}
-          onChange={(e) => {
-            setBGColor(getColorString(e));
+          onChange={(color) => {
+            updateQRConfig({
+              custom: {
+                ...device.qr.custom,
+                secondaryColor: getColorString(color),
+              }
+            });
           }}
           format="hex"
           size="small"
@@ -124,11 +135,11 @@ function QRGenerator(panelSize) {
           placement="bottomRight"
           presets={[{label: "Recently Used", colors: buildHexArray('border')}]}
           className="qr-color-picker"
-          onChange={(e) => {
+          onChange={(color) => {
             updateQRConfig({
               custom: {
                 ...device.qr.custom,
-                borderColor: e.toHexString(),
+                borderColor: color.toHexString(),
               }
             });
           }}

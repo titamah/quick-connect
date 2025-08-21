@@ -1,5 +1,6 @@
 // components/Wallpaper/OptimizedWallpaper.jsx
 import { Stage, Rect, Layer, Transformer, Line, Group } from "react-konva";
+import { QRCode } from "antd";
 import React, { forwardRef, useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import { useImageLoader } from "../../hooks/useImageLoader";
@@ -34,6 +35,13 @@ const OptimizedWallpaper = forwardRef(
       Math.min(deviceInfo.size.x, deviceInfo.size.y) * QR_SIZE_RATIO,
       [deviceInfo.size.x, deviceInfo.size.y]
     );
+    
+    // Get current QR colors (with fallbacks)
+    const primaryColor = qrConfig.custom?.primaryColor || "#000";
+    const secondaryColor = qrConfig.custom?.secondaryColor || "#fff";
+    
+    // Add ref for our hidden QR component
+    const qrRef = useRef(null);
 
     // Refs
     const transformerRef = useRef(null);
@@ -137,12 +145,16 @@ const OptimizedWallpaper = forwardRef(
       });
     }, [qrConfig.custom.borderSize, stageScale]);
 
-    // QR Code effect optimization
-    useEffect(() => {
-      const timeoutId = setTimeout(() => {
-        const svg = document.getElementById("QRCode")?.querySelector("svg");
-        if (!svg) return;
-        
+// Generate QR code directly in this component
+useEffect(() => {
+    const generateQRCode = () => {
+      const svg = qrRef.current?.querySelector("svg");
+      if (!svg) {
+        console.log('QR SVG not found in wallpaper component');
+        return;
+      }
+      
+      try {
         const svgData = new XMLSerializer().serializeToString(svg);
         const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
         const url = URL.createObjectURL(blob);
@@ -150,13 +162,21 @@ const OptimizedWallpaper = forwardRef(
         const qrImage = new Image();
         qrImage.onload = () => {
           setQRImg(qrImage);
-          URL.revokeObjectURL(url); // Cleanup
+          URL.revokeObjectURL(url);
+        };
+        qrImage.onerror = () => {
+          console.error('Failed to load QR code image');
+          URL.revokeObjectURL(url);
         };
         qrImage.src = url;
-      }, 1);
-
-      return () => clearTimeout(timeoutId);
-    }, [qrConfig]);
+      } catch (error) {
+        console.error('Error generating QR code:', error);
+      }
+    };
+  
+    const timeoutId = setTimeout(generateQRCode, 100);
+    return () => clearTimeout(timeoutId);
+  }, [qrConfig.url, primaryColor, secondaryColor]);
 
     // Load grain image
     useEffect(() => {
@@ -245,6 +265,19 @@ const OptimizedWallpaper = forwardRef(
     }, []);
 
     return (
+        <>
+            {/* Hidden QR Code generator - always rendered */}
+    <div style={{ position: 'absolute', left: '-9999px', visibility: 'hidden' }}>
+      <QRCode
+        ref={qrRef}
+        value={qrConfig.url || "www.qrki.xyz"}
+        type="svg"
+        bordered={false}
+        size={qrSize}
+        color={primaryColor}
+        bgColor={secondaryColor}
+      />
+    </div>
       <div
         id="preview"
         style={{
@@ -333,7 +366,12 @@ const OptimizedWallpaper = forwardRef(
                 fill={qrConfig.custom.borderColor}
                 height={qrSize + qrConfig.custom.borderSize * stageScale}
                 width={qrSize + qrConfig.custom.borderSize * stageScale}
-                cornerRadius={qrConfig.custom.cornerRadius}
+                cornerRadius={[
+                    qrConfig.custom.cornerRadius,
+                    qrConfig.custom.cornerRadius,
+                    qrConfig.custom.cornerRadius,
+                    qrConfig.custom.cornerRadius,
+]}
               />
               
               {/* QR Code */}
@@ -388,6 +426,7 @@ const OptimizedWallpaper = forwardRef(
           </Layer>
         </Stage>
       </div>
+  </>
     );
   }
 );
