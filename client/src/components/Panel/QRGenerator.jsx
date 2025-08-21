@@ -69,7 +69,7 @@ function QRGenerator(panelSize) {
           })
         }
       />
-      <div className="w-full flex justify-center py-2">
+      <div className="w-[0px] h-[0px] flex justify-center py-2">
         <QRCode
           ref={qrCodeRef}
           value={device.qr.url || "www.qrki.xyz"}
