@@ -24,15 +24,15 @@ export const useDeviceState = () => {
     grain: false,
   });
 
-  // QR Code configuration - UPDATED to include primary and secondary colors
-  const [qrConfig, setQRConfig] = useState({
+// QR Code configuration - UPDATED to use ratios
+const [qrConfig, setQRConfig] = useState({
     url: "www.qrki.xyz",
     custom: { 
-      primaryColor: "#000000",    // QR foreground color
-      secondaryColor: "#ffffff",  // QR background color
-      borderSize: 0, 
+      primaryColor: "#000000",
+      secondaryColor: "#ffffff",
+      borderSizeRatio: 0,        // 0-20% of QR size
       borderColor: "#000000", 
-      cornerRadius: 0 
+      cornerRadiusRatio: 0       // 0-50% of border size
     },
   });
 

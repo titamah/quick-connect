@@ -149,39 +149,39 @@ function QRGenerator(panelSize) {
         />
       </div>
       <div className="flex justify-between py-2 text-xs font-medium mb-2 ">
-      <div className="min-w-[75px]"> Width</div>
-        <Slider
-          min="0"
-          max={qrSize * 2.25}
-          step="1"
-          value={device.qr.custom.borderSize}
-          onChange={(e) => {
-            updateQRConfig({
-              custom: {
-                ...device.qr.custom,
-                borderSize: e.target.value,
-              }
-            });
-          }}
-        />
-      </div>
-      <div className="flex justify-between py-2 text-xs font-medium mb-2 ">
-      <div className="min-w-[75px]"> Radius</div>
-        <Slider
-          min="0"
-          max={0.75 * qrSize}
-          step="1"
-          value={device.qr.custom.cornerRadius}
-          onChange={(e) => {
-            updateQRConfig({
-              custom: {
-                ...device.qr.custom,
-                cornerRadius: e.target.value,
-              }
-            });
-          }}
-        />
-      </div>
+<div className="min-w-[75px]"> Width</div>
+  <Slider
+    min="0"
+    max="100"  // 0-20% of QR size
+    step="0.5"
+    value={device.qr.custom.borderSizeRatio}
+    onChange={(e) => {
+      updateQRConfig({
+        custom: {
+          ...device.qr.custom,
+          borderSizeRatio: parseFloat(e.target.value),
+        }
+      });
+    }}
+  />
+</div>
+<div className="flex justify-between py-2 text-xs font-medium mb-2 ">
+<div className="min-w-[75px]"> Radius</div>
+  <Slider
+    min="0"
+    max="100"  // 0-50% of border size
+    step="1"
+    value={device.qr.custom.cornerRadiusRatio}
+    onChange={(e) => {
+      updateQRConfig({
+        custom: {
+          ...device.qr.custom,
+          cornerRadiusRatio: parseFloat(e.target.value),
+        }
+      });
+    }}
+  />
+</div>
     </div>
   );
 }

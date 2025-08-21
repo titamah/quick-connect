@@ -15,7 +15,7 @@ const SCALE_ANIMATION_FACTOR = 0.985;
 
 const OptimizedWallpaper = forwardRef(
   ({ panelSize, isOpen, locked, setIsZoomEnabled }, ref) => {
-    const { deviceInfo, background, qrConfig } = useDevice();
+    const { deviceInfo, background, qrConfig, updateQRConfig } = useDevice();
     
     // Memoized calculations to prevent unnecessary recalculations
     const stageScale = useStageCalculations(deviceInfo.size, panelSize, isOpen);
@@ -40,6 +40,20 @@ const OptimizedWallpaper = forwardRef(
     const primaryColor = qrConfig.custom?.primaryColor || "#000";
     const secondaryColor = qrConfig.custom?.secondaryColor || "#fff";
     
+// Calculate actual values from ratios
+const actualBorderSize = useMemo(() => 
+    qrSize * (qrConfig.custom.borderSizeRatio / 100),
+    [qrSize, qrConfig.custom.borderSizeRatio]
+  );
+  
+  const actualCornerRadius = useMemo(() => {
+    // Calculate max possible radius (half of the total border rectangle)
+    const maxRadius = (qrSize + actualBorderSize) / 2;
+    // Apply the ratio to get the actual radius
+    return maxRadius * (qrConfig.custom.cornerRadiusRatio / 100);
+  }, [qrSize, actualBorderSize, qrConfig.custom.cornerRadiusRatio]);
+
+  
     // Add ref for our hidden QR component
     const qrRef = useRef(null);
 
@@ -104,46 +118,47 @@ const OptimizedWallpaper = forwardRef(
     }, [background, deviceInfo.size, imageSize, patternImage]);
 
     // Optimized drag handler with useCallback
-    const handleDragMove = useCallback((e) => {
-      const shape = e.target;
-      const layer = shape.getLayer();
-      const stage = layer.getStage();
-      const stageWidth = stage.width();
-      const stageHeight = stage.height();
-      const shapeWidth = shape.width() * shape.scaleX();
-      const shapeHeight = shape.height() * shape.scaleY();
-      const middleX = (stageWidth - shapeWidth) / 2;
-      const middleY = (stageHeight - shapeHeight) / 2;
-
-      const rawX = Math.max(0, Math.min(shape.x(), stageWidth - shapeWidth));
-      const rawY = Math.max(0, Math.min(shape.y(), stageHeight - shapeHeight));
-      
-      let targetX, targetY;
-
-      if (Math.abs(rawX - middleX) < SNAP_TOLERANCE) {
-        setIsCenterX(true);
-        targetX = middleX;
-      } else {
-        setIsCenterX(false);
-        targetX = rawX;
-      }
-
-      if (Math.abs(rawY - middleY) < SNAP_TOLERANCE) {
-        setIsCenterY(true);
-        targetY = middleY;
-      } else {
-        setIsCenterY(false);
-        targetY = rawY;
-      }
-      
-      shape.x(targetX);
-      shape.y(targetY);
-      
-      setQRPos({
-        x: targetX + (qrConfig.custom.borderSize / 2) * stageScale,
-        y: targetY + (qrConfig.custom.borderSize / 2) * stageScale,
-      });
-    }, [qrConfig.custom.borderSize, stageScale]);
+    // Optimized drag handler with useCallback
+const handleDragMove = useCallback((e) => {
+    const shape = e.target;
+    const layer = shape.getLayer();
+    const stage = layer.getStage();
+    const stageWidth = stage.width();
+    const stageHeight = stage.height();
+    const shapeWidth = shape.width() * shape.scaleX();
+    const shapeHeight = shape.height() * shape.scaleY();
+    const middleX = (stageWidth - shapeWidth) / 2;
+    const middleY = (stageHeight - shapeHeight) / 2;
+  
+    const rawX = Math.max(0, Math.min(shape.x(), stageWidth - shapeWidth));
+    const rawY = Math.max(0, Math.min(shape.y(), stageHeight - shapeHeight));
+    
+    let targetX, targetY;
+  
+    if (Math.abs(rawX - middleX) < SNAP_TOLERANCE) {
+      setIsCenterX(true);
+      targetX = middleX;
+    } else {
+      setIsCenterX(false);
+      targetX = rawX;
+    }
+  
+    if (Math.abs(rawY - middleY) < SNAP_TOLERANCE) {
+      setIsCenterY(true);
+      targetY = middleY;
+    } else {
+      setIsCenterY(false);
+      targetY = rawY;
+    }
+    
+    shape.x(targetX);
+    shape.y(targetY);
+    
+    setQRPos({
+      x: targetX + (actualBorderSize / 2),  // FIXED: Use actualBorderSize
+      y: targetY + (actualBorderSize / 2),  // FIXED: Use actualBorderSize
+    });
+  }, [actualBorderSize]); // FIXED: Update dependency
 
 // Generate QR code directly in this component
 useEffect(() => {
@@ -176,7 +191,24 @@ useEffect(() => {
   
     const timeoutId = setTimeout(generateQRCode, 100);
     return () => clearTimeout(timeoutId);
-  }, [qrConfig.url, primaryColor, secondaryColor]);
+  }, [qrConfig.url, primaryColor, secondaryColor, deviceInfo.size.x, deviceInfo.size.y]);
+
+  // Auto-adjust border size when device size changes
+useEffect(() => {
+    const newQRSize = Math.min(deviceInfo.size.x, deviceInfo.size.y) * QR_SIZE_RATIO;
+    const maxBorderSize = newQRSize * 0.1; // 10% of QR size as max border
+    
+    // If current border size is too big for new device, scale it down
+    if (qrConfig.custom.borderSize > maxBorderSize) {
+      updateQRConfig({
+        custom: {
+          ...qrConfig.custom,
+          borderSize: Math.floor(maxBorderSize),
+          cornerRadius: Math.min(qrConfig.custom.cornerRadius, maxBorderSize * 0.5) // Also adjust radius
+        }
+      });
+    }
+  }, [deviceInfo.size.x, deviceInfo.size.y]);
 
     // Load grain image
     useEffect(() => {
@@ -346,10 +378,10 @@ useEffect(() => {
               draggable={isDraggable}
               onDragMove={handleDragMove}
               ref={shapeRef}
-              x={qrPos.x - (qrConfig.custom.borderSize / 2) * stageScale}
-              y={qrPos.y - (qrConfig.custom.borderSize / 2) * stageScale}
-              height={qrSize + qrConfig.custom.borderSize * stageScale}
-              width={qrSize + qrConfig.custom.borderSize * stageScale}
+              x={qrPos.x - (actualBorderSize / 2)}
+              y={qrPos.y - (actualBorderSize / 2)}
+              height={qrSize + actualBorderSize}
+              width={qrSize + actualBorderSize}
               onMouseDown={(e) => {
                 // Prevent event bubbling to stage
                 e.cancelBubble = true;
@@ -364,20 +396,21 @@ useEffect(() => {
               {/* QR Border */}
               <Rect
                 fill={qrConfig.custom.borderColor}
-                height={qrSize + qrConfig.custom.borderSize * stageScale}
-                width={qrSize + qrConfig.custom.borderSize * stageScale}
+                height={qrSize + actualBorderSize}
+                width={qrSize + actualBorderSize}
                 cornerRadius={[
-                    qrConfig.custom.cornerRadius,
-                    qrConfig.custom.cornerRadius,
-                    qrConfig.custom.cornerRadius,
-                    qrConfig.custom.cornerRadius,
-]}
+                  actualCornerRadius,
+                  actualCornerRadius,
+                  actualCornerRadius,
+                  actualCornerRadius,
+                ]}
+                
               />
               
               {/* QR Code */}
               <Rect
-                x={(qrConfig.custom.borderSize / 2) * stageScale}
-                y={(qrConfig.custom.borderSize / 2) * stageScale}
+x={actualBorderSize / 2}
+y={actualBorderSize / 2}
                 fillPatternImage={qrImg}
                 fillPatternRepeat="no-repeat"
                 height={qrSize}
