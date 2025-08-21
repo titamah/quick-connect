@@ -18,7 +18,7 @@ const OptimizedWallpaper = forwardRef(
     
     // Memoized calculations to prevent unnecessary recalculations
     const stageScale = useStageCalculations(deviceInfo.size, panelSize, isOpen);
-    const { patternImage, imageSize, isImageLoaded } = useImageLoader(background);
+    const { patternImage, imageSize, isImageLoaded } = useImageLoader(background, deviceInfo.size);
     
     // QR Code state
     const [qrImg, setQRImg] = useState(null);

@@ -1,7 +1,7 @@
 // hooks/useImageLoader.js
 import { useState, useEffect, useMemo } from 'react';
 
-export const useImageLoader = (background) => {
+export const useImageLoader = (background, deviceSize) => {
   const [patternImage, setPatternImage] = useState(null);
   const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
   const [isImageLoaded, setIsImageLoaded] = useState(false);
@@ -38,7 +38,7 @@ export const useImageLoader = (background) => {
 
   // Calculate image scaling and positioning
   const imageSize = useMemo(() => {
-    if (!naturalSize.width || !naturalSize.height) {
+    if (!naturalSize.width || !naturalSize.height || !deviceSize) {
       return {
         scaleFactors: { x: 1, y: 1 },
         scaledWidth: 0,
@@ -49,16 +49,16 @@ export const useImageLoader = (background) => {
     }
 
     // Calculate scale to cover the entire device area
-    const scaleX = background.deviceSize?.x / naturalSize.width || 1;
-    const scaleY = background.deviceSize?.y / naturalSize.height || 1;
+    const scaleX = deviceSize.x / naturalSize.width;
+    const scaleY = deviceSize.y / naturalSize.height;
     const scale = Math.max(scaleX, scaleY);
 
     const scaledWidth = naturalSize.width * scale;
     const scaledHeight = naturalSize.height * scale;
     
     // Center the image
-    const offsetX = background.deviceSize ? (background.deviceSize.x - scaledWidth) / 2 : 0;
-    const offsetY = background.deviceSize ? (background.deviceSize.y - scaledHeight) / 2 : 0;
+    const offsetX = (deviceSize.x - scaledWidth) / 2;
+    const offsetY = (deviceSize.y - scaledHeight) / 2;
 
     return {
       scaleFactors: { x: scale, y: scale },
@@ -67,7 +67,7 @@ export const useImageLoader = (background) => {
       offsetX,
       offsetY,
     };
-  }, [naturalSize, background.deviceSize]);
+  }, [naturalSize, deviceSize]);
 
   return {
     patternImage,
