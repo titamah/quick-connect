@@ -155,10 +155,12 @@ const actualBorderSize = useMemo(() =>
         
         // Update QR position to be the center of the group
         setQRPos({
-          x: targetX + (qrSize + actualBorderSize) / 2,
-          y: targetY + (qrSize + actualBorderSize) / 2,
+          x: targetX + qrSize / 2,
+          y: targetY + qrSize / 2,
         });
       }, [actualBorderSize, qrSize]);
+
+
 
 // Generate QR code directly in this component
 useEffect(() => {
@@ -379,8 +381,8 @@ useEffect(() => {
   draggable={isDraggable}
   onDragMove={handleDragMove}
   ref={shapeRef}
-  x={qrPos.x - (qrSize + actualBorderSize) / 2}  // Center the entire group
-  y={qrPos.y - (qrSize + actualBorderSize) / 2}  // Center the entire group
+  x={qrPos.x - qrSize / 2}  // Center based on QR size only, not border
+  y={qrPos.y - qrSize / 2}  // Center based on QR size only, not border
   height={qrSize + actualBorderSize}
   width={qrSize + actualBorderSize}
   onMouseDown={(e) => {
@@ -395,6 +397,8 @@ useEffect(() => {
               {/* QR Border */}
               <Rect
                 fill={qrConfig.custom.borderColor}
+                x={-actualBorderSize / 2}  // Offset border to grow from center
+                y={-actualBorderSize / 2}  // Offset border to grow from center
                 height={qrSize + actualBorderSize}
                 width={qrSize + actualBorderSize}
                 cornerRadius={[
@@ -408,8 +412,8 @@ useEffect(() => {
               
               {/* QR Code */}
               <Rect
-x={actualBorderSize / 2}
-y={actualBorderSize / 2}
+x={0}
+y={0}
                 fillPatternImage={qrImg}
                 fillPatternRepeat="no-repeat"
                 height={qrSize}
