@@ -346,6 +346,8 @@ useEffect(() => {
               transformerRef.current.nodes([]);
               transformerRef.current.getLayer().batchDraw();
               setIsZoomEnabled(false);
+            } else {
+                setIsZoomEnabled(true);
             }
           }}
         >
@@ -386,6 +388,14 @@ useEffect(() => {
   height={qrSize + actualBorderSize}
   width={qrSize + actualBorderSize}
   onMouseDown={(e) => {
+    e.cancelBubble = true;
+    if (transformerRef.current?.nodes().length > 0) {
+      setTimeout(() => {
+        setIsZoomEnabled(false);
+      }, 100);
+    }
+  }}
+  onMouseUp ={(e) => {
     e.cancelBubble = true;
     if (transformerRef.current?.nodes().length > 0) {
       setTimeout(() => {

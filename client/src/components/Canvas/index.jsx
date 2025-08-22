@@ -159,9 +159,9 @@ function Canvas({ isOpen, panelSize, wallpaperRef, setPalette }) {
               backgroundColor: "rgba(0,0,0,0)",
               overflow: "hidden",
             }}
-            onClick={() => {
-              setIsZoomEnabled(true);
-            }}
+            // onClick={() => {
+            //   setIsZoomEnabled(true);
+            // }}
           >
             {isLoading ? (
               <div
