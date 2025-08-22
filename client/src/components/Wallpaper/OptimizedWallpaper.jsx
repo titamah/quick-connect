@@ -119,46 +119,59 @@ const actualBorderSize = useMemo(() =>
     }, [background, deviceInfo.size, imageSize, patternImage]);
 
     const handleDragMove = useCallback((e) => {
-        const shape = e.target;
-        const layer = shape.getLayer();
+        const group = e.target;
+        const layer = group.getLayer();
         const stage = layer.getStage();
         const stageWidth = stage.width();
         const stageHeight = stage.height();
-        const shapeWidth = shape.width() * shape.scaleX();
-        const shapeHeight = shape.height() * shape.scaleY();
-        const middleX = (stageWidth - shapeWidth) / 2;
-        const middleY = (stageHeight - shapeHeight) / 2;
+        
+        // Get the QR code rect (second child in the group, after the border)
+        const qrRect = group.children[1]; // Border is children[0], QR is children[1]
+        
+        // Get the QR's bounding box in stage coordinates
+        const qrBoundingBox = qrRect.getClientRect({ relativeTo: stage });
+        const qrWidth = qrBoundingBox.width;
+        const qrHeight = qrBoundingBox.height;
+        
+        // Calculate the offset from the group's position to the QR's bounding box
+        const offsetX = qrBoundingBox.x - group.x();
+        const offsetY = qrBoundingBox.y - group.y();
       
-        const rawX = Math.max(0, Math.min(shape.x(), stageWidth - shapeWidth));
-        const rawY = Math.max(0, Math.min(shape.y(), stageHeight - shapeHeight));
+        // Constrain the group position based on the QR's bounding box
+        const rawX = Math.max(-offsetX, Math.min(group.x(), stageWidth - qrWidth - offsetX));
+        const rawY = Math.max(-offsetY, Math.min(group.y(), stageHeight - qrHeight - offsetY));
         
         let targetX, targetY;
       
-        if (Math.abs(rawX - middleX) < SNAP_TOLERANCE) {
+        // For snapping to center, we need to account for the QR bounding box offset
+        const centerSnapX = (stageWidth - qrWidth) / 2 - offsetX;
+        const centerSnapY = (stageHeight - qrHeight) / 2 - offsetY;
+      
+        if (Math.abs(rawX - centerSnapX) < SNAP_TOLERANCE) {
           setIsCenterX(true);
-          targetX = middleX;
+          targetX = centerSnapX;
         } else {
           setIsCenterX(false);
           targetX = rawX;
         }
       
-        if (Math.abs(rawY - middleY) < SNAP_TOLERANCE) {
+        if (Math.abs(rawY - centerSnapY) < SNAP_TOLERANCE) {
           setIsCenterY(true);
-          targetY = middleY;
+          targetY = centerSnapY;
         } else {
           setIsCenterY(false);
           targetY = rawY;
         }
         
-        shape.x(targetX);
-        shape.y(targetY);
+        group.x(targetX);
+        group.y(targetY);
         
         // Update QR position to be the center of the group
         setQRPos({
           x: targetX + qrSize / 2,
           y: targetY + qrSize / 2,
         });
-      }, [actualBorderSize, qrSize]);
+      }, [qrSize, SNAP_TOLERANCE]);
 
 
 
@@ -251,6 +264,7 @@ useEffect(() => {
 
       // Handle QR click/dragend to show transformer
       const handleQRSelect = (e) => {
+        console.log("QR Click")
         setTimeout(() => {
           setIsDragging(false);
           transformer.nodes([qrGroup]);
@@ -281,6 +295,7 @@ useEffect(() => {
 
       // Handle clicks outside QR/Canvas to deselect
       const handleOutsideClick = (e) => {
+        console.log("Outside Click")
         if (transformer.nodes().length > 0) {
           transformer.nodes([]);
           transformer.getLayer().batchDraw();
@@ -347,7 +362,12 @@ useEffect(() => {
               transformerRef.current.getLayer().batchDraw();
               setIsZoomEnabled(false);
             } else {
+            if (!locked){
+                console.log("click")
+              setIsZoomEnabled(false);
+            } else {
                 setIsZoomEnabled(true);
+            }
             }
           }}
         >
@@ -389,18 +409,14 @@ useEffect(() => {
   width={qrSize + actualBorderSize}
   onMouseDown={(e) => {
     e.cancelBubble = true;
-    if (transformerRef.current?.nodes().length > 0) {
+    if (transformerRef.current?.nodes().length == 0) {
       setTimeout(() => {
         setIsZoomEnabled(false);
+        if (transformerRef.current && shapeRef.current) {
+          transformerRef.current.nodes([shapeRef.current]);
+          transformerRef.current.getLayer().batchDraw();
+        }
       }, 100);
-    }
-  }}
-  onMouseUp ={(e) => {
-    e.cancelBubble = true;
-    if (transformerRef.current?.nodes().length > 0) {
-      setTimeout(() => {
-        setIsZoomEnabled(false);
-      }, 10);
     }
   }}
 >
@@ -442,6 +458,8 @@ y={0}
               anchorStrokeWidth={1 / stageScale}
               anchorCornerRadius={7.5 / stageScale}
               rotateEnabled={true}
+              rotationSnaps={[0, 45, 90, 135, 180, 225, 270, 315]}
+              rotationSnapTolerance={5}
               flipEnabled={false}
               ref={transformerRef}
               onTransformEnd={() => {
