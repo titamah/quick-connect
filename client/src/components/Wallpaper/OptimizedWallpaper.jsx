@@ -17,6 +17,11 @@ const OptimizedWallpaper = forwardRef(
   ({ panelSize, isOpen, locked, setIsZoomEnabled }, ref) => {
     const { deviceInfo, background, qrConfig, updateQRConfig } = useDevice();
     
+    console.log("Background style:", background.style);
+    if (background.style === "image") {
+      console.log("Background image URL:", background.imageUrl);
+    }
+
     // Memoized calculations to prevent unnecessary recalculations
     const stageScale = useStageCalculations(deviceInfo.size, panelSize, isOpen);
     const { patternImage, imageSize, isImageLoaded } = useImageLoader(background, deviceInfo.size);
@@ -178,35 +183,33 @@ const actualBorderSize = useMemo(() =>
 // Generate QR code directly in this component
 useEffect(() => {
     const generateQRCode = () => {
-      const svg = qrRef.current?.querySelector("svg");
-      if (!svg) {
-        console.log('QR SVG not found in wallpaper component');
+      const canvas = qrRef.current?.querySelector("canvas");
+      if (!canvas) {
+        console.log('QR Canvas not found');
         return;
       }
       
       try {
-        const svgData = new XMLSerializer().serializeToString(svg);
-        const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
+        // Get the canvas data URL directly
+        const dataUrl = canvas.toDataURL();
         
         const qrImage = new Image();
         qrImage.onload = () => {
+          console.log("QR image loaded successfully");
           setQRImg(qrImage);
-          URL.revokeObjectURL(url);
         };
-        qrImage.onerror = () => {
-          console.error('Failed to load QR code image');
-          URL.revokeObjectURL(url);
+        qrImage.onerror = (error) => {
+          console.error('Failed to load QR code image:', error);
         };
-        qrImage.src = url;
+        qrImage.src = dataUrl;
       } catch (error) {
         console.error('Error generating QR code:', error);
       }
     };
-  
+    
     const timeoutId = setTimeout(generateQRCode, 100);
     return () => clearTimeout(timeoutId);
-  }, [qrConfig.url, primaryColor, secondaryColor, deviceInfo.size.x, deviceInfo.size.y]);
+  }, [qrConfig.url, primaryColor, secondaryColor, qrSize]);
 
   // Auto-adjust border size when device size changes
 useEffect(() => {
@@ -225,21 +228,26 @@ useEffect(() => {
     }
   }, [deviceInfo.size.x, deviceInfo.size.y]);
 
-    // Load grain image
-    useEffect(() => {
-      const img = new Image();
-      img.src = "/grain.jpeg";
-      img.onload = () => {
-        setGrainImage(img);
-        // Force a re-render of the stage when grain loads
-        if (ref.current) {
-          ref.current.batchDraw();
-        }
-      };
-      img.onerror = () => {
-        console.error('Failed to load grain texture from /grain.jpeg');
-      };
-    }, []);
+// Load grain image with CORS support
+useEffect(() => {
+  const img = new Image();
+  // Try without crossOrigin first for local files
+  // img.crossOrigin = "anonymous"; // COMMENT THIS OUT FOR NOW
+  img.src = "/grain.jpeg";
+  img.onload = () => {
+    console.log("Grain image loaded successfully");
+    setGrainImage(img);
+    // Force a re-render of the stage when grain loads
+    if (ref.current) {
+      ref.current.batchDraw();
+    }
+  };
+  img.onerror = () => {
+    console.error('Failed to load grain texture from /grain.jpeg');
+    // Continue without grain - don't break the export
+    setGrainImage(null);
+  };
+}, []);
 
     // Update draggable state
     useEffect(() => {
@@ -264,7 +272,6 @@ useEffect(() => {
 
       // Handle QR click/dragend to show transformer
       const handleQRSelect = (e) => {
-        console.log("QR Click")
         setTimeout(() => {
           setIsDragging(false);
           transformer.nodes([qrGroup]);
@@ -295,7 +302,6 @@ useEffect(() => {
 
       // Handle clicks outside QR/Canvas to deselect
       const handleOutsideClick = (e) => {
-        console.log("Outside Click")
         if (transformer.nodes().length > 0) {
           transformer.nodes([]);
           transformer.getLayer().batchDraw();
@@ -321,7 +327,7 @@ useEffect(() => {
       <QRCode
         ref={qrRef}
         value={qrConfig.url || "www.qrki.xyz"}
-        type="svg"
+        type="canvas"
         bordered={false}
         size={qrSize}
         color={primaryColor}
@@ -363,7 +369,6 @@ useEffect(() => {
               setIsZoomEnabled(false);
             } else {
             if (!locked){
-                console.log("click")
               setIsZoomEnabled(false);
             } else {
                 setIsZoomEnabled(true);
@@ -442,6 +447,10 @@ x={0}
 y={0}
                 fillPatternImage={qrImg}
                 fillPatternRepeat="no-repeat"
+  fillPatternScale={qrImg ? {
+    x: qrSize / qrImg.width,
+    y: qrSize / qrImg.height
+  } : { x: 1, y: 1 }}
                 height={qrSize}
                 width={qrSize}
               />

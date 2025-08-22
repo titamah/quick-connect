@@ -10,32 +10,110 @@ const ExportButton = forwardRef(({}, ref) => {
     quality: 1,
   });
 
-  function downloadURI(uri, name) {
-    var link = document.createElement("a");
-    link.download = name;
-    link.href = uri;
+  // Convert data URL to blob for better Safari compatibility
+  function dataURLtoBlob(dataURL) {
+    if (!dataURL) {
+      throw new Error('Invalid data URL');
+    }
+    const arr = dataURL.split(',');
+    if (arr.length < 2) {
+      throw new Error('Invalid data URL format');
+    }
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    if (!mimeMatch) {
+      throw new Error('Could not extract MIME type from data URL');
+    }
+    const mime = mimeMatch[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while(n--){
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], {type:mime});
+  }
+
+  function downloadBlob(blob, filename) {
+    // For Safari, we need to use blob URLs instead of data URLs
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement("a");
+    link.download = filename;
+    link.href = url;
+    link.style.display = "none";
+    
     document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    
+    // Use setTimeout to ensure Safari processes the download
+    setTimeout(() => {
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the blob URL after a delay
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, 100);
+    }, 0);
   }
 
   const exportImage = () => {
-    const mimeType = downloadSettings.isPng ? "image/png" : "image/jpeg";
-    const dataURL = ref.current.toDataURL({
-      mimeType: mimeType,
-      pixelRatio: downloadSettings.size,
-      quality: downloadSettings.quality,
-    });
-    downloadURI(dataURL, device.name);
-    toast.success("Download complete", {
-      position: "bottom-right",
-      autoClose: 2000,
-      hideProgressBar: false,
-      closeOnClick: false,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-    });
+    try {
+      const mimeType = downloadSettings.isPng ? "image/png" : "image/jpeg";
+      const extension = downloadSettings.isPng ? ".png" : ".jpg";
+      
+      // Get the data URL from the canvas
+      const dataURL = ref.current.toDataURL({
+        mimeType: mimeType,
+        pixelRatio: downloadSettings.size,
+        quality: downloadSettings.quality,
+      });
+      
+      if (!dataURL) {
+        throw new Error('Failed to generate image data');
+      }
+      
+      // Convert to blob for Safari compatibility
+      const blob = dataURLtoBlob(dataURL);
+      
+      // Add proper file extension to the filename
+      const filename = device.name + extension;
+      
+      // Download using blob URL instead of data URL
+      downloadBlob(blob, filename);
+      
+      toast.success("Download complete", {
+        position: "bottom-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    } catch (error) {
+      console.error("Export failed:", error);
+      
+      // Check if it's a CORS/tainted canvas issue
+      if (error.message && error.message.includes('insecure')) {
+        toast.error("Unable to export: Images must be loaded from the same domain or with proper CORS headers. Try disabling the grain effect or using local images.", {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      } else {
+        toast.error("Failed to export image. Please try again.", {
+          position: "bottom-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      }
+    }
   };
 
     return (
