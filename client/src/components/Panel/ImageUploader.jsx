@@ -139,6 +139,7 @@ useEffect(() => {
   const deleteFile = () => {
     setOriginalFile(null);
     setFile(null);
+    updateBackground({ bg: "" });
     closeModal();
   };
 

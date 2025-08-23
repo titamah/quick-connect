@@ -60,7 +60,7 @@ function QRGenerator(panelSize) {
         QR Code
       </h2>
     <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5">
-      QR URL
+      URL
     </h3>
     <div className="p-2 pb-5">
       <input
@@ -187,6 +187,13 @@ function QRGenerator(panelSize) {
     }}
   />
 </div>
+    <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5 mb-2.5">
+      Icon
+    </h3>
+      <div className="flex items-center pb-2.5 px-3.5">
+      <h4> File Name</h4>
+        *** IMAGE UPLOADER ***
+      </div>
     </div>
   );
 }
