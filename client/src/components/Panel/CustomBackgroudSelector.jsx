@@ -25,21 +25,22 @@ function CustomBackgroundSelector({ panelSize }) {
       type="button"
       onClick={() => handleTabChange(id, style)}
       className={`
-        inline-flex justify-center items-center rounded-sm 
-        w-full max-w-[150px] px-3 py-1.5 text-sm font-medium
+        inline-flex justify-center items-center rounded-xl 
+        w-full max-w-[150px] px-3 py-1.5 
         transition-colors duration-200
         ${activeTab === id 
-          ? "bg-neutral-400/20 text-blue-600" 
-          : "text-gray-500 hover:text-blue-600 hover:bg-black/20"
+          ? "bg-[var(--border-color)]/75" 
+          : "hover:bg-[var(--border-color)]/50"
         }
-        dark:text-neutral-400 dark:hover:text-blue-500
-        focus:outline-none focus:text-blue-600
-        disabled:opacity-50 disabled:pointer-events-none
       `}
       aria-selected={activeTab === id}
       role="tab"
     >
-      {label}
+      <h3 className={`!font-normal
+        ${activeTab === id 
+          ? "text-[var(--accent)]" 
+          : ""
+        }`}>{label}</h3>
     </button>
   );
 
@@ -52,14 +53,14 @@ function CustomBackgroundSelector({ panelSize }) {
       className="w-full"
     >
       {/* Header */}
-      <div className="border-b border-gray-200 dark:border-neutral-700 px-4 py-3">
-        <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+      <div className="border-b border-[var(--border-color)]/25 p-3.5">
+        <h2 className="mb-5">
           Background
-        </h3>
+        </h2>
         
         {/* Tab Navigation */}
         <nav
-          className="flex gap-2 bg-black/5 rounded-sm"
+          className="flex gap-2 bg-[var(--border-color)]/50 rounded-xl justify-center "
           aria-label="Background type tabs"
           role="tablist"
         >
@@ -68,7 +69,7 @@ function CustomBackgroundSelector({ panelSize }) {
       </div>
 
       {/* Tab Content */}
-      <div className="p-4">
+      <div className="px-3.5 py-2.5">
         {ActiveComponent && <ActiveComponent panelSize={panelSize} />}
       </div>
     </div>

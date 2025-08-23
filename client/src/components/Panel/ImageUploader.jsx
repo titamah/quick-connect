@@ -200,7 +200,7 @@ useEffect(() => {
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => e.preventDefault()}
             style={{ height }}
-            className="dark:text-white w-fill mb-[1.5px] !rounded-[4px] !border-[5px] !border-white dark:!border-[rgba(38,38,38,1)] !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)]"
+            className="w-fill mb-[1.5px] !rounded-[4px] !border-[5px] !border-white dark:!border-[rgba(38,38,38,1)] !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)]"
           >
             {file ? (
               <div
@@ -249,7 +249,7 @@ useEffect(() => {
                   };
                   input.click();
                 }}
-                className="dark:text-white dark:hover:bg-white/5  h-[170.5px] hover:bg-black/5 w-full dark:bg-neutral-800 flex flex-col items-center justify-center text-center text-md p-5 gap-1 relative cursor-pointer"
+                className=" rounded-sm h-[170.5px] hover:bg-[var(--border-color)]/50 w-full flex flex-col items-center justify-center text-center text-md p-5 gap-1 relative cursor-pointer"
               >
                 <Upload size={48} />
                 Drop your image here or browse to select a file
@@ -264,13 +264,13 @@ useEffect(() => {
         </Resizable>
         {(source == "Upload" || file) && (
           <>
-            <span className="text-xs text-[var(--contrast)] p-1">
+            <h4 className="p-1 pt-2">
               {" "}
               File Name{" "}
-            </span>
+            </h4>
             <div
-              className="dark:text-white w-fill h-full dark:bg-neutral-800 px-2 py-1 border text-sm
-            border-neutral-200 dark:border-neutral-700 rounded-md flex items-center justify-between"
+              className="w-fill h-full px-2 py-1 border text-sm
+            border-[var(--border-color)]/50 rounded-md flex items-center justify-between"
             >
               <span>
                 {originalFile ? originalFile.name : "No image selected"}

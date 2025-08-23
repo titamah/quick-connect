@@ -43,14 +43,13 @@
 }
 
   h4 {
-    min-width: 85px!important;
+    min-width: 85px;
     text-transform: uppercase;
     line-height: 100%;
     letter-spacing:.75px;
     font-size: 11px;
     font-weight: 300;
     color: var(--text-secondary);
-    align-items: center;
   }
     h3 {
     text-transform: uppercase;
