@@ -25,7 +25,7 @@ function CustomBackgroundSelector({ panelSize }) {
       type="button"
       onClick={() => handleTabChange(id, style)}
       className={`
-        inline-flex justify-center items-center rounded-md 
+        inline-flex justify-center items-center rounded-sm 
         w-full max-w-[150px] px-3 py-1.5 text-sm font-medium
         transition-colors duration-200
         ${activeTab === id 
@@ -59,7 +59,7 @@ function CustomBackgroundSelector({ panelSize }) {
         
         {/* Tab Navigation */}
         <nav
-          className="flex gap-2"
+          className="flex gap-2 bg-black/5 rounded-sm"
           aria-label="Background type tabs"
           role="tablist"
         >

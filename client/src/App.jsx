@@ -31,7 +31,6 @@ function App() {
     return () => mediaQuery.removeEventListener("change", handler);
   }, []);
 
-  // Memoized Ant Design config to prevent unnecessary re-renders
   const antdConfig = useMemo(() => ({
     components: {
       Tabs: {
@@ -39,7 +38,7 @@ function App() {
       },
     },
     token: {
-      colorPrimary: "#00b96b",
+      colorPrimary: "#FC6524",
       borderRadius: 4,
     },
     algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,

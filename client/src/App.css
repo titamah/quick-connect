@@ -1,18 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
+  /* New Brand Colors */
+  --brand-yellow: #F0F66E;
+  --brand-orange: #FC6524;
+  --brand-light-green: #EEF5E9;
+  --brand-green: #7ED03B;
+  --brand-dark: #1E1C1C;
+  
+  /* Theme Variables - Light Mode */
   --bg-main: #ffffff;
-  --contrast: rgba(38, 38, 38);
-  --contrast-sheer: rgba(38, 38, 38, 0.1);
-  --accent: rgb(255, 71, 29);
+  --bg-secondary: #EEF5E9;
+  --contrast: #1E1C1C;
+  --contrast-sheer: rgba(30, 28, 28, 0.1);
+  --accent: #FC6524;
+  --accent-secondary: #7ED03B;
+  --accent-highlight: #F0F66E;
+  --text-primary: #1E1C1C;
+  --text-secondary: rgba(30, 28, 28, 0.75);
+  --border-color: rgba(30, 28, 28, 0.15);
+  --hover-bg: rgba(252, 101, 36, 0.1);
+  --active-bg: rgba(252, 101, 36, 0.15);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-main: rgb(38, 38, 38);
-    --contrast: #ffffff;
-    --contrast-sheer: rgba(255, 255, 255, 0.1);
-    --accent: rgb(255, 71, 29);
+    --bg-main: #1E1C1C;
+    --bg-secondary: #2A2828;
+    --contrast: #EEF5E9;
+    --contrast-sheer: rgba(238, 245, 233, 0.15);
+    --accent: #FC6524;
+    --accent-secondary: #7ED03B;
+    --accent-highlight: #F0F66E;
+    --text-primary: #EEF5E9;
+    --text-secondary: rgba(238, 245, 233, 0.75);
+    --border-color: rgba(238, 245, 233, 0.15);
+    --hover-bg: rgba(252, 101, 36, 0.15);
+    --active-bg: rgba(252, 101, 36, 0.2);
   }
 }
+
+  h3 {
+    margin: 0 0 8px 0; /* top right bottom left */
+    tab-size: 4;
+    text-size-adjust: 100%;
+    text-transform: uppercase;
+    letter-spacing:.75px;
+    line-height: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--contrast);
+  }
+
+/* H2 – Secondary Heading (larger, bold, normal case) */
+h2 {
+  line-height: 36px;
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* H1 – Primary Heading (largest, boldest, normal case) */
+h1 {
+  /* line-height: 28px; */
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0px;
+  color: var(--text-primary);
+}
+
+
 
 body {
   overflow: hidden; 

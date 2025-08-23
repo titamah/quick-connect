@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import "preline/preline";
 import { Tabs } from "antd";
-import { QrCode, Proportions, Image } from "lucide-react";
+import { QrCode, Proportions, Image, Download } from "lucide-react";
 import { Resizable } from "react-resizable";
 import { useDevice } from "../../contexts/DeviceContext";
 import QRGenerator from "./QRGenerator";
 import DeviceTypeSelector from "./DeviceTypeSelector";
 import ToggleButtonArrow from "./ToggleButtonArrow";
 import CustomBackgroundSelector from "./CustomBackgroudSelector";
+import Exporter from "./Exporter";
 import "./styles.css";
 
 function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
@@ -84,6 +85,11 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
       key: "3",
       label: <Image className="size-7.5" />,
       children: <CustomBackgroundSelector panelSize={panelSize} />,
+    },
+    {
+      key: "4",
+      label: <Download className="size-7.5" />,
+      children: <Exporter ref={wallpaperRef} />,
     },
   ];
 

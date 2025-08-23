@@ -24,8 +24,7 @@ function DeviceTypeSelector() {
     
     // === SAMSUNG ===
     { name: "Samsung Galaxy S25 Ultra", size: { x: 1440, y: 3120 }, category: "Samsung" },
-    { name: "Samsung Galaxy S24 Ultra / S23 Ultra", size: { x: 1440, y: 3088 }, category: "Samsung" },
-    { name: "Samsung Galaxy S22 Ultra / Note 20 Ultra", size: { x: 1440, y: 3088 }, category: "Samsung" },
+    { name: "Samsung Galaxy S24 Ultra / S23 Ultra / S22 Ultra / Note 20 Ultra", size: { x: 1440, y: 3088 }, category: "Samsung" },
     { name: "Samsung Galaxy S25 / S24 / S23", size: { x: 1080, y: 2340 }, category: "Samsung" },
     { name: "Samsung Galaxy S22 / S21", size: { x: 1080, y: 2400 }, category: "Samsung" },
     { name: "Samsung Galaxy S20", size: { x: 1440, y: 3200 }, category: "Samsung" },
@@ -36,37 +35,33 @@ function DeviceTypeSelector() {
     { name: "Google Pixel 9 Pro", size: { x: 1280, y: 2856 }, category: "Google Pixel" },
     { name: "Google Pixel 9 / 8 / 7", size: { x: 1080, y: 2424 }, category: "Google Pixel" },
     { name: "Google Pixel 6 Pro", size: { x: 1440, y: 3120 }, category: "Google Pixel" },
-    { name: "Google Pixel 6 / 6a", size: { x: 1080, y: 2400 }, category: "Google Pixel" },
-    { name: "Google Pixel 8a / 7a / 6a", size: { x: 1080, y: 2400 }, category: "Google Pixel" },
+    { name: "Google Pixel 8a / 7a / 6a / 6", size: { x: 1080, y: 2400 }, category: "Google Pixel" },
     
     // === OTHER PHONES ===
     { name: "OnePlus 12 / 11", size: { x: 1440, y: 3216 }, category: "Other" },
     { name: "OnePlus Nord 4 / Nord 3", size: { x: 1080, y: 2412 }, category: "Other" },
-    { name: "Nothing Phone (2) / (1)", size: { x: 1080, y: 2412 }, category: "Other" },
+    { name: "Nothing Phone", size: { x: 1080, y: 2412 }, category: "Other" },
     
     // === FOLDABLES ===
     { name: "Samsung Galaxy Z Fold 6 (Unfolded)", size: { x: 1856, y: 2160 }, category: "Foldable" },
+    { name: "Samsung Galaxy Z Fold 6 (Folded)", size: { x: 904, y: 2316 }, category: "Foldable" },
     { name: "Samsung Galaxy Z Fold 5 / 4 (Unfolded)", size: { x: 1812, y: 2176 }, category: "Foldable" },
     { name: "Samsung Galaxy Z Fold 3 (Unfolded)", size: { x: 1768, y: 2208 }, category: "Foldable" },
-    { name: "Samsung Galaxy Z Fold 6 (Folded)", size: { x: 904, y: 2316 }, category: "Foldable" },
     { name: "Samsung Galaxy Z Fold 5 / 4 / 3 (Folded)", size: { x: 832, y: 2268 }, category: "Foldable" },
     
     { name: "Samsung Galaxy Z Flip 6 / 5 (Unfolded)", size: { x: 1080, y: 2640 }, category: "Foldable" },
-    { name: "Samsung Galaxy Z Flip 4 / 3 (Unfolded)", size: { x: 1080, y: 2636 }, category: "Foldable" },
     { name: "Samsung Galaxy Z Flip 6 / 5 (Folded)", size: { x: 720, y: 748 }, category: "Foldable" },
+    { name: "Samsung Galaxy Z Flip 4 / 3 (Unfolded)", size: { x: 1080, y: 2636 }, category: "Foldable" },
     { name: "Samsung Galaxy Z Flip 4 / 3 (Folded)", size: { x: 720, y: 512 }, category: "Foldable" },
     
     { name: "Google Pixel Fold (Unfolded)", size: { x: 1840, y: 2208 }, category: "Foldable" },
     { name: "OnePlus Open (Unfolded)", size: { x: 1916, y: 2156 }, category: "Foldable" },
     
     // === TABLETS - IPAD ===
-    { name: "iPad Pro 12.9\" (M4 / M2 / M1)", size: { x: 2048, y: 2732 }, category: "Tablet" },
-    { name: "iPad Pro 11\" (M4 / M2 / M1)", size: { x: 1668, y: 2388 }, category: "Tablet" },
-    { name: "iPad Air 13\" (M2)", size: { x: 2048, y: 2732 }, category: "Tablet" },
-    { name: "iPad Air 11\" / 10.9\" (M2 / M1)", size: { x: 1668, y: 2388 }, category: "Tablet" },
-    { name: "iPad (10th / 9th gen)", size: { x: 1620, y: 2160 }, category: "Tablet" },
-    { name: "iPad (8th / 7th gen)", size: { x: 1620, y: 2160 }, category: "Tablet" },
-    { name: "iPad Mini (6th / 5th gen)", size: { x: 1488, y: 2266 }, category: "Tablet" },
+    { name: "iPad Air 13\"", size: { x: 2048, y: 2732 }, category: "Tablet" },
+    { name: "iPad Air 11\"", size: { x: 1668, y: 2388 }, category: "Tablet" },
+    { name: "iPad", size: { x: 1620, y: 2160 }, category: "Tablet" },
+    { name: "iPad Mini", size: { x: 1488, y: 2266 }, category: "Tablet" },
     
     // === TABLETS - ANDROID & WINDOWS ===
     { name: "Samsung Galaxy Tab S9 Ultra / S8 Ultra", size: { x: 1848, y: 2960 }, category: "Tablet" },
@@ -74,27 +69,8 @@ function DeviceTypeSelector() {
     { name: "Samsung Galaxy Tab S9 / S8 / S7", size: { x: 1600, y: 2560 }, category: "Tablet" },
     { name: "Surface Pro 11 / 10 / 9", size: { x: 1920, y: 2880 }, category: "Tablet" },
     { name: "Surface Pro 8 / 7", size: { x: 2880, y: 1920 }, category: "Tablet" },
-    { name: "Surface Laptop Studio 2 / 1", size: { x: 2400, y: 1600 }, category: "Tablet" },
+    { name: "Surface Laptop Studio", size: { x: 2400, y: 1600 }, category: "Tablet" },
     
-    // === WEARABLES ===
-    { name: "Apple Watch Series 10 (46mm)", size: { x: 416, y: 496 }, category: "Wearable" },
-    { name: "Apple Watch Series 10 (42mm)", size: { x: 374, y: 446 }, category: "Wearable" },
-    { name: "Apple Watch Series 9 / 8 / 7 (45mm)", size: { x: 396, y: 484 }, category: "Wearable" },
-    { name: "Apple Watch Series 9 / 8 / 7 (41mm)", size: { x: 352, y: 430 }, category: "Wearable" },
-    { name: "Apple Watch SE (44mm / 40mm)", size: { x: 368, y: 448 }, category: "Wearable" },
-    { name: "Samsung Galaxy Watch Ultra", size: { x: 480, y: 480 }, category: "Wearable" },
-    { name: "Samsung Galaxy Watch 7 / 6 / 5 / 4", size: { x: 432, y: 432 }, category: "Wearable" },
-    
-    // === E-READERS & GAMING ===
-    { name: "Kindle Paperwhite (11th / 10th gen)", size: { x: 1236, y: 1648 }, category: "E-Reader" },
-    { name: "Kindle Oasis (10th / 9th gen)", size: { x: 1264, y: 1680 }, category: "E-Reader" },
-    { name: "Kindle Scribe", size: { x: 1860, y: 2480 }, category: "E-Reader" },
-    { name: "Kindle (11th / 10th gen)", size: { x: 758, y: 1024 }, category: "E-Reader" },
-    
-    { name: "Steam Deck OLED / LCD", size: { x: 1280, y: 800 }, category: "Gaming" },
-    { name: "Nintendo Switch OLED / Original", size: { x: 1280, y: 720 }, category: "Gaming" },
-    { name: "ASUS ROG Ally X / ROG Ally", size: { x: 1920, y: 1080 }, category: "Gaming" },
-    { name: "Lenovo Legion Go", size: { x: 2560, y: 1600 }, category: "Gaming" },
   ];
   
   const updateDevice = (deviceInfo) => {
@@ -154,34 +130,30 @@ function DeviceTypeSelector() {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* Current Device Display */}
-      <div className="flex-shrink-0 mb-4 p-3 bg-gray-50 dark:bg-neutral-800 rounded-lg">
-        <h3 className="text-sm font-medium text-gray-800 dark:text-white mb-1">
+      <div className="flex-shrink-0 mb-4 p-3 bg-black/3 dark:bg-black/12.5">
+        <h3>
           Current Device
         </h3>
-        <div className="text-xs text-gray-600 dark:text-neutral-400">
+        <div className="flex text-[var(--text-secondary)] justify-between w-full h-fit gap-x-3 whitespace-nowrap">
           <span className="truncate">{device.type}</span>
-          <span className="font-thin ml-1">({device.size.x} × {device.size.y})</span>
+          <span className="font-thin ml-1 italic">({device.size.x} × {device.size.y})</span>
         </div>
       </div>
 
       {/* Header with Custom Button */}
-      <div className="flex-shrink-0 flex justify-between items-center mb-3">
-        <h3 className="text-sm font-medium text-gray-800 dark:text-white">
+      <div className="flex-shrink-0 flex justify-between items-center pb-3 px-3.5">
+        <h2>
           Select Device
-        </h3>
+        </h2>
         {!showCustomSizeInput && (
-          <button
+            <span 
             onClick={() => setShowCustomSizeInput(true)}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 dark:bg-neutral-800 dark:border-neutral-600 dark:text-neutral-300 dark:hover:bg-neutral-700 transition-colors"
-          >
-            <span className="text-lg leading-none">+</span>
-            Custom
-          </button>
+            className="text-4xl leading-none !cursor-pointer hover:text-[var(--text-primary)]/50">+</span>
         )}
       </div>
 
       {/* Search Input */}
-      <div className="flex-shrink-0 mb-3">
+      <div className="flex-shrink-0 pb-5 px-1.75">
         <div className="relative">
           <svg
             className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-neutral-500"
@@ -196,12 +168,12 @@ function DeviceTypeSelector() {
             placeholder="Search devices..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:placeholder-neutral-400"
+            className="w-full pl-8.5 pr-3 py-1 text-xs border border-[var(--border-color)] focus:outline-none focus:border-[var(--accent)]/50 rounded-xl"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 hover:text-gray-600 dark:text-neutral-500 dark:hover:text-neutral-300"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--text-secondary)]/50 hover:text-[var(--text-secondary)] hover:cursor-pointer"
             >
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -213,38 +185,38 @@ function DeviceTypeSelector() {
 
       {/* Custom Size Input */}
       {showCustomSizeInput && (
-        <div className="flex-shrink-0 mb-3 p-3 border border-gray-200 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900">
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-medium text-gray-800 dark:text-white">
+        <div className="flex-shrink-0 mb-5 p-2 mx-2.5 border border-[var(--border-color)] rounded-lg">
+          <div className="flex flex-col gap-1">
+            <h3 className="text-[var(--text-primary)]/75 px-0.5 !mb-1">
               Custom Dimensions
-            </label>
-            <div className="flex gap-2">
+            </h3>
+            <div className="flex gap-2 mb-1.5">
               <input
                 type="number"
                 placeholder="Width"
                 value={customWidth}
                 onChange={(e) => setCustomWidth(e.target.value)}
-                className="flex-1 px-2 py-1 text-xs border border-gray-200 rounded dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                className="flex-1 px-2 py-1 text-xs border border-[var(--border-color)] rounded"
               />
-              <span className="text-xs text-gray-500 dark:text-neutral-400 flex items-center">×</span>
+              <span className="text-xs text- flex items-center">×</span>
               <input
                 type="number"
                 placeholder="Height"
                 value={customHeight}
                 onChange={(e) => setCustomHeight(e.target.value)}
-                className="flex-1 px-2 py-1 text-xs border border-gray-200 rounded dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                className="flex-1 px-2 py-1 text-xs border border-[var(--border-color)] rounded "
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 text-xs ">
               <button
                 onClick={handleCustomSizeSubmit}
-                className="flex-1 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="flex-1 px-2 py-1 bg-[var(--accent)] text-white rounded hover:bg-[var(--accent)]/75"
               >
                 Apply
               </button>
               <button
                 onClick={handleCustomSizeCancel}
-                className="flex-1 px-2 py-1 text-xs bg-gray-200 text-gray-800 rounded hover:bg-gray-300 dark:bg-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-600"
+                className="flex-1 px-2 py-1 bg-[var(--border-color)] text-[var(--text-primary)] rounded hover:bg-gray-300 dark:bg-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-600"
               >
                 Cancel
               </button>
@@ -255,29 +227,32 @@ function DeviceTypeSelector() {
 
       {/* SCROLLABLE DEVICE LIST - Dynamic height using remaining space */}
       <div className="flex-1 overflow-y-auto min-h-0">
-        <div className="space-y-4 pr-2 h-full"> {/* Added h-full here */}
+        <div className="space-y-4 h-full"> {/* Added h-full here */}
           {categoryOrder.map(category => {
             const devices = devicesByCategory[category];
             if (!devices || devices.length === 0) return null;
             
             return (
               <div key={category}>
-                <div className="px-1 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide dark:text-neutral-400 border-b border-gray-100 dark:border-neutral-700 mb-2">
+                <h3 className="border-b border-[var(--border-color)] !text-[var(--text-secondary)] pb-1 px-3.5">
                   {category}
-                </div>
-                <div className="space-y-1">
+                </h3>
+                <div className="space-y-0.75">
                   {devices.map((deviceInfo, index) => (
                     <button
                       key={`${category}-${index}`}
                       onClick={() => updateDevice(deviceInfo)}
-                      className={`flex justify-between text-xs w-full h-fit items-center gap-x-3 py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-700 cursor-pointer transition-colors ${
+                      className={`flex justify-between text-xs w-full h-fit gap-x-3 p-1.75 border-y px-3.5 hover:bg-[var(--contrast-sheer)] cursor-pointer transition-colors ${
                         device.type === deviceInfo.name
-                          ? 'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border border-blue-200 dark:border-blue-800'
-                          : 'text-gray-800 dark:text-neutral-400'
+                          ? 'bg-[var(--accent)]/12.5 text-[var(--accent)] border-[var(--border-color)]/25'
+                          : 'text-[var(--text-secondary)] border-black/0'
                       }`}
                     >
                       <span className="truncate flex-1 min-w-0 text-left">{deviceInfo.name}</span>
-                      <span className="font-thin text-xs italic text-gray-500 dark:text-neutral-500 whitespace-nowrap ml-2">
+                      <span className={`font-thin text-xs italic whitespace-nowrap ${
+                        device.type === deviceInfo.name
+                          ? 'text-[var(--accent)]/75'
+                          : 'text-[var(--text-secondary)]/75'}`}>
                         {deviceInfo.size.x} × {deviceInfo.size.y}
                       </span>
                     </button>
