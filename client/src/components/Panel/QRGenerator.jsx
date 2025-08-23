@@ -55,14 +55,18 @@ function QRGenerator(panelSize) {
   const secondaryColor = device.qr.custom?.secondaryColor || "#fff";
 
   return (
-    <div id="qr-input-box" className="dark:text-white text-sm">
-    <label className="block ">
+    <div id="qr-input-box">
+      <h2 className=" p-3.5">
+        QR Code
+      </h2>
+    <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5">
       QR URL
-    </label>
+    </h3>
+    <div className="p-2 pb-5">
       <input
         id="qr-input"
         type="text"
-        className="text-sm !select-all w-full p-[5px] ms-[7.5px] -mx-[0.5px] inline-flex rounded-md bg-black/10 dark:border-neutral-700 dark:text-neutral-400 "
+        className="w-full px-2 py-1 text-xs bg-[var(--border-color)]/25 border border-[var(--border-color)]/50 focus:outline-none focus:border-[var(--accent)]/50 rounded-xl"
         value={device.qr.url}
         onChange={(e) =>
           updateQRConfig({ 
@@ -70,6 +74,7 @@ function QRGenerator(panelSize) {
           })
         }
       />
+      </div>
       <div className="hidden">
         <QRCode
           ref={qrCodeRef}
@@ -82,11 +87,11 @@ function QRGenerator(panelSize) {
           bgColor={secondaryColor}
         />
       </div>
-    <label className="block">
+    <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5 mb-2.5">
       Color
-    </label>
-      <div className="flex justify-between py-2 text-xs font-medium mb-2 ">
-      <div className="min-w-[75px]"> Primary </div>
+    </h3>
+      <div className="flex items-center pb-2.5 px-3.5">
+      <h4> Primary </h4>
         <ColorPicker
           value={primaryColor}
           placement="bottomRight"
@@ -105,8 +110,8 @@ function QRGenerator(panelSize) {
           showText
         />
       </div>
-      <div className="flex justify-between py-2 text-xs font-medium mb-2 ">
-      <div className="min-w-[75px]"> Secondary </div>
+      <div className="flex items-center pb-5 px-3.5">
+      <h4> Secondary </h4>
         <ColorPicker
           value={secondaryColor}
           placement="bottomRight"
@@ -125,11 +130,11 @@ function QRGenerator(panelSize) {
           showText
         />
       </div>
-    <label className="block">
+    <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5 mb-2.5">
       Border
-    </label>
-      <div className="flex justify-between py-2 text-xs font-medium mb-2 ">
-      <div className="min-w-[75px]"> Color</div>
+    </h3>
+      <div className="flex items-center pb-2.5 px-3.5">
+      <h4> Color</h4>
         <ColorPicker
           value={device.qr.custom.borderColor}
           placement="bottomRight"
@@ -148,8 +153,8 @@ function QRGenerator(panelSize) {
           showText
         />
       </div>
-      <div className="flex justify-between py-2 text-xs font-medium mb-2 ">
-<div className="min-w-[75px]"> Width</div>
+      <div className="flex items-center pb-1.5 px-3.5">
+<h4> Width</h4>
   <Slider
     min="0"
     max="100"  // 0-20% of QR size
@@ -165,8 +170,8 @@ function QRGenerator(panelSize) {
     }}
   />
 </div>
-<div className="flex justify-between py-2 text-xs font-medium mb-2 ">
-<div className="min-w-[75px]"> Radius</div>
+<div className="flex items-center pb-5 px-3.5">
+<h4> Radius</h4>
   <Slider
     min="0"
     max="100"  // 0-50% of border size

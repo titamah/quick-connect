@@ -6,8 +6,8 @@ export const useDeviceState = () => {
   // Basic device info
   const [deviceInfo, setDeviceInfo] = useState({
     name: "Sample iPhone Wallpaper",
-    type: "iPhone 12 Pro Max",
-    size: { x: 1284, y: 2778 },
+    type: "iPhone 15 Pro Max",
+    size: { x: 1290, y: 2796 },
   });
 
   // Background configuration

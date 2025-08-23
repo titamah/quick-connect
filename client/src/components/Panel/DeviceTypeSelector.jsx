@@ -130,13 +130,13 @@ function DeviceTypeSelector() {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* Current Device Display */}
-      <div className="flex-shrink-0 mb-4 p-3 bg-black/5 dark:bg-black/15">
-        <h3>
+      <div className="flex-shrink-0 mb-3 p-3.5 bg-black/5 dark:bg-black/15">
+        <h3 className="mb-2">
           Current Device
         </h3>
         <div className="flex text-[var(--text-secondary)] justify-between w-full h-fit gap-x-3 whitespace-nowrap">
           <span className="truncate">{device.type}</span>
-          <span className="font-thin ml-1 italic">({device.size.x} × {device.size.y})</span>
+          <span className="font-thin italic">({device.size.x} × {device.size.y})</span>
         </div>
       </div>
 
@@ -210,13 +210,13 @@ function DeviceTypeSelector() {
             <div className="flex gap-2 text-xs ">
               <button
                 onClick={handleCustomSizeSubmit}
-                className="flex-1 px-2 py-1 bg-[var(--accent)] text-white rounded hover:bg-[var(--accent)]/75"
+                className="flex-1 px-2 py-1 bg-[var(--accent)] text-white rounded  hover:cursor-pointer hover:bg-[var(--accent)]/75"
               >
                 Apply
               </button>
               <button
                 onClick={handleCustomSizeCancel}
-                className="flex-1 px-2 py-1 bg-[var(--border-color)] text-[var(--text-primary)] rounded hover:bg-gray-300 dark:bg-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-600"
+                className="flex-1 px-2 py-1 bg-[var(--border-color)] hover:bg-[var(--border-color)]/75 hover:cursor-pointer text-[var(--text-primary)] rounded hover:bg-gray-300 dark:bg-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-600"
               >
                 Cancel
               </button>
@@ -234,7 +234,7 @@ function DeviceTypeSelector() {
             
             return (
               <div key={category}>
-                <h3 className="border-b border-[var(--border-color)]/50 !text-[var(--text-secondary)] pb-1 px-3.5">
+                <h3 className="border-b border-[var(--border-color)]/50 pb-1 px-3.5">
                   {category}
                 </h3>
                 <div className="space-y-0.75">
