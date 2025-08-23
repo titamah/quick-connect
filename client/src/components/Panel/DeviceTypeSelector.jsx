@@ -130,7 +130,7 @@ function DeviceTypeSelector() {
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* Current Device Display */}
-      <div className="flex-shrink-0 mb-4 p-3 bg-black/3 dark:bg-black/12.5">
+      <div className="flex-shrink-0 mb-4 p-3 bg-black/5 dark:bg-black/15">
         <h3>
           Current Device
         </h3>
@@ -153,10 +153,10 @@ function DeviceTypeSelector() {
       </div>
 
       {/* Search Input */}
-      <div className="flex-shrink-0 pb-5 px-1.75">
+      <div className="flex-shrink-0 pb-5 px-2">
         <div className="relative">
           <svg
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-neutral-500"
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--text-secondary)]/50"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -168,7 +168,7 @@ function DeviceTypeSelector() {
             placeholder="Search devices..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8.5 pr-3 py-1 text-xs border border-[var(--border-color)] focus:outline-none focus:border-[var(--accent)]/50 rounded-xl"
+            className="w-full pl-8.5 pr-3 py-1 text-xs border border-[var(--border-color)]/50 focus:outline-none focus:border-[var(--accent)]/50 rounded-xl"
           />
           {searchQuery && (
             <button
@@ -185,7 +185,7 @@ function DeviceTypeSelector() {
 
       {/* Custom Size Input */}
       {showCustomSizeInput && (
-        <div className="flex-shrink-0 mb-5 p-2 mx-2.5 border border-[var(--border-color)] rounded-lg">
+        <div className="flex-shrink-0 mb-5 p-2 mx-2.5 border border-[var(--border-color)]/50 rounded-lg  bg-black/5 dark:bg-black/15">
           <div className="flex flex-col gap-1">
             <h3 className="text-[var(--text-primary)]/75 px-0.5 !mb-1">
               Custom Dimensions
@@ -196,7 +196,7 @@ function DeviceTypeSelector() {
                 placeholder="Width"
                 value={customWidth}
                 onChange={(e) => setCustomWidth(e.target.value)}
-                className="flex-1 px-2 py-1 text-xs border border-[var(--border-color)] rounded"
+                className="flex-1 px-2 py-1 text-xs border border-[var(--border-color)]/25 rounded bg-[var(--bg-main)]"
               />
               <span className="text-xs text- flex items-center">×</span>
               <input
@@ -204,7 +204,7 @@ function DeviceTypeSelector() {
                 placeholder="Height"
                 value={customHeight}
                 onChange={(e) => setCustomHeight(e.target.value)}
-                className="flex-1 px-2 py-1 text-xs border border-[var(--border-color)] rounded "
+                className="flex-1 px-2 py-1 text-xs border border-[var(--border-color)]/25 rounded bg-[var(--bg-main)]"
               />
             </div>
             <div className="flex gap-2 text-xs ">
@@ -234,7 +234,7 @@ function DeviceTypeSelector() {
             
             return (
               <div key={category}>
-                <h3 className="border-b border-[var(--border-color)] !text-[var(--text-secondary)] pb-1 px-3.5">
+                <h3 className="border-b border-[var(--border-color)]/50 !text-[var(--text-secondary)] pb-1 px-3.5">
                   {category}
                 </h3>
                 <div className="space-y-0.75">
@@ -249,7 +249,7 @@ function DeviceTypeSelector() {
                       }`}
                     >
                       <span className="truncate flex-1 min-w-0 text-left">{deviceInfo.name}</span>
-                      <span className={`font-thin text-xs italic whitespace-nowrap ${
+                      <span className={`font-thin text-xs italic whitespace-nowrap pr-1 ${
                         device.type === deviceInfo.name
                           ? 'text-[var(--accent)]/75'
                           : 'text-[var(--text-secondary)]/75'}`}>
