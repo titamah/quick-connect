@@ -66,7 +66,7 @@ function QRGenerator(panelSize) {
       <input
         id="qr-input"
         type="text"
-        className="w-full px-2 py-1 text-xs bg-[var(--border-color)]/25 border border-[var(--border-color)]/50 focus:outline-none focus:border-[var(--accent)]/50 rounded-xl"
+        className="w-full px-2 py-1 text-xs bg-[var(--contrast-sheer)]/50 border border-[var(--border-color)]/50 focus:outline-none focus:border-[var(--accent)]/50 rounded-xl"
         value={device.qr.url}
         onChange={(e) =>
           updateQRConfig({ 
@@ -157,7 +157,7 @@ function QRGenerator(panelSize) {
 <h4> Width</h4>
   <Slider
     min="0"
-    max="100"  // 0-20% of QR size
+    max="200"  // 0-20% of QR size
     step="0.5"
     value={device.qr.custom.borderSizeRatio}
     onChange={(e) => {

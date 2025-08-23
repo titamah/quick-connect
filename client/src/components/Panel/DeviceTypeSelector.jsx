@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
+import { Plus } from  "lucide-react";
 import "./styles.css";
 
 function DeviceTypeSelector() {
@@ -146,9 +147,10 @@ function DeviceTypeSelector() {
           Select Device
         </h2>
         {!showCustomSizeInput && (
-            <span 
+            <Plus 
             onClick={() => setShowCustomSizeInput(true)}
-            className="text-4xl leading-none !cursor-pointer hover:text-[var(--text-primary)]/50">+</span>
+            strokeWidth={3}
+            className="size-[21px] cursor-pointer hover:text-[var(--text-primary)]/50"/>
         )}
       </div>
 
@@ -190,13 +192,13 @@ function DeviceTypeSelector() {
             <h3 className="text-[var(--text-primary)]/75 px-0.5 !mb-1">
               Custom Dimensions
             </h3>
-            <div className="flex gap-2 mb-1.5">
+            <div className="flex gap-2 mb-1.5 ">
               <input
                 type="number"
                 placeholder="Width"
                 value={customWidth}
                 onChange={(e) => setCustomWidth(e.target.value)}
-                className="flex-1 px-2 py-1 text-xs border border-[var(--border-color)]/25 rounded bg-[var(--bg-main)]"
+                className="flex-1 min-w-0 px-2 py-1 text-xs border border-[var(--border-color)]/25 rounded bg-[var(--bg-main)]"
               />
               <span className="text-xs text- flex items-center">×</span>
               <input
@@ -204,7 +206,7 @@ function DeviceTypeSelector() {
                 placeholder="Height"
                 value={customHeight}
                 onChange={(e) => setCustomHeight(e.target.value)}
-                className="flex-1 px-2 py-1 text-xs border border-[var(--border-color)]/25 rounded bg-[var(--bg-main)]"
+                className="flex-1 min-w-0 px-2 py-1 text-xs border border-[var(--border-color)]/25 rounded bg-[var(--bg-main)]"
               />
             </div>
             <div className="flex gap-2 text-xs ">

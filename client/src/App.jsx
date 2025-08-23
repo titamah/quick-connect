@@ -13,7 +13,7 @@ function App() {
   // UI state - keep this local since it's UI-specific
   const [isOpen, setIsOpen] = useState(true);
   const [panelSize, setPanelSize] = useState({
-    width: window.innerWidth / 3,
+    width: 350,
     height: window.innerHeight / 3,
   });
   const wallpaperRef = useRef(null);

@@ -36,11 +36,11 @@ function CustomBackgroundSelector({ panelSize }) {
       aria-selected={activeTab === id}
       role="tab"
     >
-      <h3 className={`!font-normal
+      <h5 className={`!font-normal
         ${activeTab === id 
           ? "text-[var(--accent)]" 
           : ""
-        }`}>{label}</h3>
+        }`}>{label}</h5>
     </button>
   );
 
