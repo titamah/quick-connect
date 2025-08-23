@@ -89,7 +89,7 @@ function DeviceTypeSelector() {
     
     if (width > 0 && height > 0) {
       const customDevice = {
-        name: `Custom (${width} x ${height})`,
+        name: `Custom Dimensions`,
         size: { x: width, y: height }
       };
       updateDevice(customDevice);
