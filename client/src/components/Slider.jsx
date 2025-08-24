@@ -31,8 +31,8 @@ const Slider = ({ id, presets, stacked, deleteStop, value, onChange, changeColor
 
   return (
     <div
-    ref={containerRef}
-      className= {`${ stacked ? "absolute pointer-events-none" : ""} w-full h-full`}
+    // ref={containerRef}
+      className= {`${ stacked ? "absolute pointer-events-none" : "pointer-events-auto"} w-full h-full`}
       onMouseDown={() => setShowTooltip(true && !openPicker)}
       onMouseUp={(e) => { setShowTooltip(false) }}
       onKeyDownCapture={(e) => {
