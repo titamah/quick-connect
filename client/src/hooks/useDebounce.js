@@ -1,18 +1,28 @@
 // hooks/useDebounce.js
-import { useState, useEffect } from 'react';
+import { useCallback, useRef } from 'react';
 
-export const useDebounce = (value, delay) => {
-  const [debouncedValue, setDebouncedValue] = useState(value);
+/**
+ * Custom hook for debouncing function calls
+ * @param {Function} callback - The function to debounce
+ * @param {number} delay - The delay in milliseconds
+ * @returns {Function} - The debounced function
+ */
+export const useDebounce = (callback, delay) => {
+  const timeoutRef = useRef(null);
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
+  const debouncedCallback = useCallback((...args) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      if (typeof callback === 'function') {
+        callback(...args);
+      } else {
+        console.warn('useDebounce: callback is not a function', callback);
+      }
     }, delay);
+  }, [callback, delay]);
 
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
+  return debouncedCallback;
 };

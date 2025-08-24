@@ -17,7 +17,7 @@ const OptimizedWallpaper = forwardRef(
   ({ panelSize, isOpen, locked, setIsZoomEnabled }, ref) => {
     const { deviceInfo, background, qrConfig, updateQRConfig } = useDevice();
     
-    console.log("Background style:", background.style);
+    console.log("🎨 OptimizedWallpaper render - Background style:", background.style);
     if (background.style === "image") {
       console.log("Background image URL:", background.imageUrl);
     }
@@ -180,8 +180,14 @@ const actualBorderSize = useMemo(() =>
 
 
 
-// Generate QR code directly in this component
+  // Generate QR code directly in this component
 useEffect(() => {
+    console.log('🔄 QR Generation Effect triggered by:', {
+      url: qrConfig.url,
+      primaryColor,
+      secondaryColor
+    });
+    
     const generateQRCode = () => {
       const canvas = qrRef.current?.querySelector("canvas");
       if (!canvas) {
@@ -195,7 +201,7 @@ useEffect(() => {
         
         const qrImage = new Image();
         qrImage.onload = () => {
-          console.log("QR image loaded successfully");
+          console.log("✅ QR image loaded successfully");
           setQRImg(qrImage);
         };
         qrImage.onerror = (error) => {
@@ -209,7 +215,7 @@ useEffect(() => {
     
     const timeoutId = setTimeout(generateQRCode, 100);
     return () => clearTimeout(timeoutId);
-  }, [qrConfig.url, primaryColor, secondaryColor, qrSize]);
+  }, [qrConfig.url, primaryColor, secondaryColor]); // Removed qrSize dependency
 
   // Auto-adjust border size when device size changes
 useEffect(() => {

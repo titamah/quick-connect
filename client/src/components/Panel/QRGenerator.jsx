@@ -5,10 +5,16 @@ import CustomColorInput from "./CustomColorInput";
 import { QRCode, ColorPicker } from "antd";
 import Slider from "../Slider";
 import chroma from "chroma-js";
+import { useDebounce } from "../../hooks/useDebounce";
 
 function QRGenerator(panelSize) {
   const { device, updateQRConfig } = useDevice();
   const qrCodeRef = useRef(null);
+  
+  // Safety check - don't render until context is ready
+  if (!device || !updateQRConfig) {
+    return <div>Loading...</div>;
+  }
   const [qrSize, setQRSize] = useState(
     Math.min(device.size.x, device.size.y) / 2
   );
@@ -66,6 +72,42 @@ function QRGenerator(panelSize) {
     device.qr.custom?.borderColor || "#000000"
   );
   const [borderOpacityInput, setBorderOpacityInput] = useState(100);
+
+  // Debounced color update functions to prevent excessive QR regeneration
+  const debouncedUpdatePrimaryColor = useDebounce((color, opacity) => {
+    console.log('🎨 Debounced Primary Color Update:', color, opacity);
+    if (updateQRConfig) {
+      updateQRConfig({
+        custom: {
+          ...device.qr.custom,
+          primaryColor: combineHexWithOpacity(color, opacity),
+        },
+      });
+    }
+  }, 150); // 150ms delay
+
+  const debouncedUpdateSecondaryColor = useDebounce((color, opacity) => {
+    console.log('🎨 Debounced Secondary Color Update:', color, opacity);
+    if (updateQRConfig) {
+      updateQRConfig({
+        custom: {
+          ...device.qr.custom,
+          secondaryColor: combineHexWithOpacity(color, opacity),
+        },
+      });
+    }
+  }, 150); // 150ms delay
+
+  const debouncedUpdateBorderColor = useDebounce((color, opacity) => {
+    if (updateQRConfig) {
+      updateQRConfig({
+        custom: {
+          ...device.qr.custom,
+          borderColor: combineHexWithOpacity(color, opacity),
+        },
+      });
+    }
+  }, 150); // 150ms delay
 
   function combineHexWithOpacity(color, opacity) {
     // Ensure color is 7 chars (#RRGGBB)
@@ -135,12 +177,7 @@ function QRGenerator(panelSize) {
             let alpha = Math.round(color.alpha() * 100);
             setPrimaryColorInput(hex);
             setPrimaryOpacityInput(alpha);
-            updateQRConfig({
-              custom: {
-                ...device.qr.custom,
-                primaryColor: combineHexWithOpacity(hex, alpha),
-              },
-            });
+            debouncedUpdatePrimaryColor(hex, alpha);
           }}
           onColorChange={(e) => {
             let color = e.target.value;
@@ -148,30 +185,52 @@ function QRGenerator(panelSize) {
               color = "#" + color;
             }
             setPrimaryColorInput(color.toUpperCase());
+          }}
+          onColorBlur={(e) => {
+            let color = e.target.value;
+            if (!color.startsWith("#")) {
+              color = "#" + color;
+            }
             if (chroma.valid(color)) {
-              updateQRConfig({
-                custom: {
-                  ...device.qr.custom,
-                  primaryColor: combineHexWithOpacity(
-                    color,
-                    primaryOpacityInput
-                  ),
-                },
-              });
+              console.log('📝 Primary Color Text Input Update (blur):', color);
+              debouncedUpdatePrimaryColor(color, primaryOpacityInput);
+            }
+          }}
+          onColorKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              let color = e.target.value;
+              if (!color.startsWith("#")) {
+                color = "#" + color;
+              }
+              if (chroma.valid(color)) {
+                console.log('📝 Primary Color Text Input Update (Enter):', color);
+                debouncedUpdatePrimaryColor(color, primaryOpacityInput);
+              }
+              e.target.blur();
             }
           }}
           onOpacityChange={(e) => {
             let opacity = e.target.value;
-            console.log(opacity);
             if (opacity < 0) opacity = 0;
             if (opacity > 100) opacity = 100;
             setPrimaryOpacityInput(opacity);
-            updateQRConfig({
-              custom: {
-                ...device.qr.custom,
-                primaryColor: combineHexWithOpacity(primaryColorInput, opacity),
-              },
-            });
+          }}
+          onOpacityBlur={(e) => {
+            let opacity = e.target.value;
+            if (opacity < 0) opacity = 0;
+            if (opacity > 100) opacity = 100;
+            setPrimaryOpacityInput(opacity);
+            debouncedUpdatePrimaryColor(primaryColorInput, opacity);
+          }}
+          onOpacityKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              let opacity = e.target.value;
+              if (opacity < 0) opacity = 0;
+              if (opacity > 100) opacity = 100;
+              setPrimaryOpacityInput(opacity);
+              debouncedUpdatePrimaryColor(primaryColorInput, opacity);
+              e.target.blur();
+            }
           }}
         />
       </div>
@@ -189,12 +248,7 @@ function QRGenerator(panelSize) {
         let alpha = Math.round(color.alpha() * 100);
         setSecondaryColorInput(hex);
         setSecondaryOpacityInput(alpha);
-        updateQRConfig({
-          custom: {
-            ...device.qr.custom,
-            secondaryColor: combineHexWithOpacity(hex, alpha),
-          },
-        });
+        debouncedUpdateSecondaryColor(hex, alpha);
       }} 
       onColorChange={(e)=>{
         let color = e.target.value;
@@ -202,26 +256,50 @@ function QRGenerator(panelSize) {
           color = "#" + color;
         }
         setSecondaryColorInput(color.toUpperCase());
+      }}
+      onColorBlur={(e)=>{
+        let color = e.target.value;
+        if (!color.startsWith("#")) {
+          color = "#" + color;
+        }
         if(chroma.valid(color)){
-        updateQRConfig({
-          custom: {
-            ...device.qr.custom,
-            secondaryColor: combineHexWithOpacity(color, secondaryOpacityInput),
-          },
-        });}
+          debouncedUpdateSecondaryColor(color, secondaryOpacityInput);
+        }
+      }}
+      onColorKeyDown={(e)=>{
+        if (e.key === 'Enter') {
+          let color = e.target.value;
+          if (!color.startsWith("#")) {
+            color = "#" + color;
+          }
+          if(chroma.valid(color)){
+            debouncedUpdateSecondaryColor(color, secondaryOpacityInput);
+          }
+          e.target.blur();
+        }
       }}
       onOpacityChange={(e)=>{
         let opacity = e.target.value;
-        console.log(opacity);
         if (opacity < 0) opacity = 0;
         if (opacity > 100) opacity = 100;
         setSecondaryOpacityInput(opacity);
-        updateQRConfig({
-          custom: {
-            ...device.qr.custom,
-            secondaryColor: combineHexWithOpacity(secondaryColorInput, opacity),
-          },
-        });
+      }}
+      onOpacityBlur={(e)=>{
+        let opacity = e.target.value;
+        if (opacity < 0) opacity = 0;
+        if (opacity > 100) opacity = 100;
+        setSecondaryOpacityInput(opacity);
+        debouncedUpdateSecondaryColor(secondaryColorInput, opacity);
+      }}
+      onOpacityKeyDown={(e)=>{
+        if (e.key === 'Enter') {
+          let opacity = e.target.value;
+          if (opacity < 0) opacity = 0;
+          if (opacity > 100) opacity = 100;
+          setSecondaryOpacityInput(opacity);
+          debouncedUpdateSecondaryColor(secondaryColorInput, opacity);
+          e.target.blur();
+        }
       }}
       />
       </div>
@@ -242,12 +320,7 @@ function QRGenerator(panelSize) {
         let alpha = Math.round(color.alpha() * 100);
         setBorderColorInput(hex);
         setBorderOpacityInput(alpha);
-        updateQRConfig({
-          custom: {
-            ...device.qr.custom,
-            borderColor: combineHexWithOpacity(hex, alpha),
-          },
-        });
+        debouncedUpdateBorderColor(hex, alpha);
       }} 
       onColorChange={(e)=>{
         let color = e.target.value;
@@ -255,26 +328,50 @@ function QRGenerator(panelSize) {
           color = "#" + color;
         }
         setBorderColorInput(color.toUpperCase());
+      }}
+      onColorBlur={(e)=>{
+        let color = e.target.value;
+        if (!color.startsWith("#")) {
+          color = "#" + color;
+        }
         if(chroma.valid(color)){
-        updateQRConfig({
-          custom: {
-            ...device.qr.custom,
-            borderColor: combineHexWithOpacity(color, borderOpacityInput),
-          },
-        });}
+          debouncedUpdateBorderColor(color, borderOpacityInput);
+        }
+      }}
+      onColorKeyDown={(e)=>{
+        if (e.key === 'Enter') {
+          let color = e.target.value;
+          if (!color.startsWith("#")) {
+            color = "#" + color;
+          }
+          if(chroma.valid(color)){
+            debouncedUpdateBorderColor(color, borderOpacityInput);
+          }
+          e.target.blur();
+        }
       }}
       onOpacityChange={(e)=>{
         let opacity = e.target.value;
-        console.log(opacity);
         if (opacity < 0) opacity = 0;
         if (opacity > 100) opacity = 100;
         setBorderOpacityInput(opacity);
-        updateQRConfig({
-          custom: {
-            ...device.qr.custom,
-            borderColor: combineHexWithOpacity(borderColorInput, opacity),
-          },
-        });
+      }}
+      onOpacityBlur={(e)=>{
+        let opacity = e.target.value;
+        if (opacity < 0) opacity = 0;
+        if (opacity > 100) opacity = 100;
+        setBorderOpacityInput(opacity);
+        debouncedUpdateBorderColor(borderColorInput, opacity);
+      }}
+      onOpacityKeyDown={(e)=>{
+        if (e.key === 'Enter') {
+          let opacity = e.target.value;
+          if (opacity < 0) opacity = 0;
+          if (opacity > 100) opacity = 100;
+          setBorderOpacityInput(opacity);
+          debouncedUpdateBorderColor(borderColorInput, opacity);
+          e.target.blur();
+        }
       }}
       />
       </div>
