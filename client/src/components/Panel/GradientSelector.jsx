@@ -351,9 +351,14 @@ function GradientSelector() {
       </div>
       <div className="flex flex-row items-center justify-center w-full space-x-1">
         {type === "linear" ? (
-          <React.Fragment>
+          <div className="flex flex-row w-full my-4 items-center gap-2 " >
+          <h4 className="text-[var(--text-primary)]/75 p-1 h-full !min-w-[50px]">
+            Angle
+          </h4>
+          <div className="flex flex-row items-center w-full gap-1">
+
             <RotateCcw
-              className="my-4 opacity-75 hover:opacity-100 cursor-pointer"
+              className="opacity-75 hover:opacity-100 cursor-pointer"
               size={20}
               onMouseDown={() => {
                 handleMouseDown(-1, 0);
@@ -370,7 +375,7 @@ function GradientSelector() {
               onChange={handleAngleChange}
             />
             <RotateCw
-              className="my-4 opacity-75 hover:opacity-100 cursor-pointer"
+              className=" opacity-75 hover:opacity-100 cursor-pointer"
               size={20}
               onMouseDown={() => {
                 handleMouseDown(1, 360);
@@ -378,27 +383,46 @@ function GradientSelector() {
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
             />
-          </React.Fragment>
-        ) : (
-          <div className="flex flex-row gap-2 h-[28px] p-1 text-sm my-3 justify-between w-full bg-neutral-200/50 dark:bg-neutral-900/50 rounded">
-            Position
-            <span className="flex flex-row gap-1">
-              <input
-                type="number"
-                value={pos.x}
-                onChange={(e) => setPos({ ...pos, x: e.target.value })}
-                className="pl-2 border w-[51px] rounded bg-white border-neutral-300/50 dark:bg-neutral-900/50 dark:border-neutral-700/50"
-                placeholder="X"
-              />
-              <input
-                type="number"
-                value={pos.y}
-                onChange={(e) => setPos({ ...pos, y: e.target.value })}
-                className="pl-2 w-[51px] border rounded bg-white border-neutral-300/50 dark:bg-neutral-900/50 dark:border-neutral-700/50"
-                placeholder="Y"
-              />
-            </span>
+            </div>
           </div>
+        ) : (
+        <div className="flex-shrink-0 mx-2.5 border border-[var(--border-color)]/50 rounded-lg bg-black/5 dark:bg-black/15 w-full my-5">
+          <div className="flex flex-row gap-1 items-center">
+            <h4 className="text-[var(--text-primary)]/75 p-2 h-full">
+              Position
+            </h4>
+            <div className="flex gap-2 items-center min-w-0 p-1  w-full">
+              <span className="text-xs flex items-center text-[var(--text-secondary)]/50">X</span>
+              <div className="relative flex-1 min-w-0">
+                <input
+                  type="number"
+                  placeholder="X"
+                  value={pos.x}
+                  onChange={(e) => setPos({ ...pos, x: e.target.value })}
+                  className="w-full py-[2px] px-2 text-xs border border-[var(--border-color)]/25 rounded bg-[var(--bg-main)]"
+                />
+                <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-secondary)]/60">
+                  %
+                </span>
+              </div>
+        
+              <span className="text-xs flex items-center text-[var(--text-secondary)]/50">Y</span>
+              <div className="relative flex-1 min-w-0">
+                <input
+                  type="number"
+                  placeholder="Y"
+                  value={pos.y}
+                  onChange={(e) => setPos({ ...pos, y: e.target.value })}
+                  className="w-full py-[2px] px-2 text-xs border border-[var(--border-color)]/25 rounded bg-[var(--bg-main)]"
+                />
+                <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-secondary)]/60">
+                  %
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         )}
       </div>
     </div>

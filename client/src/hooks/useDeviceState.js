@@ -13,7 +13,7 @@ export const useDeviceState = () => {
   // Background configuration
   const [background, setBackground] = useState({
     style: "solid",
-    color: "#ffad6c",
+    color: "#7ED03B",
     bg: "https://wallpapers.com/images/featured/iphone-12-pro-max-hknmpjtf3rmp9egv.jpg",
     gradient: {
       type: "linear",
@@ -29,7 +29,7 @@ const [qrConfig, setQRConfig] = useState({
     url: "www.qrki.xyz",
     custom: { 
       primaryColor: "#000000",
-      secondaryColor: "#ffffff",
+      secondaryColor: "#FFFFFF",
       borderSizeRatio: 0,        // 0-20% of QR size
       borderColor: "#000000", 
       cornerRadiusRatio: 0       // 0-50% of border size

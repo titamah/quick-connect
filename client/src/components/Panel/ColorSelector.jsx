@@ -102,7 +102,7 @@ function ColorSelector(panelSize) {
           <input
             value={inputText}
             onChange={(e) => {
-              const newValue = e.target.value;
+              const newValue = e.target.value.toUpperCase();
               setInputText(newValue);
               if (chroma.valid(newValue)) {
                 updateColors(newValue);
