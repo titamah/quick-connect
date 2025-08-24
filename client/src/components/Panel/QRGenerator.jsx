@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import "preline/preline";
 import { useDevice } from "../../contexts/DeviceContext";
+import CustomColorInput from "./CustomColorInput";
 import { QRCode, ColorPicker } from "antd";
 import Slider from "../Slider";
 import chroma from "chroma-js";
@@ -31,7 +32,7 @@ function QRGenerator(panelSize) {
     }
     return [...new Set(items)];
   }
-  
+
   useEffect(() => {
     const svgElement = qrCodeRef.current?.querySelector("svg");
     if (svgElement && qrCodeRef.current) {
@@ -51,29 +52,59 @@ function QRGenerator(panelSize) {
   };
 
   // Get current colors from QR config (with fallbacks)
-  const primaryColor = device.qr.custom?.primaryColor || "#000";
-  const secondaryColor = device.qr.custom?.secondaryColor || "#fff";
+  const primaryColor = device.qr.custom?.primaryColor || "#000000";
+  const secondaryColor = device.qr.custom?.secondaryColor || "#FFFFFF";
+
+  const [primaryColorInput, setPrimaryColorInput] = useState(primaryColor);
+  const [primaryOpacityInput, setPrimaryOpacityInput] = useState(100);
+
+  const [secondaryColorInput, setSecondaryColorInput] =
+    useState(secondaryColor);
+  const [secondaryOpacityInput, setSecondaryOpacityInput] = useState(100);
+
+  const [borderColorInput, setBorderColorInput] = useState(
+    device.qr.custom?.borderColor || "#000000"
+  );
+  const [borderOpacityInput, setBorderOpacityInput] = useState(100);
+
+  function combineHexWithOpacity(color, opacity) {
+    // Ensure color is 7 chars (#RRGGBB)
+    const hex = color.slice(0, 7);
+
+    // Clamp opacity between 0–100
+    let safeOpacity = Math.min(100, Math.max(0, opacity));
+
+    // If opacity is 100, just return the color
+    if (safeOpacity === 100) {
+      return hex;
+    }
+
+    // Convert 0–100 -> 0–255, then to 2-digit hex
+    const alpha = Math.round((safeOpacity / 100) * 255)
+      .toString(16)
+      .padStart(2, "0");
+
+    return hex + alpha; // => "#RRGGBBAA"
+  }
 
   return (
     <div id="qr-input-box">
-      <h2 className=" p-3.5">
-        QR Code
-      </h2>
-    <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5">
-      URL
-    </h3>
-    <div className="p-2 pb-5">
-      <input
-        id="qr-input"
-        type="text"
-        className="w-full px-2 py-1 text-xs bg-[var(--contrast-sheer)]/50 border border-[var(--border-color)]/50 focus:outline-none focus:border-[var(--accent)]/50 rounded-xl"
-        value={device.qr.url}
-        onChange={(e) =>
-          updateQRConfig({ 
-            url: e.target.value
-          })
-        }
-      />
+      <h2 className=" p-3.5">QR Code</h2>
+      <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5">
+        URL
+      </h3>
+      <div className="p-2 pb-5">
+        <input
+          id="qr-input"
+          type="text"
+          className="w-full px-2 py-1 text-xs bg-[var(--contrast-sheer)]/50 border border-[var(--border-color)]/50 focus:outline-none focus:border-[var(--accent)]/50 rounded-xl"
+          value={device.qr.url}
+          onChange={(e) =>
+            updateQRConfig({
+              url: e.target.value,
+            })
+          }
+        />
       </div>
       <div className="hidden">
         <QRCode
@@ -87,111 +118,205 @@ function QRGenerator(panelSize) {
           bgColor={secondaryColor}
         />
       </div>
-    <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5 mb-2.5">
-      Color
-    </h3>
+      <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5 mb-2.5">
+        Color
+      </h3>
       <div className="flex items-center pb-2.5 px-3.5">
-      <h4> Primary </h4>
-        <ColorPicker
-          value={primaryColor}
-          placement="bottomRight"
-          presets={[{label: "Recently Used", colors: buildHexArray('qr')}]}
-          className="qr-color-picker"
-          onChange={(color) => {
+        <h4> Primary </h4>
+        <CustomColorInput
+          value={combineHexWithOpacity(primaryColorInput, primaryOpacityInput)}
+          colorValue={primaryColorInput}
+          hasOpacity
+          opacityValue={primaryOpacityInput}
+          preset={[buildHexArray("qr")]}
+          onChange={(c) => {
+            let color = chroma(c.toHexString());
+            let hex = color.hex().slice(0, 7).toUpperCase();
+            let alpha = Math.round(color.alpha() * 100);
+            setPrimaryColorInput(hex);
+            setPrimaryOpacityInput(alpha);
             updateQRConfig({
               custom: {
                 ...device.qr.custom,
-                primaryColor: getColorString(color),
-              }
+                primaryColor: combineHexWithOpacity(hex, alpha),
+              },
             });
           }}
-          format="hex"
-          size="small"
-          showText
+          onColorChange={(e) => {
+            let color = e.target.value;
+            if (!color.startsWith("#")) {
+              color = "#" + color;
+            }
+            setPrimaryColorInput(color.toUpperCase());
+            if (chroma.valid(color)) {
+              updateQRConfig({
+                custom: {
+                  ...device.qr.custom,
+                  primaryColor: combineHexWithOpacity(
+                    color,
+                    primaryOpacityInput
+                  ),
+                },
+              });
+            }
+          }}
+          onOpacityChange={(e) => {
+            let opacity = e.target.value;
+            console.log(opacity);
+            if (opacity < 0) opacity = 0;
+            if (opacity > 100) opacity = 100;
+            setPrimaryOpacityInput(opacity);
+            updateQRConfig({
+              custom: {
+                ...device.qr.custom,
+                primaryColor: combineHexWithOpacity(primaryColorInput, opacity),
+              },
+            });
+          }}
         />
       </div>
       <div className="flex items-center pb-5 px-3.5">
-      <h4> Secondary </h4>
-        <ColorPicker
-          value={secondaryColor}
-          placement="bottomRight"
-          className="qr-color-picker"
-          presets={[{label: "Recently Used", colors: buildHexArray('bg')}]}
-          onChange={(color) => {
-            updateQRConfig({
-              custom: {
-                ...device.qr.custom,
-                secondaryColor: getColorString(color),
-              }
-            });
-          }}
-          format="hex"
-          size="small"
-          showText
-        />
+        <h4> Secondary </h4>
+      <CustomColorInput
+      value={combineHexWithOpacity(secondaryColorInput, secondaryOpacityInput)} 
+      colorValue={secondaryColorInput} 
+      hasOpacity
+      opacityValue={secondaryOpacityInput}
+      preset={[buildHexArray("qr")]}
+      onChange={(c) => {
+        let color = chroma(c.toHexString());
+        let hex = color.hex().slice(0,7).toUpperCase();
+        let alpha = Math.round(color.alpha() * 100);
+        setSecondaryColorInput(hex);
+        setSecondaryOpacityInput(alpha);
+        updateQRConfig({
+          custom: {
+            ...device.qr.custom,
+            secondaryColor: combineHexWithOpacity(hex, alpha),
+          },
+        });
+      }} 
+      onColorChange={(e)=>{
+        let color = e.target.value;
+        if (!color.startsWith("#")) {
+          color = "#" + color;
+        }
+        setSecondaryColorInput(color.toUpperCase());
+        if(chroma.valid(color)){
+        updateQRConfig({
+          custom: {
+            ...device.qr.custom,
+            secondaryColor: combineHexWithOpacity(color, secondaryOpacityInput),
+          },
+        });}
+      }}
+      onOpacityChange={(e)=>{
+        let opacity = e.target.value;
+        console.log(opacity);
+        if (opacity < 0) opacity = 0;
+        if (opacity > 100) opacity = 100;
+        setSecondaryOpacityInput(opacity);
+        updateQRConfig({
+          custom: {
+            ...device.qr.custom,
+            secondaryColor: combineHexWithOpacity(secondaryColorInput, opacity),
+          },
+        });
+      }}
+      />
       </div>
-    <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5 mb-2.5">
-      Border
-    </h3>
+      <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5 mb-2.5">
+        Border
+      </h3>
       <div className="flex items-center pb-2.5 px-3.5">
-      <h4> Color</h4>
-        <ColorPicker
-          value={device.qr.custom.borderColor}
-          placement="bottomRight"
-          presets={[{label: "Recently Used", colors: buildHexArray('border')}]}
-          className="qr-color-picker"
-          onChange={(color) => {
-            updateQRConfig({
-              custom: {
-                ...device.qr.custom,
-                borderColor: color.toHexString(),
-              }
-            });
-          }}
-          format="hex"
-          size="small"
-          showText
-        />
+        <h4> Color</h4>
+      <CustomColorInput
+      value={combineHexWithOpacity(borderColorInput, borderOpacityInput)} 
+      colorValue={borderColorInput} 
+      hasOpacity
+      opacityValue={borderOpacityInput}
+      preset={[buildHexArray("qr")]}
+      onChange={(c) => {
+        let color = chroma(c.toHexString());
+        let hex = color.hex().slice(0,7).toUpperCase();
+        let alpha = Math.round(color.alpha() * 100);
+        setBorderColorInput(hex);
+        setBorderOpacityInput(alpha);
+        updateQRConfig({
+          custom: {
+            ...device.qr.custom,
+            borderColor: combineHexWithOpacity(hex, alpha),
+          },
+        });
+      }} 
+      onColorChange={(e)=>{
+        let color = e.target.value;
+        if (!color.startsWith("#")) {
+          color = "#" + color;
+        }
+        setBorderColorInput(color.toUpperCase());
+        if(chroma.valid(color)){
+        updateQRConfig({
+          custom: {
+            ...device.qr.custom,
+            borderColor: combineHexWithOpacity(color, borderOpacityInput),
+          },
+        });}
+      }}
+      onOpacityChange={(e)=>{
+        let opacity = e.target.value;
+        console.log(opacity);
+        if (opacity < 0) opacity = 0;
+        if (opacity > 100) opacity = 100;
+        setBorderOpacityInput(opacity);
+        updateQRConfig({
+          custom: {
+            ...device.qr.custom,
+            borderColor: combineHexWithOpacity(borderColorInput, opacity),
+          },
+        });
+      }}
+      />
       </div>
       <div className="flex items-center pb-1.5 px-3.5">
-<h4> Width</h4>
-  <Slider
-    min="0"
-    max="200"  // 0-20% of QR size
-    step="0.5"
-    value={device.qr.custom.borderSizeRatio}
-    onChange={(e) => {
-      updateQRConfig({
-        custom: {
-          ...device.qr.custom,
-          borderSizeRatio: parseFloat(e.target.value),
-        }
-      });
-    }}
-  />
-</div>
-<div className="flex items-center pb-5 px-3.5">
-<h4> Radius</h4>
-  <Slider
-    min="0"
-    max="100"  // 0-50% of border size
-    step="1"
-    value={device.qr.custom.cornerRadiusRatio}
-    onChange={(e) => {
-      updateQRConfig({
-        custom: {
-          ...device.qr.custom,
-          cornerRadiusRatio: parseFloat(e.target.value),
-        }
-      });
-    }}
-  />
-</div>
-    <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5 mb-2.5">
-      Icon
-    </h3>
+        <h4> Width</h4>
+        <Slider
+          min="0"
+          max="200" // 0-20% of QR size
+          step="0.5"
+          value={device.qr.custom.borderSizeRatio}
+          onChange={(e) => {
+            updateQRConfig({
+              custom: {
+                ...device.qr.custom,
+                borderSizeRatio: parseFloat(e.target.value),
+              },
+            });
+          }}
+        />
+      </div>
+      <div className="flex items-center pb-5 px-3.5">
+        <h4> Radius</h4>
+        <Slider
+          min="0"
+          max="100" // 0-50% of border size
+          step="1"
+          value={device.qr.custom.cornerRadiusRatio}
+          onChange={(e) => {
+            updateQRConfig({
+              custom: {
+                ...device.qr.custom,
+                cornerRadiusRatio: parseFloat(e.target.value),
+              },
+            });
+          }}
+        />
+      </div>
+      <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5 mb-2.5">
+        Icon
+      </h3>
       <div className="flex items-center pb-2.5 px-3.5">
-      <h4> File Name</h4>
+        <h4> File Name</h4>
         *** IMAGE UPLOADER ***
       </div>
     </div>

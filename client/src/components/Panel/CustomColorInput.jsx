@@ -1,15 +1,13 @@
 import { ColorPicker } from "antd";
 import { useState } from "react";
 
-export default function CustomColorInput(colorValue, hasOpacity, opacityValue, preset, onChange, onColorChange, onOpacityChange) {
-  const [color, setColor] = useState("#F5F5F5");
-  const [opacity, setOpacity] = useState(100);
+export default function CustomColorInput({value, colorValue, hasOpacity, opacityValue, preset, onChange, onColorChange, onOpacityChange}) {
 
   return (
 <div className="flex items-center border bg-black/5 dark:bg-black/15 px-1 text-[var(--text-secondary)] min-w-0 h-[24px] rounded border-[var(--border-color)]/75">
         {/* Left input (hex text) */}
         <ColorPicker
-          value={colorValue}
+          value={value}
           placement="bottomRight"
           presets={[
             { label: "Recently Used", colors: preset },
@@ -28,8 +26,7 @@ export default function CustomColorInput(colorValue, hasOpacity, opacityValue, p
           type="text"
           value={colorValue}
           onChange={onColorChange}
-          placeholder="#F5F5F5"
-          className="flex-1 min-w-0 px-2 py-2 bg-transparent outline-none text-sm"
+          className="flex-1 min-w-0 px-2 py-2 bg-transparent outline-none text-xs"
         />
 
         {/* Divider */}
