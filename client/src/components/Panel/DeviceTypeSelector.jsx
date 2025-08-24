@@ -144,7 +144,7 @@ function DeviceTypeSelector() {
       {/* Header with Custom Button */}
       <div className="flex-shrink-0 flex justify-between items-center pb-3 px-3.5">
         <h2>
-          Select Device
+        Select Device
         </h2>
         {!showCustomSizeInput && (
             <Plus 

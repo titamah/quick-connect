@@ -55,7 +55,7 @@ function CustomBackgroundSelector({ panelSize }) {
       {/* Header */}
       <div className="border-b border-[var(--border-color)]/25 p-3.5">
         <h2 className="mb-5">
-          Background
+        Set Background
         </h2>
         
         {/* Tab Navigation */}

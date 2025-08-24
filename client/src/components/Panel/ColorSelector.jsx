@@ -96,7 +96,7 @@ function ColorSelector(panelSize) {
       <div
         id="ColorSelectPanel"
         ref={pickerRef}
-        className="dark:text-white w-full h-[290px] px-5 space-y-2.5"
+        className="w-full h-[290px] px-5 space-y-2.5"
       >
         <span className="flex flex-row items-center justify-between w-full mb-2 ">
           <input
@@ -111,16 +111,11 @@ function ColorSelector(panelSize) {
             className="p-1 border-1 border-black/10 dark:border-white/10 text-neutral-600 dark:text-neutral-200/75 text-sm align-center rounded-sm px-[15px] w-[95px]"
           />
           <Grip
-            className="opacity-75 hover:opacity-100 cursor-pointer"
-            size={20}
-            onClick={() => {
-              const curr = device.grain;
-              setDevice((prevDevice) => ({
-                ...prevDevice,
-                grain: !curr,
-              }));
-            }}
-          />
+          className="opacity-75 hover:opacity-100 cursor-pointer"
+          size={20}
+          onClick={() => setDevice(d => ({ ...d, grain: !d.grain }))}
+        />
+        
         </span>
         <HexColorPicker
           color={color}

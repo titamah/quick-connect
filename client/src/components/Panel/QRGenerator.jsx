@@ -89,7 +89,7 @@ function QRGenerator(panelSize) {
 
   return (
     <div id="qr-input-box">
-      <h2 className=" p-3.5">QR Code</h2>
+      <h2 className=" p-3.5">Customize QR Code</h2>
       <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5">
         URL
       </h3>

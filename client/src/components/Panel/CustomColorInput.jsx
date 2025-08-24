@@ -4,7 +4,7 @@ import { useState } from "react";
 export default function CustomColorInput({value, colorValue, hasOpacity, opacityValue, preset, onChange, onColorChange, onOpacityChange}) {
 
   return (
-<div className="flex items-center border bg-black/5 dark:bg-black/15 px-1 text-[var(--text-secondary)] min-w-0 h-[24px] rounded border-[var(--border-color)]/75">
+<div className="flex items-center border bg-black/5 dark:bg-black/15 px-1 text-[var(--text-secondary)] min-w-0 w-full h-[24px] rounded border-[var(--border-color)]/75">
         {/* Left input (hex text) */}
         <ColorPicker
           value={value}

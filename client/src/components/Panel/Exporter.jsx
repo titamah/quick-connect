@@ -81,7 +81,7 @@ const Exporter = forwardRef(({}, ref) => {
 
   return (
     <div className="flex flex-col gap-y-3.5 p-3.5">
-      <h2> Export Wallpaper</h2>
+      <h2> Save Wallpaper</h2>
       <div>
       <h4 className="py-1.5">
         File Name
@@ -111,7 +111,7 @@ const Exporter = forwardRef(({}, ref) => {
                   name="hs-horizontal-list-group-item-radio"
                   type="radio"
                   value={true}
-                  className=""
+                  className="!checked:border !checked:border-[var(--accent)]"
                   checked={downloadSettings.isPng}
                   onChange={() =>
                     setDownloadSettings({
@@ -136,7 +136,7 @@ const Exporter = forwardRef(({}, ref) => {
                     name="hs-horizontal-list-group-item-radio"
                     type="radio"
                     value={false}
-                    className="border-gray-200 rounded-full disabled:opacity-50 dark:bg-neutral-800 dark:border-neutral-700 dark:checked:bg-blue-500 dark:checked:border-blue-500 dark:focus:ring-offset-gray-800"
+                    className="checked:bg-[var(--accent)]"
                     checked={!downloadSettings.isPng}
                     onChange={() =>
                       setDownloadSettings({
