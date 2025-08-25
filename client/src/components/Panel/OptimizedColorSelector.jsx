@@ -52,7 +52,7 @@ const OptimizedColorSelector = ({ panelSize }) => {
   }, []);
 
   // Generate active colors palette
-  const colorCircles = useMemo(() => {
+  const colorBoxes = useMemo(() => {
     if (!panelSize?.width) return null;
 
     // Use the active colors from the palette (excluding current background color)
@@ -65,11 +65,16 @@ const OptimizedColorSelector = ({ panelSize }) => {
     return activeColors.map((color, index) => (
       <button
         key={`${color}-${index}`}
-        className=" p-1 h-[24px] w-[24px] rounded-sm border border-[var(--border-color)]/50 hover:opacity-75 transition-opacity cursor-pointer"
-        style={{ backgroundColor: color }}
+        className="flex items-center border bg-black/5 dark:bg-black/15 px-1 text-[var(--text-secondary)] min-w-0 w-full h-[24px] rounded border-[var(--border-color)]/75 hover:opacity-75 transition-opacity cursor-pointer"
         onClick={() => handleColorChange(color)}
         aria-label={`Select color ${color}`}
-      />
+      >
+        <div
+          className="w-4 h-4 rounded-xs mr-2"
+          style={{ backgroundColor: color }}
+        />
+        <span className="text-xs truncate">{color}</span>
+      </button>
     ));
   }, [device.palette, background.color, panelSize?.width]);
 
@@ -128,11 +133,11 @@ const OptimizedColorSelector = ({ panelSize }) => {
       />
 
       {/* Active Colors Palette */}
-      {colorCircles && (
-        <div className="w-full my-4 flex-row flex items-center justify-between">
-          <h4 className="text-xs text-[var(--text-secondary)]/75 w-full max-w-[115px]">Active Colors</h4>
-          <div className="flex flex-row flex-nowrap overflow-hidden w-full gap-1.25 justify-end">
-            {colorCircles}
+      {colorBoxes && (
+        <div className="w-full my-4 space-y-2">
+          <h4 className="text-xs text-[var(--text-secondary)]/75">Active Colors</h4>
+          <div className="space-y-1">
+            {colorBoxes}
           </div>
         </div>
       )}
