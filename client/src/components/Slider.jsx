@@ -97,17 +97,6 @@ const Slider = ({ id, presets, stacked, deleteStop, value, onChange, changeColor
                 className={`appearance-none w-full absolute -translate-y-[2px] ${ stacked ? "" : "rounded-full relative mt-[7.5px] h-[8px] bg-[var(--contrast-sheer)]"}`}
               />)}
       </div>
-      <style jsx>
-        {`
-
-          #${id}-input::-webkit-slider-thumb {
-            background-color: ${color}!important;
-          }
-          #${id}-input::-moz-range-thumb {
-            background-color: ${color}!important;
-          }
-        `}
-      </style>
     </div>
   );
 };

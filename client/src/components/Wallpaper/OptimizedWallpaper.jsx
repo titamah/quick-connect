@@ -5,6 +5,11 @@ import React, { forwardRef, useEffect, useState, useRef, useMemo, useCallback } 
 import { useDevice } from "../../contexts/DeviceContext";
 import { useImageLoader } from "../../hooks/useImageLoader";
 import { useStageCalculations } from "../../hooks/useStageCalculations";
+import { usePerformanceMonitor } from "../../hooks/usePerformanceMonitor";
+import { useDebounce } from "../../hooks/useDebounce";
+
+// Performance monitoring
+const PERFORMANCE_MONITORING = process.env.NODE_ENV === 'development';
 
 // Constants extracted from magic numbers
 const STAGE_PADDING = 0.85;
@@ -16,8 +21,6 @@ const SCALE_ANIMATION_FACTOR = 0.985;
 const OptimizedWallpaper = forwardRef(
   ({ panelSize, isOpen, locked, setIsZoomEnabled }, ref) => {
     const { deviceInfo, background, qrConfig, updateQRConfig } = useDevice();
-    
-    console.log("🎨 OptimizedWallpaper render - Background style:", background.style);
     if (background.style === "image") {
       console.log("Background image URL:", background.imageUrl);
     }
@@ -42,9 +45,23 @@ const OptimizedWallpaper = forwardRef(
       [deviceInfo.size.x, deviceInfo.size.y]
     );
     
-    // Get current QR colors (with fallbacks)
+    // Get current QR colors (with fallbacks) - DEBOUNCED to prevent cascade
     const primaryColor = qrConfig.custom?.primaryColor || "#000";
     const secondaryColor = qrConfig.custom?.secondaryColor || "#fff";
+    
+    // Debounce colors to prevent QR generation cascade
+    const debouncedPrimaryColor = useDebounce(primaryColor, 300);
+    const debouncedSecondaryColor = useDebounce(secondaryColor, 300);
+    
+      // Performance monitoring
+  const performance = usePerformanceMonitor('OptimizedWallpaper', [
+    background.style,
+    qrConfig.url,
+    debouncedPrimaryColor,
+    debouncedSecondaryColor
+  ]);
+
+
     
 // Calculate actual values from ratios
 const actualBorderSize = useMemo(() => 
@@ -182,13 +199,17 @@ const actualBorderSize = useMemo(() =>
 
   // Generate QR code directly in this component
 useEffect(() => {
-    console.log('🔄 QR Generation Effect triggered by:', {
-      url: qrConfig.url,
-      primaryColor,
-      secondaryColor
-    });
+    if (PERFORMANCE_MONITORING) {
+      console.log('🔄 QR Generation Effect triggered by:', {
+        url: qrConfig.url,
+        primaryColor: debouncedPrimaryColor,
+        secondaryColor: debouncedSecondaryColor
+      });
+    }
     
     const generateQRCode = () => {
+      const startTime = PERFORMANCE_MONITORING && window.performance ? window.performance.now() : 0;
+      
       const canvas = qrRef.current?.querySelector("canvas");
       if (!canvas) {
         console.log('QR Canvas not found');
@@ -201,7 +222,10 @@ useEffect(() => {
         
         const qrImage = new Image();
         qrImage.onload = () => {
-          console.log("✅ QR image loaded successfully");
+          if (PERFORMANCE_MONITORING && window.performance) {
+            const endTime = window.performance.now();
+            console.log(`✅ QR image loaded successfully in ${(endTime - startTime).toFixed(2)}ms`);
+          }
           setQRImg(qrImage);
         };
         qrImage.onerror = (error) => {
@@ -215,7 +239,7 @@ useEffect(() => {
     
     const timeoutId = setTimeout(generateQRCode, 100);
     return () => clearTimeout(timeoutId);
-  }, [qrConfig.url, primaryColor, secondaryColor]); // Removed qrSize dependency
+  }, [qrConfig.url, debouncedPrimaryColor, debouncedSecondaryColor]); // Use debounced colors
 
   // Auto-adjust border size when device size changes
 useEffect(() => {
@@ -411,13 +435,13 @@ useEffect(() => {
             }}
           >
             <Group
-  draggable={isDraggable}
-  onDragMove={handleDragMove}
-  ref={shapeRef}
-  x={qrPos.x - qrSize / 2}  // Center based on QR size only, not border
-  y={qrPos.y - qrSize / 2}  // Center based on QR size only, not border
-  height={qrSize + actualBorderSize}
-  width={qrSize + actualBorderSize}
+              draggable={isDraggable}
+              onDragMove={handleDragMove}
+              ref={shapeRef}
+              x={qrPos.x - qrSize / 2}  // Center based on QR size only, not border
+              y={qrPos.y - qrSize / 2}  // Center based on QR size only, not border
+              height={qrSize + actualBorderSize}
+              width={qrSize + actualBorderSize}
   onMouseDown={(e) => {
     e.cancelBubble = true;
     if (transformerRef.current?.nodes().length == 0) {
@@ -444,19 +468,18 @@ useEffect(() => {
                   actualCornerRadius,
                   actualCornerRadius,
                 ]}
-                
               />
               
               {/* QR Code */}
               <Rect
-x={0}
-y={0}
+                x={0}
+                y={0}
                 fillPatternImage={qrImg}
                 fillPatternRepeat="no-repeat"
-  fillPatternScale={qrImg ? {
-    x: qrSize / qrImg.width,
-    y: qrSize / qrImg.height
-  } : { x: 1, y: 1 }}
+                fillPatternScale={qrImg ? {
+                  x: qrSize / qrImg.width,
+                  y: qrSize / qrImg.height
+                } : { x: 1, y: 1 }}
                 height={qrSize}
                 width={qrSize}
               />
