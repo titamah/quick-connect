@@ -10,7 +10,7 @@ export default function CustomColorInput({value, colorValue, hasOpacity, opacity
           value={value}
           placement="bottomRight"
           presets={[
-            { label: "Recently Used", colors: preset },
+            { label: "Active Colors", colors: preset },
           ]}
           onChange={onChange}
           format="hex"

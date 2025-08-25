@@ -229,7 +229,7 @@ function QRGenerator(panelSize) {
           colorValue={primaryColorInput}
           hasOpacity
           opacityValue={primaryOpacityInput}
-          preset={[getPaletteForColor(primaryColorInput)]}
+          preset={getPaletteForColor(primaryColorInput)}
                 onColorPickerOpen={() => handleColorPickerOpen(primaryColorInput)}
       onColorPickerClose={handleColorPickerClose}
           onChange={(c) => {
@@ -305,7 +305,7 @@ function QRGenerator(panelSize) {
       colorValue={secondaryColorInput} 
       hasOpacity
       opacityValue={secondaryOpacityInput}
-      preset={[getPaletteForColor(secondaryColorInput)]}
+      preset={getPaletteForColor(secondaryColorInput)}
       onColorPickerOpen={() => handleColorPickerOpen(secondaryColorInput)}
       onColorPickerClose={handleColorPickerClose}
       onChange={(c) => {
@@ -384,7 +384,7 @@ function QRGenerator(panelSize) {
       colorValue={borderColorInput} 
       hasOpacity
       opacityValue={borderOpacityInput}
-      preset={[getPaletteForColor(borderColorInput)]}
+      preset={getPaletteForColor(borderColorInput)}
       onColorPickerOpen={() => handleColorPickerOpen(borderColorInput)}
       onColorPickerClose={handleColorPickerClose}
       onChange={(c) => {

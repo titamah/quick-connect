@@ -365,7 +365,7 @@ function GradientSelector() {
                 max="100"
                 color={color}
                 presets={[
-                  { label: "Recently Used", colors: getPresetForGradientStop(index) },
+                  { label: "Active Colors", colors: getPresetForGradientStop(index) },
                 ]}
                 onColorPickerOpen={() => handleColorPickerOpen(index)}
                 onColorPickerClose={handleColorPickerClose}
