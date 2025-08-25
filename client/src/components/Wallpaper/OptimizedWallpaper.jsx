@@ -53,7 +53,7 @@ const OptimizedWallpaper = forwardRef(
     const debouncedPrimaryColor = useDebounce(primaryColor, 300);
     const debouncedSecondaryColor = useDebounce(secondaryColor, 300);
     
-      // Performance monitoring
+        // Performance monitoring
   const performance = usePerformanceMonitor('OptimizedWallpaper', [
     background.style,
     qrConfig.url,
@@ -62,6 +62,8 @@ const OptimizedWallpaper = forwardRef(
   ]);
 
 
+
+  
     
 // Calculate actual values from ratios
 const actualBorderSize = useMemo(() => 
@@ -305,6 +307,7 @@ useEffect(() => {
         setTimeout(() => {
           setIsDragging(false);
           transformer.nodes([qrGroup]);
+          // Batch draw after all changes
           transformer.getLayer().batchDraw();
         }, 5);
       };
@@ -314,6 +317,7 @@ useEffect(() => {
         setTimeout(() => {
           setIsDragging(true);
           transformer.nodes([]);
+          // Batch draw after all changes
           transformer.getLayer().batchDraw();
         }, 5);
       };
@@ -322,6 +326,7 @@ useEffect(() => {
       const handleTransformEnd = (e) => {
         setTimeout(() => {
           transformer.nodes([qrGroup]);
+          // Batch draw after all changes
           transformer.getLayer().batchDraw();
         }, 5);
       };
@@ -334,8 +339,9 @@ useEffect(() => {
       const handleOutsideClick = (e) => {
         if (transformer.nodes().length > 0) {
           transformer.nodes([]);
-          transformer.getLayer().batchDraw();
           setIsZoomEnabled(false);
+          // Batch draw after all changes
+          transformer.getLayer().batchDraw();
         }
       };
 
@@ -389,22 +395,23 @@ useEffect(() => {
             // Only deselect if clicking on the stage background, not on QR or transformer
             if (e.target === e.target.getStage()) {
               transformerRef.current?.nodes([]);
-              transformerRef.current?.getLayer()?.batchDraw();
+              // Batch draw will be called in onMouseUp
             }
           }}
           onMouseUp={(e) => {
             // Handle clicks outside QR to deselect transformer
             if (transformerRef.current?.nodes().length > 0) {
               transformerRef.current.nodes([]);
-              transformerRef.current.getLayer().batchDraw();
               setIsZoomEnabled(false);
             } else {
-            if (!locked){
-              setIsZoomEnabled(false);
-            } else {
+              if (!locked){
+                setIsZoomEnabled(false);
+              } else {
                 setIsZoomEnabled(true);
+              }
             }
-            }
+            // Single batch draw for all mouse up operations
+            transformerRef.current?.getLayer()?.batchDraw();
           }}
         >
           {/* Background Layer */}
@@ -451,6 +458,7 @@ useEffect(() => {
         setIsZoomEnabled(false);
         if (transformerRef.current && shapeRef.current) {
           transformerRef.current.nodes([shapeRef.current]);
+          // Batch draw after all transformer setup
           transformerRef.current.getLayer().batchDraw();
         }
       }, 100);
