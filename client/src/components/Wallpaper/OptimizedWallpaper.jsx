@@ -7,6 +7,7 @@ import { useImageLoader } from "../../hooks/useImageLoader";
 import { useStageCalculations } from "../../hooks/useStageCalculations";
 import { usePerformanceMonitor } from "../../hooks/usePerformanceMonitor";
 import { useDebounce } from "../../hooks/useDebounce";
+import { useImageCache } from "../../hooks/useImageCache";
 
 // Performance monitoring
 const PERFORMANCE_MONITORING = process.env.NODE_ENV === 'development';
@@ -28,6 +29,7 @@ const OptimizedWallpaper = forwardRef(
     // Memoized calculations to prevent unnecessary recalculations
     const stageScale = useStageCalculations(deviceInfo.size, panelSize, isOpen);
     const { patternImage, imageSize, isImageLoaded } = useImageLoader(background, deviceInfo.size);
+    const { loadImage } = useImageCache();
     
     // QR Code state
     const [qrImg, setQRImg] = useState(null);
@@ -39,6 +41,7 @@ const OptimizedWallpaper = forwardRef(
     
     // Grain image state
     const [grainImage, setGrainImage] = useState(null);
+    const grainLoadedRef = useRef(false);
     
     const qrSize = useMemo(() => 
       Math.min(deviceInfo.size.x, deviceInfo.size.y) * QR_SIZE_RATIO,
@@ -261,26 +264,28 @@ useEffect(() => {
     }
   }, [deviceInfo.size.x, deviceInfo.size.y]);
 
-// Load grain image with CORS support
+// Load grain image once with proper caching
 useEffect(() => {
-  const img = new Image();
-  // Try without crossOrigin first for local files
-  // img.crossOrigin = "anonymous"; // COMMENT THIS OUT FOR NOW
-  img.src = "/grain.jpeg";
-  img.onload = () => {
-    console.log("Grain image loaded successfully");
-    setGrainImage(img);
-    // Force a re-render of the stage when grain loads
-    if (ref.current) {
-      ref.current.batchDraw();
-    }
-  };
-  img.onerror = () => {
-    console.error('Failed to load grain texture from /grain.jpeg');
-    // Continue without grain - don't break the export
-    setGrainImage(null);
-  };
-}, []);
+  // Only load if not already loaded
+  if (!grainLoadedRef.current) {
+    grainLoadedRef.current = true;
+    
+    loadImage('/grain.jpeg', { crossOrigin: 'anonymous' })
+      .then((img) => {
+        console.log("Grain image loaded successfully");
+        setGrainImage(img);
+        // Force a re-render of the stage when grain loads
+        if (ref.current) {
+          ref.current.batchDraw();
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to load grain texture from /grain.jpeg', error);
+        // Continue without grain - don't break the export
+        setGrainImage(null);
+      });
+  }
+}, []); // Empty dependency array - only run once
 
     // Update draggable state
     useEffect(() => {

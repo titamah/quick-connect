@@ -8,9 +8,11 @@ import ColorThief from "colorthief";
 import Dropdown from "../Panel/Dropdown";
 import ImageLibrary from "../Panel/ImageLibrary";
 import { Resizable } from "react-resizable";
+import { useImageCache } from "../../hooks/useImageCache";
 
 function ImageUploader() {
   const { device, updateBackground, updateQRConfig, updateDeviceInfo } = useDevice();
+  const { createObjectURL } = useImageCache();
 
   const [source, setSource] = useState("Upload");
   // const [source, setSource] = useState("Upload");
@@ -89,10 +91,8 @@ function ImageUploader() {
   }, [source]);
 
   const cropImage = async () => {
-    const croppedBlob = await getCroppedImg(
-      URL.createObjectURL(originalFile),
-      crop
-    );
+    const objectUrl = createObjectURL(originalFile);
+    const croppedBlob = await getCroppedImg(objectUrl, crop);
     const croppedFile = new File([croppedBlob], originalFile.name, {
       type: originalFile.type,
     });
@@ -102,10 +102,10 @@ function ImageUploader() {
 
   useEffect(() => {
     if (file) {
-      const url = URL.createObjectURL(file);
+      const url = createObjectURL(file);
       updateBackground({ bg: url });
     }
-  }, [file]);
+  }, [file, createObjectURL]);
 
 useEffect(() => {
   if (!originalFile) {
@@ -113,10 +113,11 @@ useEffect(() => {
     setModalOpen(false);
   } else {
     setModalOpen(true);
-    // Create an image from the original file
+    // Create an image from the original file with proper object URL management
+    const objectUrl = createObjectURL(originalFile);
     const img = new Image();
     img.crossOrigin = "Anonymous";
-    img.src = URL.createObjectURL(originalFile);
+    img.src = objectUrl;
 
     img.onload = () => {
       const colorThiefInstance = new ColorThief();
@@ -134,7 +135,7 @@ useEffect(() => {
       console.log("device palette:", device.palette);
     };
   }
-}, [originalFile]);
+}, [originalFile, createObjectURL]);
 
   const deleteFile = () => {
     setOriginalFile(null);
@@ -163,7 +164,7 @@ useEffect(() => {
           ruleOfThirds
         >
           <img
-            src={originalFile ? URL.createObjectURL(originalFile) : undefined}
+            src={originalFile ? createObjectURL(originalFile) : undefined}
             onLoad={initCrop}
             alt="Crop preview"
           />

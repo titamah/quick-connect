@@ -1,10 +1,12 @@
 // hooks/useImageLoader.js
 import { useState, useEffect, useMemo } from 'react';
+import { useImageCache } from './useImageCache';
 
 export const useImageLoader = (background, deviceSize) => {
   const [patternImage, setPatternImage] = useState(null);
   const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const { loadImage } = useImageCache();
 
   // Load image when background changes
   useEffect(() => {
@@ -14,27 +16,27 @@ export const useImageLoader = (background, deviceSize) => {
       return;
     }
 
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    
-    img.onload = () => {
-      setPatternImage(img);
-      setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight });
-      setIsImageLoaded(true);
-    };
-    
-    img.onerror = () => {
-      console.error('Failed to load image:', background.bg);
-      setIsImageLoaded(false);
-    };
-    
-    img.src = background.bg;
+    let isMounted = true;
+
+    loadImage(background.bg, { crossOrigin: 'anonymous' })
+      .then((img) => {
+        if (isMounted) {
+          setPatternImage(img);
+          setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight });
+          setIsImageLoaded(true);
+        }
+      })
+      .catch((error) => {
+        if (isMounted) {
+          console.error('Failed to load image:', background.bg, error);
+          setIsImageLoaded(false);
+        }
+      });
 
     return () => {
-      img.onload = null;
-      img.onerror = null;
+      isMounted = false;
     };
-  }, [background.style, background.bg]);
+  }, [background.style, background.bg, loadImage]);
 
   // Calculate image scaling and positioning
   const imageSize = useMemo(() => {
