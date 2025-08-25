@@ -5,7 +5,7 @@ import Canvas from "../components/Canvas/index.jsx";
 const StudioPage = () => {
   const [isOpen, setIsOpen] = React.useState(true);
   const [panelSize, setPanelSize] = React.useState({
-    width: 350,
+    width: 450,
     height: window.innerHeight / 3,
   });
   const wallpaperRef = React.useRef(null);
