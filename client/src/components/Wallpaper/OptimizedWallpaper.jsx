@@ -408,7 +408,7 @@ useEffect(() => {
         >
           {/* Background Layer */}
           <Layer>
-            <Rect {...backgroundProps} />
+            <Rect {...backgroundProps} listening={false} />
             
             {/* Grain overlay */}
             {background.grain && grainImage && (
@@ -422,6 +422,7 @@ useEffect(() => {
                 fillPriority="pattern"
                 globalCompositeOperation="luminosity"
                 opacity={0.065}
+                listening={false}
               />
             )}
           </Layer>
@@ -514,6 +515,7 @@ useEffect(() => {
                 strokeWidth={5}
                 dash={[25, 15]}
                 points={[deviceInfo.size.x / 2, 0, deviceInfo.size.x / 2, deviceInfo.size.y]}
+                listening={false}
               />
             )}
             
@@ -523,6 +525,7 @@ useEffect(() => {
                 strokeWidth={5}
                 dash={[25, 15]}
                 points={[0, deviceInfo.size.y / 2, deviceInfo.size.x, deviceInfo.size.y / 2]}
+                listening={false}
               />
             )}
           </Layer>
