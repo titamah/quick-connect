@@ -8,7 +8,7 @@ import { useDevice } from "../../contexts/DeviceContext";
 import { useDebounce } from "../../hooks/useDebounce";
 
 const OptimizedColorSelector = ({ panelSize }) => {
-  const { background, updateBackground, palette } = useDevice();
+  const { device, background, updateBackground, palette } = useDevice();
   const pickerRef = useRef(null);
   
   // Local state for immediate UI updates
@@ -51,36 +51,27 @@ const OptimizedColorSelector = ({ panelSize }) => {
     }
   }, []);
 
-  // Generate color palette efficiently
+  // Generate active colors palette
   const colorCircles = useMemo(() => {
     if (!panelSize?.width) return null;
 
-    const num = Math.round((panelSize.width - 20) / 40);
-    const validColors = [
-      palette.qr, 
-      palette.bg, 
-      palette.border
-    ].filter(color => chroma.valid(color));
+    // Use the active colors from the palette (excluding current background color)
+    const activeColors = device.palette.filter(color => 
+      chroma.valid(color) && color !== background.color
+    );
 
-    if (validColors.length === 0) return null;
+    if (activeColors.length === 0) return null;
 
-    try {
-      const chromaScale = chroma.scale(validColors).mode("lch").colors(num);
-      
-      return chromaScale.map((color, index) => (
-        <button
-          key={`${color}-${index}`}
-          className="recent-color my-auto border-black/25 dark:border-black/75 hover:opacity-50 transition-opacity"
-          style={{ backgroundColor: color }}
-          onClick={() => handleColorChange(color)}
-          aria-label={`Select color ${color}`}
-        />
-      ));
-    } catch (error) {
-      console.warn('Error generating color palette:', error);
-      return null;
-    }
-  }, [palette.qr, palette.bg, palette.border, panelSize?.width]);
+    return activeColors.map((color, index) => (
+      <button
+        key={`${color}-${index}`}
+        className=" p-1 h-[24px] w-[24px] rounded-sm border border-[var(--border-color)]/50 hover:opacity-75 transition-opacity cursor-pointer"
+        style={{ backgroundColor: color }}
+        onClick={() => handleColorChange(color)}
+        aria-label={`Select color ${color}`}
+      />
+    ));
+  }, [device.palette, background.color, panelSize?.width]);
 
   // Optimized color change handler
   const handleColorChange = useCallback((newColor) => {
@@ -136,10 +127,11 @@ const OptimizedColorSelector = ({ panelSize }) => {
         className="space-y-1 !w-full"
       />
 
-      {/* Color palette */}
+      {/* Active Colors Palette */}
       {colorCircles && (
-        <div className="w-full mb-3">
-          <div className="flex flex-row flex-nowrap overflow-hidden w-full my-3 gap-2.5">
+        <div className="w-full my-4 flex-row flex items-center justify-between">
+          <h4 className="text-xs text-[var(--text-secondary)]/75 w-full max-w-[115px]">Active Colors</h4>
+          <div className="flex flex-row flex-nowrap overflow-hidden w-full gap-1.25 justify-end">
             {colorCircles}
           </div>
         </div>

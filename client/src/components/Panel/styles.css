@@ -32,7 +32,7 @@
     box-shadow: 0 0 0 1px var(--accent)!important;
 }
 
-.recent-color {
+/* .recent-color {
     display: block !important;
     transition-duration: 250ms;
     border-width: 1.5px;
@@ -43,7 +43,7 @@
 }
 .recent-color:hover {
     opacity: 50%;
-} 
+}  */
 
 .hover {
     opacity: 0;
