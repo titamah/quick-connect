@@ -1,27 +1,21 @@
-// App.jsx - Simplified and optimized
+// App.jsx - Router setup
 import "./App.css";
 import "preline/preline";
-import { useState, useRef, useEffect, useMemo } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { ConfigProvider, theme } from "antd";
 import { DeviceProvider } from "./contexts/DeviceContext";
 import Header from "./components/Header/index";
-import Panel from "./components/Panel/index";
-import Canvas from "./components/Canvas/index";
+import LandingPage from "./pages/LandingPage";
+import StudioPage from "./pages/StudioPage";
+import GalleryPage from "./pages/GalleryPage";
+import React from "react";
 
 function App() {
-  // UI state - keep this local since it's UI-specific
-  const [isOpen, setIsOpen] = useState(true);
-  const [panelSize, setPanelSize] = useState({
-    width: 350,
-    height: window.innerHeight / 3,
-  });
-  const wallpaperRef = useRef(null);
-
   // Theme detection
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = React.useState(false);
   
-  useEffect(() => {
+  React.useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handler = (e) => setIsDarkMode(e.matches);
     
@@ -31,7 +25,7 @@ function App() {
     return () => mediaQuery.removeEventListener("change", handler);
   }, []);
 
-  const antdConfig = useMemo(() => ({
+  const antdConfig = React.useMemo(() => ({
     components: {
       Tabs: {
         horizontalItemPadding: 0,
@@ -47,20 +41,15 @@ function App() {
   return (
     <ConfigProvider theme={antdConfig}>
       <DeviceProvider>
-        <ToastContainer />
-        <Header />
-        <Panel
-          setIsOpen={setIsOpen}
-          isOpen={isOpen}
-          panelSize={panelSize}
-          setPanelSize={setPanelSize}
-          wallpaperRef={wallpaperRef}
-        />
-        <Canvas
-          isOpen={isOpen}
-          panelSize={panelSize}
-          wallpaperRef={wallpaperRef}
-        />
+        <Router>
+          <ToastContainer />
+          <Header />
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/studio" element={<StudioPage />} />
+            <Route path="/gallery" element={<GalleryPage />} />
+          </Routes>
+        </Router>
       </DeviceProvider>
     </ConfigProvider>
   );
