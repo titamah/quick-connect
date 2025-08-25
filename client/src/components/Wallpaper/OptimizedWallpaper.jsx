@@ -384,6 +384,7 @@ useEffect(() => {
             transition: "ease-in-out",
           }}
           ref={ref}
+          perfectDrawEnabled={false}
           onMouseDown={(e) => {
             // Only deselect if clicking on the stage background, not on QR or transformer
             if (e.target === e.target.getStage()) {
