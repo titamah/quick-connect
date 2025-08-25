@@ -65,7 +65,7 @@ const OptimizedColorSelector = ({ panelSize }) => {
     return activeColors.map((color, index) => (
       <button
         key={`${color}-${index}`}
-        className="flex items-center border bg-black/5 dark:bg-black/15 px-1 text-[var(--text-secondary)] min-w-0 w-full h-[24px] rounded border-[var(--border-color)]/75 hover:opacity-75 transition-opacity cursor-pointer"
+        className="flex items-center border bg-black/5 dark:bg-black/15 px-1 text-[var(--text-secondary)] min-w-0 w-full h-[24px] rounded border-[var(--border-color)]/60 hover:opacity-75 transition-opacity cursor-pointer"
         onClick={() => handleColorChange(color)}
         aria-label={`Select color ${color}`}
       >
@@ -82,19 +82,49 @@ const OptimizedColorSelector = ({ panelSize }) => {
   const handleColorChange = useCallback((newColor) => {
     if (!chroma.valid(newColor)) return;
     
-    setLocalColor(newColor);
-    setInputText(newColor);
+    setLocalColor(newColor.toUpperCase());
+    setInputText(newColor.toUpperCase());
   }, []);
 
-  // Optimized input change handler
+  // Input change handler - just update the input text
   const handleInputChange = useCallback((e) => {
-    const newValue = e.target.value;
-    setInputText(newValue);
+    let newValue = e.target.value.toUpperCase();
     
-    if (chroma.valid(newValue)) {
-      setLocalColor(newValue);
+    // Add # prefix if missing
+    if (newValue && !newValue.startsWith('#')) {
+      newValue = '#' + newValue;
     }
+    
+    // Remove any non-hex characters except #
+    newValue = newValue.replace(/[^#0-9A-F]/gi, '');
+    
+    // Limit to 7 characters (including #)
+    if (newValue.length > 7) {
+      newValue = newValue.slice(0, 7);
+    }
+    
+    setInputText(newValue);
   }, []);
+
+  // Handle blur - validate and update color if valid
+  const handleInputBlur = useCallback(() => {
+    if (chroma.valid(inputText)) {
+      setLocalColor(inputText.toUpperCase());
+    } else {
+      // Reset to original value if invalid
+      setInputText(background.color.toUpperCase());
+    }
+  }, [inputText, background.color]);
+
+  // Handle Enter key - validate and update color if valid
+  const handleInputKeyDown = useCallback((e) => {
+    if (e.key === 'Enter' && chroma.valid(inputText)) {
+      setLocalColor(inputText.toUpperCase());
+    } else if (e.key === 'Enter') {
+      // Reset to original value if invalid
+      setInputText(background.color.toUpperCase());
+    }
+  }, [inputText, background.color]);
 
   // Toggle grain effect
   const toggleGrain = useCallback(() => {
@@ -112,6 +142,8 @@ const OptimizedColorSelector = ({ panelSize }) => {
         <input
           value={inputText}
           onChange={handleInputChange}
+          onBlur={handleInputBlur}
+          onKeyDown={handleInputKeyDown}
           className="p-1 border-1 border-black/10 dark:border-white/10 text-neutral-600 dark:text-neutral-200/75 text-sm rounded-sm px-[15px] w-[95px]"
           placeholder="#ffffff"
           maxLength={7}

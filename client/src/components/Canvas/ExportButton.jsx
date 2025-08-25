@@ -1,9 +1,11 @@
 import { useState, forwardRef } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
+import { usePreview } from "../../contexts/PreviewContext";
 import { toast } from "react-toastify";
 
 const ExportButton = forwardRef(({}, ref) => {
   const { device, updateBackground, updateQRConfig, updateDeviceInfo } = useDevice();
+  const { isPreviewVisible, setIsPreviewVisible } = usePreview();
   const [downloadSettings, setDownloadSettings] = useState({
     isPng: true,
     size: 1,
@@ -57,63 +59,77 @@ const ExportButton = forwardRef(({}, ref) => {
   }
 
   const exportImage = () => {
-    try {
-      const mimeType = downloadSettings.isPng ? "image/png" : "image/jpeg";
-      const extension = downloadSettings.isPng ? ".png" : ".jpg";
-      
-      // Get the data URL from the canvas
-      const dataURL = ref.current.toDataURL({
-        mimeType: mimeType,
-        pixelRatio: downloadSettings.size,
-        quality: downloadSettings.quality,
-      });
-      
-      if (!dataURL) {
-        throw new Error('Failed to generate image data');
-      }
-      
-      // Convert to blob for Safari compatibility
-      const blob = dataURLtoBlob(dataURL);
-      
-      // Add proper file extension to the filename
-      const filename = device.name + extension;
-      
-      // Download using blob URL instead of data URL
-      downloadBlob(blob, filename);
-      
-      toast.success("Download complete", {
-        position: "bottom-right",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: false,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
-    } catch (error) {
-      console.error("Export failed:", error);
-      
-      // Check if it's a CORS/tainted canvas issue
-      if (error.message && error.message.includes('insecure')) {
-        toast.error("Unable to export: Images must be loaded from the same domain or with proper CORS headers. Try disabling the grain effect or using local images.", {
-          position: "bottom-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-      } else {
-        toast.error("Failed to export image. Please try again.", {
-          position: "bottom-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-      }
+    // Temporarily hide phone UI for export
+    const wasPreviewVisible = isPreviewVisible;
+    if (isPreviewVisible) {
+      setIsPreviewVisible(false);
     }
+    
+    // Wait a frame to ensure the UI is hidden before export
+    setTimeout(() => {
+      try {
+        const mimeType = downloadSettings.isPng ? "image/png" : "image/jpeg";
+        const extension = downloadSettings.isPng ? ".png" : ".jpg";
+        
+        // Get the data URL from the canvas
+        const dataURL = ref.current.toDataURL({
+          mimeType: mimeType,
+          pixelRatio: downloadSettings.size,
+          quality: downloadSettings.quality,
+        });
+        
+        if (!dataURL) {
+          throw new Error('Failed to generate image data');
+        }
+        
+        // Convert to blob for Safari compatibility
+        const blob = dataURLtoBlob(dataURL);
+        
+        // Add proper file extension to the filename
+        const filename = device.name + extension;
+        
+        // Download using blob URL instead of data URL
+        downloadBlob(blob, filename);
+        
+        toast.success("Download complete", {
+          position: "bottom-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: false,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      } catch (error) {
+        console.error("Export failed:", error);
+        
+        // Check if it's a CORS/tainted canvas issue
+        if (error.message && error.message.includes('insecure')) {
+          toast.error("Unable to export: Images must be loaded from the same domain or with proper CORS headers. Try disabling the grain effect or using local images.", {
+            position: "bottom-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+        } else {
+          toast.error("Failed to export image. Please try again.", {
+            position: "bottom-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+        }
+      } finally {
+        // Restore preview state
+        if (wasPreviewVisible) {
+          setIsPreviewVisible(true);
+        }
+      }
+    }, 0);
   };
 
     return (

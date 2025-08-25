@@ -3,7 +3,7 @@ import { useDevice } from "../../contexts/DeviceContext";
 import { Col, Modal } from "antd";
 import { ReactCrop, makeAspectCrop, centerCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import { Grip, Trash2, Upload } from "lucide-react";
+import { Grip, Trash2, Upload, Pencil } from "lucide-react";
 import ColorThief from "colorthief";
 import Dropdown from "../Panel/Dropdown";
 import ImageLibrary from "../Panel/ImageLibrary";
@@ -105,7 +105,7 @@ function ImageUploader() {
       const url = createObjectURL(file);
       updateBackground({ bg: url });
     }
-  }, [file, createObjectURL]);
+  }, [file]);
 
 useEffect(() => {
   if (!originalFile) {
@@ -135,7 +135,7 @@ useEffect(() => {
       console.log("device palette:", device.palette);
     };
   }
-}, [originalFile, createObjectURL]);
+}, [originalFile]);
 
   const deleteFile = () => {
     setOriginalFile(null);
@@ -153,7 +153,7 @@ useEffect(() => {
         okText="Crop"
         cancelText="Cancel"
         width={400}
-        style={{ position: "relative" }}
+        style={{ display: "flex", alignItems: "center", justifyContent: "center", position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000 }}
       >
         <ReactCrop
           crop={crop}
@@ -202,7 +202,7 @@ useEffect(() => {
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => e.preventDefault()}
             style={{ height }}
-            className="w-fill mb-[1.5px] !rounded-[4px] !border-[5px] !border-white dark:!border-[rgba(38,38,38,1)] !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)]"
+            className="w-fill mb-[1.5px] rounded-sm border border-[5px] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)]"
           >
             {file ? (
               <div
@@ -210,18 +210,17 @@ useEffect(() => {
                 className="w-full h-[170.5px] flex items-center justify-center relative"
               >
                 <div className="hover absolute inset-0 bg-black/50 flex items-center justify-center transition-opacity">
-                  <button
-                    onClick={deleteFile}
-                    className="bg-red-500 text-white p-2 z-1500 rounded-full mx-2"
-                  >
-                    🗑️
-                  </button>
-                  <button
+                  
+                  <Pencil
                     onClick={openModal}
-                    className="bg-blue-500 text-white p-2 z-1500 rounded-full mx-2"
-                  >
-                    ✏️
-                  </button>
+                    className="p-2 z-1500 mx-2"
+                    size={42}
+                  />
+                  <Trash2
+                    onClick={deleteFile}
+                    className="p-2 z-1500 mx-2"
+                    size={42}
+                  />
                 </div>
                 <img
                   src={originalFile ? URL.createObjectURL(originalFile) : null}

@@ -1,8 +1,9 @@
 // components/Wallpaper/OptimizedWallpaper.jsx
-import { Stage, Rect, Layer, Transformer, Line, Group } from "react-konva";
+import { Stage, Rect, Layer, Transformer, Line, Group, Text } from "react-konva";
 import { QRCode } from "antd";
 import React, { forwardRef, useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
+import { usePreview } from "../../contexts/PreviewContext";
 import { useImageLoader } from "../../hooks/useImageLoader";
 import { useStageCalculations } from "../../hooks/useStageCalculations";
 import { usePerformanceMonitor } from "../../hooks/usePerformanceMonitor";
@@ -22,6 +23,10 @@ const SCALE_ANIMATION_FACTOR = 0.985;
 const OptimizedWallpaper = forwardRef(
   ({ panelSize, isOpen, locked, setIsZoomEnabled }, ref) => {
     const { deviceInfo, background, qrConfig, updateQRConfig } = useDevice();
+    const { isPreviewVisible, isHovered } = usePreview();
+    
+    // Determine if phone UI should be shown
+    const showPhoneUI = isPreviewVisible || isHovered;
     if (background.style === "image") {
       console.log("Background image URL:", background.imageUrl);
     }
@@ -544,6 +549,81 @@ useEffect(() => {
               />
             )}
           </Layer>
+
+          {/* Phone UI Layer - Topmost */}
+          {showPhoneUI && (
+            <Layer listening={false} opacity={isHovered ? 0.5 : 1}>
+              {/* Signal Bars */}
+              <Group x={24} y={20} listening={false}>
+                <Rect x={0} y={0} width={1 / stageScale} height={16 / stageScale} fill="white" cornerRadius={0.5 / stageScale} />
+                <Rect x={2 / stageScale} y={2 / stageScale} width={1 / stageScale} height={14 / stageScale} fill="white" cornerRadius={0.5 / stageScale} />
+                <Rect x={4 / stageScale} y={1 / stageScale} width={1 / stageScale} height={15 / stageScale} fill="white" cornerRadius={0.5 / stageScale} />
+                <Rect x={6 / stageScale} y={0} width={1 / stageScale} height={16 / stageScale} fill="white" cornerRadius={0.5 / stageScale} />
+              </Group>
+              
+              {/* Battery */}
+              <Group x={deviceInfo.size.x - 60} y={20} listening={false}>
+                <Rect x={0} y={0} width={24 / stageScale} height={16 / stageScale} stroke="white" strokeWidth={1 / stageScale} cornerRadius={2 / stageScale} />
+                <Rect x={2 / stageScale} y={2 / stageScale} width={18 / stageScale} height={12 / stageScale} fill="white" cornerRadius={1 / stageScale} />
+                <Rect x={26 / stageScale} y={4 / stageScale} width={2 / stageScale} height={8 / stageScale} fill="white" cornerRadius={1 / stageScale} />
+              </Group>
+              
+              {/* Time */}
+              <Text
+                x={deviceInfo.size.x / 2}
+                y={deviceInfo.size.y / 2 - 40}
+                text="4:44 PM"
+                fontSize={48 / stageScale}
+                fontFamily="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif"
+                fill="white"
+                align="center"
+                listening={false}
+                offsetX={100 / stageScale}
+                offsetY={24 / stageScale}
+              />
+              
+              {/* Notification */}
+              <Group x={24} y={deviceInfo.size.y / 2 + 40} listening={false}>
+                <Rect
+                  x={0}
+                  y={0}
+                  width={(deviceInfo.size.x - 48) / stageScale}
+                  height={48 / stageScale}
+                  fill="rgba(255, 255, 255, 0.2)"
+                  cornerRadius={16 / stageScale}
+                  stroke="rgba(255, 255, 255, 0.3)"
+                  strokeWidth={1 / stageScale}
+                />
+                <Text
+                  x={16 / stageScale}
+                  y={16 / stageScale}
+                  text="New Messages"
+                  fontSize={16 / stageScale}
+                  fontFamily="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif"
+                  fill="white"
+                  listening={false}
+                />
+                <Text
+                  x={16 / stageScale}
+                  y={36 / stageScale}
+                  text="1 notification"
+                  fontSize={14 / stageScale}
+                  fontFamily="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif"
+                  fill="rgba(255, 255, 255, 0.8)"
+                  listening={false}
+                />
+                <Text
+                  x={(deviceInfo.size.x - 72) / stageScale}
+                  y={16 / stageScale}
+                  text="3:33 AM"
+                  fontSize={14 / stageScale}
+                  fontFamily="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif"
+                  fill="rgba(255, 255, 255, 0.8)"
+                  listening={false}
+                />
+              </Group>
+            </Layer>
+          )}
         </Stage>
       </div>
   </>

@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { ConfigProvider, theme } from "antd";
 import { DeviceProvider } from "./contexts/DeviceContext";
+import { PreviewProvider } from "./contexts/PreviewContext";
 import Header from "./components/Header/index";
 import LandingPage from "./pages/LandingPage";
 import StudioPage from "./pages/StudioPage";
@@ -41,15 +42,17 @@ function App() {
   return (
     <ConfigProvider theme={antdConfig}>
       <DeviceProvider>
-        <Router>
-          <ToastContainer />
-          <Header />
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/studio" element={<StudioPage />} />
-            <Route path="/gallery" element={<GalleryPage />} />
-          </Routes>
-        </Router>
+        <PreviewProvider>
+          <Router>
+            <ToastContainer />
+            <Header />
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/studio" element={<StudioPage />} />
+              <Route path="/gallery" element={<GalleryPage />} />
+            </Routes>
+          </Router>
+        </PreviewProvider>
       </DeviceProvider>
     </ConfigProvider>
   );
