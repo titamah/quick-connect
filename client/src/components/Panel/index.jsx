@@ -6,24 +6,13 @@ import { Resizable } from "react-resizable";
 import { useDevice } from "../../contexts/DeviceContext";
 import QRGenerator from "./QRGenerator";
 import DeviceTypeSelector from "./DeviceTypeSelector";
-import ToggleButtonArrow from "./ToggleButtonArrow";
 import CustomBackgroundSelector from "./CustomBackgroudSelector";
 import Exporter from "./Exporter";
 import "./styles.css";
 
 function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
   const { device, updateDeviceInfo } = useDevice();
-  const [activeAccordions, setActiveAccordions] = useState([
-    // "accordion-one",
-    "accordion-two",
-    // "accordion-three",
-  ]);
 
-  const handleNameChange = (event) => {
-    updateDeviceInfo({ name: event.target.value });
-  };
-
-  // Panel Box
   const panelRef = useRef(null);
   const [maxHeight, setMaxHeight] = useState(0);
 
@@ -64,11 +53,6 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
     console.log(maxHeight);
   };
 
-  const toggleAccordion = (accordionId) => {
-    activeAccordions.includes(accordionId)
-      ? setActiveAccordions(activeAccordions.filter((id) => id !== accordionId))
-      : setActiveAccordions([...activeAccordions, accordionId]);
-  };
 
   const items = [
     {
@@ -100,8 +84,8 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
         width={panelSize.width}
         height={0}
         minConstraints={[350, 0]}
+        maxConstraints={[600, 0]}
         onResize={onResizeSide}
-        // onResizeStop={onResizeSide}
         resizeHandles={["e"]}
         handle={
           <div className="fixed z-1500 right-0 top-0 h-full w-[10px] cursor-col-resize">
@@ -112,7 +96,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
         <div
           id="side-panel"
           ref={panelRef}
-          className={`hs-overlay fixed max-sm:hidden [--body-scroll:true] transition-[left] duration-350 transform h-[calc(100vh-52px)] z-100 bg-white shadow-[3px_0_8px_1px_rgba(0,0,0,0.075)] dark:bg-neutral-800 dark:border-neutral-700`}
+          className={`hs-overlay fixed max-sm:hidden [--body-scroll:true] transition-[left] duration-350 transform h-[calc(100vh-52px)] z-100 bg-[var(--bg-main)]`}
           style={{
             left: isOpen ? 0 : `${panelSize.width * -1}px`,
             width: `${panelSize.width}px`,
@@ -121,7 +105,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
           aria-labelledby="hs-offcanvas-example-label"
         >
           <span
-            className="absolute top-1/2 right-0 translate-x-1/2 block w-5 h-7 flex items-center bg-white border border-gray-200 text-gray-400 rounded-md  hover:bg-gray-100 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-600 dark:hover:bg-neutral-900"
+            className="absolute top-1/2 right-0 translate-x-1/2 block w-5 h-7 flex items-center border border-[var(--border-color)] text-[var(--contrast)]/50 rounded-md bg-[var(--bg-main)] hover:text-[var(--contrast-sheer)]"
             onClick={togglePanel}
           >
             <svg
