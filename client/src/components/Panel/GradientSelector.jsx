@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState} from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import Slider from "../Slider";
 import Dropdown from "./Dropdown";
 import { ColorPicker, Button, Space, Tooltip } from "antd";
 import chroma from "chroma-js";
+import { useDebouncedCallback } from "../../hooks/useDebounce";
 import {
   BetweenVerticalEnd,
   ArrowLeftRight,
@@ -24,6 +25,17 @@ function GradientSelector() {
     end: { x: 0.5, y: 1 },
   });
   const intervalRef = useRef(null);
+
+  // Debounced update functions to prevent excessive canvas re-renders
+  const debouncedUpdateGradient = useDebouncedCallback((gradientData) => {
+    updateBackground({
+      gradient: gradientData
+    });
+  }, 300);
+
+  const debouncedUpdateGrain = useDebouncedCallback((grain) => {
+    updateBackground({ grain });
+  }, 300);
 
   const handleAngleChange = (e) => {
     let value = parseInt(e.target.value, 10);
@@ -209,16 +221,13 @@ function GradientSelector() {
   };
 
   useEffect(() => {
-    updateBackground({
-      gradient: {
-        type: type,
-        stops: stops.flat(),
-        angle: anglePercent,
-        pos: posPercent,
-      }
+    debouncedUpdateGradient({
+      type: type,
+      stops: stops.flat(),
+      angle: anglePercent,
+      pos: posPercent,
     });
-    console.log(device.palette);
-  }, [stops, type, anglePercent, posPercent]);
+  }, [stops, type, anglePercent, posPercent]); // Removed debouncedUpdateGradient from dependencies
 
   function buildHexArray(excludeKey) {
     const items = [];
@@ -255,7 +264,7 @@ function GradientSelector() {
   className="opacity-75 hover:opacity-100 cursor-pointer"
   size={20}
   onClick={() => {
-    updateBackground({ grain: !device.grain });
+    debouncedUpdateGrain(!device.grain);
   }}
 />
           <BetweenVerticalEnd
@@ -332,17 +341,37 @@ function GradientSelector() {
                 ]}
                 value={percent * 100}
                 onChange={(e) => {
-                  console.log(e);
                   const newPercent = Number(e.target.value) / 100;
                   const newStops = [...stops];
                   newStops[index][0] = newPercent;
                   updateStops(newStops);
                 }}
+                onBlur={() => {
+                  // Immediate update on blur
+                  updateBackground({
+                    gradient: {
+                      type: type,
+                      stops: stops.flat(),
+                      angle: anglePercent,
+                      pos: posPercent,
+                    }
+                  });
+                }}
                 changeColor={(e) => {
-                  console.log(e);
                   const newStops = [...stops];
                   newStops[index][1] = e.toHexString();
                   updateStops(newStops);
+                }}
+                onColorBlur={() => {
+                  // Immediate update on color blur
+                  updateBackground({
+                    gradient: {
+                      type: type,
+                      stops: stops.flat(),
+                      angle: anglePercent,
+                      pos: posPercent,
+                    }
+                  });
                 }}
               />
             ))}
@@ -373,6 +402,17 @@ function GradientSelector() {
               max="360"
               value={angle}
               onChange={handleAngleChange}
+              onBlur={() => {
+                // Immediate update on angle blur
+                updateBackground({
+                  gradient: {
+                    type: type,
+                    stops: stops.flat(),
+                    angle: anglePercent,
+                    pos: posPercent,
+                  }
+                });
+              }}
             />
             <RotateCw
               className=" opacity-75 hover:opacity-100 cursor-pointer"
@@ -399,6 +439,30 @@ function GradientSelector() {
                   placeholder="X"
                   value={pos.x}
                   onChange={(e) => setPos({ ...pos, x: e.target.value })}
+                  onBlur={() => {
+                    // Immediate update on position blur
+                    updateBackground({
+                      gradient: {
+                        type: type,
+                        stops: stops.flat(),
+                        angle: anglePercent,
+                        pos: posPercent,
+                      }
+                    });
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      // Immediate update on Enter
+                      updateBackground({
+                        gradient: {
+                          type: type,
+                          stops: stops.flat(),
+                          angle: anglePercent,
+                          pos: posPercent,
+                        }
+                      });
+                    }
+                  }}
                   className="w-full py-[2px] px-2 text-xs border border-[var(--border-color)]/25 rounded bg-[var(--bg-main)]"
                 />
                 <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-secondary)]/60">
@@ -413,6 +477,30 @@ function GradientSelector() {
                   placeholder="Y"
                   value={pos.y}
                   onChange={(e) => setPos({ ...pos, y: e.target.value })}
+                  onBlur={() => {
+                    // Immediate update on position blur
+                    updateBackground({
+                      gradient: {
+                        type: type,
+                        stops: stops.flat(),
+                        angle: anglePercent,
+                        pos: posPercent,
+                      }
+                    });
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      // Immediate update on Enter
+                      updateBackground({
+                        gradient: {
+                          type: type,
+                          stops: stops.flat(),
+                          angle: anglePercent,
+                          pos: posPercent,
+                        }
+                      });
+                    }
+                  }}
                   className="w-full py-[2px] px-2 text-xs border border-[var(--border-color)]/25 rounded bg-[var(--bg-main)]"
                 />
                 <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-secondary)]/60">

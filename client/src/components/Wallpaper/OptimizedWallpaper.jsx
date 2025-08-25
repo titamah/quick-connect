@@ -53,12 +53,13 @@ const OptimizedWallpaper = forwardRef(
     const debouncedPrimaryColor = useDebounce(primaryColor, 300);
     const debouncedSecondaryColor = useDebounce(secondaryColor, 300);
     
-        // Performance monitoring
+        // Performance monitoring - only track stable dependencies
   const performance = usePerformanceMonitor('OptimizedWallpaper', [
     background.style,
     qrConfig.url,
-    debouncedPrimaryColor,
-    debouncedSecondaryColor
+    // Removed debounced values to prevent infinite re-render loop
+    // debouncedPrimaryColor,
+    // debouncedSecondaryColor
   ]);
 
 
