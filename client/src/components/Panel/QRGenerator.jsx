@@ -8,31 +8,67 @@ import chroma from "chroma-js";
 import { useDebouncedCallback, useThrottledCallback } from "../../hooks/useDebounce";
 
 function QRGenerator(panelSize) {
-  const { device, updateQRConfig } = useDevice();
+  const { device, updateQRConfig, getPaletteExcluding } = useDevice();
   const qrCodeRef = useRef(null);
   const [qrSize, setQRSize] = useState(
     Math.min(device.size.x, device.size.y) / 2
   );
+  
+  // Frozen preset state to prevent flickering during color picking
+  const [frozenPreset, setFrozenPreset] = useState(null);
 
   useEffect(() => {
     setQRSize(Math.min(device.size.x, device.size.y) / 2);
   }, [device.size]);
 
-  function buildHexArray(excludeKey) {
-    const items = [];
-    for (const key in device.palette) {
-      if (key === excludeKey) {
-        continue;
+  // Frozen preset logic to prevent flickering during color picking
+  const handleColorPickerOpen = (currentColor) => {
+    // Freeze palette without the current color
+    if (currentColor) {
+      let normalizedColor = currentColor;
+      if (currentColor.startsWith("rgb")) {
+        const match = currentColor.match(/\d+/g);
+        if (match) {
+          normalizedColor = `#${match.map(num => parseInt(num).toString(16).padStart(2, '0')).join('')}`;
+        }
+      } else if (!currentColor.startsWith("#")) {
+        normalizedColor = `#${currentColor}`;
       }
-      const value = device.palette[key];
-      if (Array.isArray(value)) {
-        items.push(...value);
-      } else {
-        items.push(value);
-      }
+      
+      const normalizedExclude = normalizedColor.toLowerCase();
+      const paletteWithoutCurrent = device.palette.filter(color => color.toLowerCase() !== normalizedExclude);
+      setFrozenPreset(paletteWithoutCurrent);
+    } else {
+      setFrozenPreset([...device.palette]);
     }
-    return [...new Set(items)];
-  }
+  };
+
+  const handleColorPickerClose = () => {
+    setFrozenPreset(null); // Unfreeze
+  };
+
+  // Get palette colors excluding the current color being edited
+  const getPaletteForColor = (currentColor) => {
+    // Use frozen preset if available, otherwise use current palette
+    const paletteToUse = frozenPreset || device.palette;
+    
+    // Ensure we have a valid hex color for comparison
+    if (!currentColor) return paletteToUse;
+    
+    // Normalize the color format
+    let normalizedColor = currentColor;
+    if (currentColor.startsWith("rgb")) {
+      const match = currentColor.match(/\d+/g);
+      if (match) {
+        normalizedColor = `#${match.map(num => parseInt(num).toString(16).padStart(2, '0')).join('')}`;
+      }
+    } else if (!currentColor.startsWith("#")) {
+      normalizedColor = `#${currentColor}`;
+    }
+    
+    const normalizedExclude = normalizedColor.toLowerCase();
+    return paletteToUse.filter(color => color.toLowerCase() !== normalizedExclude);
+  };
 
   useEffect(() => {
     const svgElement = qrCodeRef.current?.querySelector("svg");
@@ -193,7 +229,9 @@ function QRGenerator(panelSize) {
           colorValue={primaryColorInput}
           hasOpacity
           opacityValue={primaryOpacityInput}
-          preset={[buildHexArray("qr")]}
+          preset={[getPaletteForColor(primaryColorInput)]}
+                onColorPickerOpen={() => handleColorPickerOpen(primaryColorInput)}
+      onColorPickerClose={handleColorPickerClose}
           onChange={(c) => {
             let color = chroma(c.toHexString());
             let hex = color.hex().slice(0, 7).toUpperCase();
@@ -267,7 +305,9 @@ function QRGenerator(panelSize) {
       colorValue={secondaryColorInput} 
       hasOpacity
       opacityValue={secondaryOpacityInput}
-      preset={[buildHexArray("qr")]}
+      preset={[getPaletteForColor(secondaryColorInput)]}
+      onColorPickerOpen={() => handleColorPickerOpen(secondaryColorInput)}
+      onColorPickerClose={handleColorPickerClose}
       onChange={(c) => {
         let color = chroma(c.toHexString());
         let hex = color.hex().slice(0,7).toUpperCase();
@@ -344,7 +384,9 @@ function QRGenerator(panelSize) {
       colorValue={borderColorInput} 
       hasOpacity
       opacityValue={borderOpacityInput}
-      preset={[buildHexArray("qr")]}
+      preset={[getPaletteForColor(borderColorInput)]}
+      onColorPickerOpen={() => handleColorPickerOpen(borderColorInput)}
+      onColorPickerClose={handleColorPickerClose}
       onChange={(c) => {
         let color = chroma(c.toHexString());
         let hex = color.hex().slice(0,7).toUpperCase();

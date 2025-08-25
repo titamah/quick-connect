@@ -1,7 +1,7 @@
 import { ColorPicker } from "antd";
 import { useState } from "react";
 
-export default function CustomColorInput({value, colorValue, hasOpacity, opacityValue, preset, onChange, onColorChange, onOpacityChange, onColorBlur, onColorKeyDown, onOpacityBlur, onOpacityKeyDown}) {
+export default function CustomColorInput({value, colorValue, hasOpacity, opacityValue, preset, onChange, onColorChange, onOpacityChange, onColorBlur, onColorKeyDown, onOpacityBlur, onOpacityKeyDown, onColorPickerOpen, onColorPickerClose}) {
 
   return (
 <div className="flex items-center border bg-black/5 dark:bg-black/15 px-1 text-[var(--text-secondary)] min-w-0 w-full h-[24px] rounded border-[var(--border-color)]/75">
@@ -16,6 +16,13 @@ export default function CustomColorInput({value, colorValue, hasOpacity, opacity
           format="hex"
           size="small"
           showText
+          onOpenChange={(open) => {
+            if (open) {
+              onColorPickerOpen?.();
+            } else {
+              onColorPickerClose?.();
+            }
+          }}
         >
           <div
             className={`w-4 h-4 rounded-xs`}

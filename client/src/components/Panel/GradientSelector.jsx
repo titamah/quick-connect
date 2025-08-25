@@ -16,10 +16,13 @@ import {
 import "./styles.css";
 
 function GradientSelector() {
-  const { device, updateBackground, updateQRConfig, updateDeviceInfo } = useDevice();
+  const { device, updateBackground, updateQRConfig, updateDeviceInfo, getPaletteExcluding } = useDevice();
   const [type, setType] = useState(device.gradient.type);
   const gradientBar = useRef(null);
   const [angle, setAngle] = useState(180);
+  
+  // Frozen preset state to prevent flickering during color picking
+  const [frozenPreset, setFrozenPreset] = useState(null);
   const [anglePercent, setAnglePercent] = useState({
     start: { x: 0.5, y: 0 },
     end: { x: 0.5, y: 1 },
@@ -229,21 +232,46 @@ function GradientSelector() {
     });
   }, [stops, type, anglePercent, posPercent]); // Removed debouncedUpdateGradient from dependencies
 
-  function buildHexArray(excludeKey) {
-    const items = [];
-    for (const key in device.palette) {
-      if (key === excludeKey) {
-        continue;
-      }
-      const value = device.palette[key];
-      if (Array.isArray(value)) {
-        items.push(...value);
-      } else {
-        items.push(value);
-      }
+  // Frozen preset logic to prevent flickering during color picking
+  const handleColorPickerOpen = (stopIndex) => {
+    // Freeze palette without the current stop color
+    const currentStopColor = stops[stopIndex]?.[1];
+    if (currentStopColor) {
+      const hexColor = currentStopColor.startsWith("rgb") 
+        ? currentStopColor.match(/\d+/g)?.map(num => parseInt(num).toString(16).padStart(2, '0')).join('')
+        : currentStopColor.replace('#', '');
+      
+      const fullHexColor = hexColor ? `#${hexColor}` : currentStopColor;
+      const normalizedExclude = fullHexColor.toLowerCase();
+      
+      const paletteWithoutCurrent = device.palette.filter(color => color.toLowerCase() !== normalizedExclude);
+      setFrozenPreset(paletteWithoutCurrent);
+    } else {
+      setFrozenPreset([...device.palette]);
     }
-    return [...new Set(items)];
-  }
+  };
+
+  const handleColorPickerClose = () => {
+    setFrozenPreset(null); // Unfreeze
+  };
+
+  // Use frozen preset if available, otherwise use current palette
+  const getPresetForGradientStop = (stopIndex) => {
+    const currentStopColor = stops[stopIndex]?.[1];
+    if (!currentStopColor) return frozenPreset || device.palette;
+    
+    // Convert RGB to hex if needed
+    const hexColor = currentStopColor.startsWith("rgb") 
+      ? currentStopColor.match(/\d+/g)?.map(num => parseInt(num).toString(16).padStart(2, '0')).join('')
+      : currentStopColor.replace('#', '');
+    
+    const fullHexColor = hexColor ? `#${hexColor}` : currentStopColor;
+    const normalizedExclude = fullHexColor.toLowerCase();
+    
+    // Always exclude current color, whether using frozen or live palette
+    const paletteToUse = frozenPreset || device.palette;
+    return paletteToUse.filter(color => color.toLowerCase() !== normalizedExclude);
+  };
 
   const handleMenuClick = (e) => {
     setType(type === "linear" ? "radial" : "linear");
@@ -337,8 +365,10 @@ function GradientSelector() {
                 max="100"
                 color={color}
                 presets={[
-                  { label: "Recently Used", colors: buildHexArray("") },
+                  { label: "Recently Used", colors: getPresetForGradientStop(index) },
                 ]}
+                onColorPickerOpen={() => handleColorPickerOpen(index)}
+                onColorPickerClose={handleColorPickerClose}
                 value={percent * 100}
                 onChange={(e) => {
                   const newPercent = Number(e.target.value) / 100;

@@ -1,7 +1,7 @@
 import { ColorPicker } from "antd";
 import React, { useState, useRef, useEffect } from "react";
 
-const Slider = ({ id, presets, stacked, deleteStop, value, onChange, changeColor, color, min = 0, max = 100 }) => {
+const Slider = ({ id, presets, stacked, deleteStop, value, onChange, changeColor, color, min = 0, max = 100, onColorPickerOpen, onColorPickerClose }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [thumbLeft, setThumbLeft] = useState(0);
   const [openPicker, setOpenPicker] = useState(false);
@@ -62,6 +62,11 @@ const Slider = ({ id, presets, stacked, deleteStop, value, onChange, changeColor
           onChange={changeColor}
           onOpenChange={(e)=>{
             setOpenPicker(e && !drag)
+            if (e && !drag) {
+              onColorPickerOpen?.(); // Call when picker opens
+            } else {
+              onColorPickerClose?.(); // Call when picker closes
+            }
           }}
           getPopupContainer={() => containerRef.current}
           popupStyle={{

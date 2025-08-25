@@ -36,23 +36,58 @@ const [qrConfig, setQRConfig] = useState({
     },
   });
 
-  // Color palette (derived state)
-  const palette = useMemo(() => ({
-    qr: qrConfig.custom.primaryColor || "#000000",
-    bg: qrConfig.custom.secondaryColor || "#FFFFFF", 
-    border: qrConfig.custom.borderColor || "#000000",
-    solid: background.color,
-    gradient: background.gradient.stops
-      .filter((_, i) => i % 2 === 1)
-      .map(color => {
-        if (typeof color === "string" && color.startsWith("rgb")) {
-          const match = color.match(/\d+/g);
-          return match ? `#${match.map(num => parseInt(num).toString(16).padStart(2, '0')).join('')}` : color;
-        }
-        return color;
-      }),
-    image: [], // Will be updated when image is processed
-  }), [background.color, background.gradient.stops, qrConfig.custom.primaryColor, qrConfig.custom.secondaryColor, qrConfig.custom.borderColor]);
+  // Helper function to convert RGB to hex
+  const rgbToHex = (rgbString) => {
+    if (typeof rgbString !== "string" || !rgbString.startsWith("rgb")) {
+      return rgbString; // Return as-is if not RGB
+    }
+    const match = rgbString.match(/\d+/g);
+    return match ? `#${match.map(num => parseInt(num).toString(16).padStart(2, '0')).join('')}` : rgbString;
+  };
+
+  // Dynamic palette that only includes active/in-use colors
+  const palette = useMemo(() => {
+    const activeColors = [];
+
+    // Add QR colors if they exist
+    if (qrConfig.custom.primaryColor) {
+      activeColors.push(rgbToHex(qrConfig.custom.primaryColor));
+    }
+    if (qrConfig.custom.secondaryColor) {
+      activeColors.push(rgbToHex(qrConfig.custom.secondaryColor));
+    }
+    if (qrConfig.custom.borderColor) {
+      activeColors.push(rgbToHex(qrConfig.custom.borderColor));
+    }
+
+    // Add background colors based on style
+    if (background.style === "solid" && background.color) {
+      activeColors.push(rgbToHex(background.color));
+    } else if (background.style === "gradient" && background.gradient.stops) {
+      // Extract colors from gradient stops (every odd index is a color)
+      background.gradient.stops
+        .filter((_, i) => i % 2 === 1) // Only color values, not positions
+        .forEach(color => {
+          if (color) {
+            activeColors.push(rgbToHex(color));
+          }
+        });
+    }
+    // Note: Image colors will be added when image processing is implemented
+
+    // Remove duplicates and return
+    return [...new Set(activeColors)];
+  }, [background.style, background.color, background.gradient.stops, qrConfig.custom.primaryColor, qrConfig.custom.secondaryColor, qrConfig.custom.borderColor]);
+
+  // Helper function to get palette colors excluding a specific color
+  const getPaletteExcluding = useCallback((excludeColor) => {
+    if (!excludeColor) return palette;
+    
+    const excludeHex = rgbToHex(excludeColor);
+    // Normalize both colors for comparison
+    const normalizedExclude = excludeHex.toLowerCase();
+    return palette.filter(color => color.toLowerCase() !== normalizedExclude);
+  }, [palette]);
 
   // Optimized update functions
   const updateDeviceInfo = useCallback((updates) => {
@@ -81,6 +116,7 @@ const [qrConfig, setQRConfig] = useState({
     background,
     qrConfig,
     palette,
+    getPaletteExcluding, // New helper function
     updateDeviceInfo,
     updateBackground,
     updateQRConfig,
