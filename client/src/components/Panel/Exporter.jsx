@@ -1,10 +1,12 @@
 import { useState, forwardRef } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
+import { usePreview } from "../../contexts/PreviewContext";
 import { toast } from "react-toastify";
 import Slider from "../Slider.jsx";
 
 const Exporter = forwardRef(({}, ref) => {
   const { device, updateDeviceInfo } = useDevice();
+  const { isPreviewVisible, setIsPreviewVisible } = usePreview();
   const [downloadSettings, setDownloadSettings] = useState({
     isPng: true,
     size: 0.5,
@@ -47,34 +49,48 @@ const Exporter = forwardRef(({}, ref) => {
   }
 
   const exportImage = () => {
-    try {
-      const mimeType = downloadSettings.isPng ? "image/png" : "image/jpeg";
-      const extension = downloadSettings.isPng ? ".png" : ".jpg";
-
-      const dataURL = ref.current.toDataURL({
-        mimeType,
-        pixelRatio: downloadSettings.size,
-        quality: downloadSettings.quality,
-      });
-
-      if (!dataURL) throw new Error("Failed to generate image data");
-
-      const blob = dataURLtoBlob(dataURL);
-      const filename = device.name + extension;
-
-      downloadBlob(blob, filename);
-
-      toast.success("Download complete", {
-        position: "bottom-right",
-        autoClose: 2000,
-      });
-    } catch (error) {
-      console.error("Export failed:", error);
-      toast.error("Failed to export image. Please try again.", {
-        position: "bottom-right",
-        autoClose: 3000,
-      });
+    // Temporarily hide phone UI for export
+    const wasPreviewVisible = isPreviewVisible;
+    if (isPreviewVisible) {
+      setIsPreviewVisible(false);
     }
+    
+    // Wait a frame to ensure the UI is hidden before export
+    setTimeout(() => {
+      try {
+        const mimeType = downloadSettings.isPng ? "image/png" : "image/jpeg";
+        const extension = downloadSettings.isPng ? ".png" : ".jpg";
+
+        const dataURL = ref.current.toDataURL({
+          mimeType,
+          pixelRatio: downloadSettings.size,
+          quality: downloadSettings.quality,
+        });
+
+        if (!dataURL) throw new Error("Failed to generate image data");
+
+        const blob = dataURLtoBlob(dataURL);
+        const filename = device.name + extension;
+
+        downloadBlob(blob, filename);
+
+        toast.success("Download complete", {
+          position: "bottom-right",
+          autoClose: 2000,
+        });
+      } catch (error) {
+        console.error("Export failed:", error);
+        toast.error("Failed to export image. Please try again.", {
+          position: "bottom-right",
+          autoClose: 3000,
+        });
+      } finally {
+        // Restore preview state
+        if (wasPreviewVisible) {
+          setIsPreviewVisible(true);
+        }
+      }
+    }, 0);
   };
 
   const [name, setName] = useState(device.name);

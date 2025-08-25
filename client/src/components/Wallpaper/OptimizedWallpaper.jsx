@@ -22,7 +22,7 @@ const SCALE_ANIMATION_FACTOR = 0.985;
 
 const OptimizedWallpaper = forwardRef(
   ({ panelSize, isOpen, locked, setIsZoomEnabled }, ref) => {
-    const { deviceInfo, background, qrConfig, updateQRConfig } = useDevice();
+    const { deviceInfo, background, qrConfig, updateQRConfig, updateQRPositionPercentages } = useDevice();
     const { isPreviewVisible, isHovered } = usePreview();
     
     // Determine if phone UI should be shown
@@ -38,10 +38,14 @@ const OptimizedWallpaper = forwardRef(
     
     // QR Code state
     const [qrImg, setQRImg] = useState(null);
-    const [qrPos, setQRPos] = useState(() => ({
-        x: deviceInfo.size.x / 4 + (Math.min(deviceInfo.size.x, deviceInfo.size.y) * QR_SIZE_RATIO) / 2,  // Left edge at 25% + half QR width to get center
-        y: deviceInfo.size.y / 1.75 + (Math.min(deviceInfo.size.x, deviceInfo.size.y) * QR_SIZE_RATIO) / 2,  // Top edge at 57% + half QR height to get center
-      }));
+    const [qrPos, setQRPos] = useState(() => {
+      // Calculate initial position from percentages
+      const qrSize = Math.min(deviceInfo.size.x, deviceInfo.size.y) * QR_SIZE_RATIO;
+      return {
+        x: deviceInfo.size.x * qrConfig.positionPercentages.x,
+        y: deviceInfo.size.y * qrConfig.positionPercentages.y,
+      };
+    });
     
     
     // Grain image state
@@ -200,11 +204,19 @@ const actualBorderSize = useMemo(() =>
         group.y(targetY);
         
         // Update QR position to be the center of the group
-        setQRPos({
+        const newQRPos = {
           x: targetX + qrSize / 2,
           y: targetY + qrSize / 2,
-        });
-      }, [qrSize, SNAP_TOLERANCE]);
+        };
+        setQRPos(newQRPos);
+        
+        // Calculate and store position percentages for device switching consistency
+        const newPercentages = {
+          x: newQRPos.x / deviceInfo.size.x,
+          y: newQRPos.y / deviceInfo.size.y,
+        };
+        updateQRPositionPercentages(newPercentages);
+      }, [qrSize, SNAP_TOLERANCE, deviceInfo.size, updateQRPositionPercentages]);
 
 
 
@@ -299,12 +311,11 @@ useEffect(() => {
 
     // Update QR position when device size changes
     useEffect(() => {
-        const newQRSize = Math.min(deviceInfo.size.x, deviceInfo.size.y) * QR_SIZE_RATIO;
         setQRPos({
-          x: deviceInfo.size.x * 0.25 + newQRSize / 2,  // 25% from left + half QR width
-          y: deviceInfo.size.y * 0.57 + newQRSize / 2,  // 57% from top + half QR height
+          x: deviceInfo.size.x * qrConfig.positionPercentages.x,
+          y: deviceInfo.size.y * qrConfig.positionPercentages.y,
         });
-      }, [deviceInfo.size]);
+      }, [deviceInfo.size, qrConfig.positionPercentages]);
 
     // Set up QR interaction event handlers
     useEffect(() => {
@@ -337,6 +348,20 @@ useEffect(() => {
       const handleTransformEnd = (e) => {
         setTimeout(() => {
           transformer.nodes([qrGroup]);
+          
+          // Calculate and store position percentages after transform
+          const group = qrGroup;
+          const newQRPos = {
+            x: group.x() + qrSize / 2,
+            y: group.y() + qrSize / 2,
+          };
+          
+          const newPercentages = {
+            x: newQRPos.x / deviceInfo.size.x,
+            y: newQRPos.y / deviceInfo.size.y,
+          };
+          updateQRPositionPercentages(newPercentages);
+          
           // Batch draw after all changes
           transformer.getLayer().batchDraw();
         }, 5);
@@ -365,7 +390,7 @@ useEffect(() => {
         transformer.off("transformend", handleTransformEnd);
         document.getElementById("Canvas")?.removeEventListener("mouseup", handleOutsideClick);
       };
-    }, []);
+    }, [qrSize, deviceInfo.size, updateQRPositionPercentages]);
 
     return (
         <>

@@ -4,7 +4,6 @@ import "preline/preline";
 import { zoom, select, zoomIdentity } from "d3";
 import OptimizedWallpaper from '../Wallpaper/OptimizedWallpaper';
 import PreviewButton from "./PreviewButton";
-import ExportButton from "./ExportButton";
 
 function Canvas({ isOpen, panelSize, wallpaperRef, setPalette }) {
   const { device, updateDeviceInfo } = useDevice();
@@ -204,7 +203,6 @@ function Canvas({ isOpen, panelSize, wallpaperRef, setPalette }) {
         style={canvasStyles}
       >
         <PreviewButton />
-        {/* <ExportButton ref={wallpaperRef} /> */}
         <span
           ref={previewRef}
           className="transition-all duration-150 ease-linear"

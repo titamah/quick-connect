@@ -24,7 +24,7 @@ export const useDeviceState = () => {
     grain: false,
   });
 
-// QR Code configuration - UPDATED to use ratios
+// QR Code configuration
 const [qrConfig, setQRConfig] = useState({
     url: "www.qrki.xyz",
     custom: { 
@@ -33,6 +33,11 @@ const [qrConfig, setQRConfig] = useState({
       borderSizeRatio: 0,        // 0-20% of QR size
       borderColor: "#000000", 
       cornerRadiusRatio: 0       // 0-50% of border size
+    },
+    // QR position percentages (0-1) for consistent positioning across device sizes
+    positionPercentages: {
+      x: 0.25,  // 25% from left (default center-left position)
+      y: 0.57,  // 57% from top (default center-bottom position)
     },
   });
 
@@ -102,6 +107,14 @@ const [qrConfig, setQRConfig] = useState({
     setQRConfig(prev => ({ ...prev, ...updates }));
   }, []);
 
+  // Update QR position percentages (for device switching consistency)
+  const updateQRPositionPercentages = useCallback((percentages) => {
+    setQRConfig(prev => ({
+      ...prev,
+      positionPercentages: { ...prev.positionPercentages, ...percentages }
+    }));
+  }, []);
+
   // Legacy compatibility - reconstruct the old device object when needed
   const device = useMemo(() => ({
     ...deviceInfo,
@@ -120,5 +133,6 @@ const [qrConfig, setQRConfig] = useState({
     updateDeviceInfo,
     updateBackground,
     updateQRConfig,
+    updateQRPositionPercentages, // New function for position percentages
   };
 };

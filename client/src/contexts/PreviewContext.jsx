@@ -27,6 +27,7 @@ export const PreviewProvider = ({ children }) => {
     isHovered,
     togglePreview,
     setHovered,
+    setIsPreviewVisible,
   };
 
   return (
