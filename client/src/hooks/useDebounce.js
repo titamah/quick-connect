@@ -46,3 +46,40 @@ export const useDebouncedCallback = (callback, delay) => {
 
   return debouncedCallback;
 };
+
+/**
+ * Throttle a function - limit execution frequency
+ * @param {Function} callback - The function to throttle
+ * @param {number} delay - The minimum delay between executions in milliseconds
+ * @returns {Function} - The throttled function
+ */
+export const useThrottledCallback = (callback, delay) => {
+  const lastCallRef = useRef(0);
+  const lastCallTimerRef = useRef(null);
+  
+  const throttledCallback = useCallback((...args) => {
+    const now = Date.now();
+    
+    if (now - lastCallRef.current >= delay) {
+      // Enough time has passed, execute immediately
+      lastCallRef.current = now;
+      if (typeof callback === 'function') {
+        callback(...args);
+      }
+    } else {
+      // Schedule execution for later
+      if (lastCallTimerRef.current) {
+        clearTimeout(lastCallTimerRef.current);
+      }
+      
+      lastCallTimerRef.current = setTimeout(() => {
+        lastCallRef.current = Date.now();
+        if (typeof callback === 'function') {
+          callback(...args);
+        }
+      }, delay - (now - lastCallRef.current));
+    }
+  }, [callback, delay]);
+
+  return throttledCallback;
+};

@@ -5,7 +5,7 @@ import CustomColorInput from "./CustomColorInput";
 import { QRCode, ColorPicker } from "antd";
 import Slider from "../Slider";
 import chroma from "chroma-js";
-import { useDebouncedCallback } from "../../hooks/useDebounce";
+import { useDebouncedCallback, useThrottledCallback } from "../../hooks/useDebounce";
 
 function QRGenerator(panelSize) {
   const { device, updateQRConfig } = useDevice();
@@ -68,6 +68,8 @@ function QRGenerator(panelSize) {
   );
   const [borderOpacityInput, setBorderOpacityInput] = useState(100);
 
+
+
   // Use ref to always get current device.qr.custom
   const currentQRCustomRef = useRef(device.qr.custom);
   currentQRCustomRef.current = device.qr.custom;
@@ -105,6 +107,25 @@ function QRGenerator(panelSize) {
       });
     }
   }, 300);
+
+  // Throttled update functions for border size and radius (60 FPS)
+  const throttledUpdateBorderSize = useThrottledCallback((size) => {
+    updateQRConfig({
+      custom: {
+        ...currentQRCustomRef.current,
+        borderSizeRatio: size,
+      },
+    });
+  }, 16); // 1000ms / 60fps = 16.67ms
+
+  const throttledUpdateCornerRadius = useThrottledCallback((radius) => {
+    updateQRConfig({
+      custom: {
+        ...currentQRCustomRef.current,
+        cornerRadiusRatio: radius,
+      },
+    });
+  }, 16); // 1000ms / 60fps = 16.67ms
 
   function combineHexWithOpacity(color, opacity) {
     // Safety checks for undefined values
@@ -398,12 +419,9 @@ function QRGenerator(panelSize) {
           step="0.5"
           value={device.qr.custom.borderSizeRatio}
           onChange={(e) => {
-            updateQRConfig({
-              custom: {
-                ...device.qr.custom,
-                borderSizeRatio: parseFloat(e.target.value),
-              },
-            });
+            const newValue = parseFloat(e.target.value);
+            // Throttled update for smooth 60 FPS performance
+            throttledUpdateBorderSize(newValue);
           }}
         />
       </div>
@@ -415,12 +433,9 @@ function QRGenerator(panelSize) {
           step="1"
           value={device.qr.custom.cornerRadiusRatio}
           onChange={(e) => {
-            updateQRConfig({
-              custom: {
-                ...device.qr.custom,
-                cornerRadiusRatio: parseFloat(e.target.value),
-              },
-            });
+            const newValue = parseFloat(e.target.value);
+            // Throttled update for smooth 60 FPS performance
+            throttledUpdateCornerRadius(newValue);
           }}
         />
       </div>
