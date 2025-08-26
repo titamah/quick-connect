@@ -105,7 +105,7 @@ const Exporter = forwardRef(({}, ref) => {
         <input
           id="qr-input"
           type="text"
-          className="w-full px-2 py-1 text-xs bg-[var(--contrast-sheer)]/50 border border-[var(--border-color)]/50 focus:outline-none focus:border-[var(--accent)]/50 rounded-xl"
+          className="w-full px-2 py-1 text-xs bg-black/5 dark:bg-black/15 border border-[var(--border-color)]/50 focus:outline-none focus:border-[var(--accent)]/50 rounded-xl"
           value={name}
           onChange={(e) => {
             setName(e.target.value);
@@ -119,55 +119,27 @@ const Exporter = forwardRef(({}, ref) => {
       </div>
       <div className="flex-col rounded-lg ">
           <h4 className="py-1.5">File Type</h4>
-          <ul className="flex flex-row">
-            <li className="inline-flex w-full py-1 px-4 border border-[var(--border-color)]  border-r-[var(--border-color)]/50 rounded-tl-lg rounded-bl-lg">
+          <ul className="flex flex-row bg-black/5 dark:bg-black/15 rounded-lg">
+            <li 
+              className="inline-flex w-full py-1 px-4 border border-[var(--border-color)]/50 border-r-[var(--border-color)]/25 rounded-tl-lg rounded-bl-lg cursor-pointer hover:bg-[var(--border-color)]/10"
+              onClick={() => setDownloadSettings({...downloadSettings, isPng: true})}
+            >
               <div className="flex items-center h-5">
-                <input
-                  id="hs-horizontal-list-group-item-radio-1"
-                  name="hs-horizontal-list-group-item-radio"
-                  type="radio"
-                  value={true}
-                  className="!checked:border !checked:border-[var(--accent)]"
-                  checked={downloadSettings.isPng}
-                  onChange={() =>
-                    setDownloadSettings({
-                      ...downloadSettings,
-                      isPng: true,
-                    })
-                  }
-                />
+                <div className={`w-4 h-4 rounded-full border-2 bg-[var(--bg-main)] transition-all duration-200 ease-in-out ${downloadSettings.isPng ? " border-[var(--accent)] border-5" : "border-[var(--border-color)]"}`}></div>
               </div>
-              <label
-                htmlFor="hs-horizontal-list-group-item-radio-1"
-                className="ms-3 block w-full text-sm text-gray-600 dark:text-neutral-500"
-              >
+              <div className="ms-3 block w-full text-sm text-gray-600 dark:text-neutral-500 cursor-pointer">
                 PNG
-              </label>
+              </div>
             </li>
-            <li className="inline-flex w-full py-1 px-4 border border-[var(--border-color)] border-l-[var(--border-color)]/50 rounded-tr-lg rounded-br-lg">
-              <div className="relative flex items-start w-full">
-                <div className="flex items-center h-5">
-                  <input
-                    id="hs-horizontal-list-group-item-radio-2"
-                    name="hs-horizontal-list-group-item-radio"
-                    type="radio"
-                    value={false}
-                    className="checked:bg-[var(--accent)]"
-                    checked={!downloadSettings.isPng}
-                    onChange={() =>
-                      setDownloadSettings({
-                        ...downloadSettings,
-                        isPng: false,
-                      })
-                    }
-                  />
-                </div>
-                <label
-                  htmlFor="hs-horizontal-list-group-item-radio-2"
-                  className="ms-3 block w-full text-sm text-gray-600 dark:text-neutral-500"
-                >
-                  JPEG
-                </label>
+            <li 
+              className="inline-flex w-full py-1 px-4 border border-[var(--border-color)]/50 border-l-[var(--border-color)]/25 rounded-tr-lg rounded-br-lg cursor-pointer hover:bg-[var(--border-color)]/10"
+              onClick={() => setDownloadSettings({...downloadSettings, isPng: false})}
+            >
+              <div className="flex items-center h-5">
+                             <div className={`w-4 h-4 rounded-full border-2 bg-[var(--bg-main)] transition-all duration-200 ease-in-out ${!downloadSettings.isPng ? " border-[var(--accent)] border-5" : "border-[var(--border-color)]"}`}></div>
+              </div>
+              <div className="ms-3 block w-full text-sm text-gray-600 dark:text-neutral-500 cursor-pointer">
+                JPEG
               </div>
             </li>
           </ul>
