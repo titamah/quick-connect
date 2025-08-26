@@ -3,15 +3,20 @@ import { useDevice } from "../../contexts/DeviceContext";
 import Slider from "../Slider";
 import { RotateCcw, RotateCw } from "lucide-react";
 
-const AngleInput = () => {
-  const { device, updateQRConfig } = useDevice();
-  const [angle, setAngle] = useState(device.qr.rotation || 0);
+const AngleInput = ({ 
+  type = "qr", // "qr" or "gradient"
+  angle: currentAngle, // current angle value
+  onUpdate, // update function
+  max = 360 // max angle value
+}) => {
+  const { device } = useDevice();
+  const [angle, setAngle] = useState(currentAngle || 0);
   const intervalRef = useRef(null);
 
-  // Update local state when QR rotation changes
+  // Update local state when angle changes
   useEffect(() => {
-    setAngle(device.qr.rotation || 0);
-  }, [device.qr.rotation]);
+    setAngle(currentAngle || 0);
+  }, [currentAngle]);
 
   const handleAngleChange = (e) => {
     let value = parseInt(e.target.value, 10);
@@ -29,10 +34,8 @@ const AngleInput = () => {
 
     setAngle(value);
     
-    // Update QR rotation immediately
-    updateQRConfig({
-      rotation: value,
-    });
+    // Update angle immediately
+    onUpdate(value);
   };
 
   const handleMouseDown = (val, lim) => {
@@ -40,12 +43,17 @@ const AngleInput = () => {
 
     intervalRef.current = setInterval(() => {
       setAngle((prevAngle) => {
-        if (prevAngle === lim) {
+        const newAngle = prevAngle === lim ? lim : prevAngle + val;
+        
+        if (newAngle === lim) {
           clearInterval(intervalRef.current);
           intervalRef.current = null;
-          return lim;
         }
-        return prevAngle + val;
+        
+        // Update angle immediately
+        onUpdate(newAngle);
+        
+        return newAngle;
       });
     }, 20);
   };
@@ -56,9 +64,7 @@ const AngleInput = () => {
   };
 
   const handleAngleBlur = () => {
-    updateQRConfig({
-      rotation: angle,
-    });
+    onUpdate(angle);
   };
 
   return (
@@ -77,10 +83,10 @@ const AngleInput = () => {
           onMouseLeave={handleMouseUp}
         />
         <Slider
-          id="qr-angle-slide"
+          id={`${type}-angle-slide`}
           color={"var(--accent)"}
           min="0"
-          max="360"
+          max={max}
           value={angle}
           onChange={handleAngleChange}
           onBlur={handleAngleBlur}
@@ -89,7 +95,7 @@ const AngleInput = () => {
           className="opacity-75 hover:opacity-100 cursor-pointer"
           size={20}
           onMouseDown={() => {
-            handleMouseDown(1, 360);
+            handleMouseDown(1, max);
           }}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}

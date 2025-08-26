@@ -1,58 +1,87 @@
 import React, { useState, useEffect } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 
-const PositionInput = () => {
-  const { device, updateQRConfig } = useDevice();
+const PositionInput = ({ 
+  type = "qr", // "qr" or "gradient"
+  position, // current position object
+  onUpdate, // update function
+  deviceSize, // device size for QR boundary calculations
+  units = "px" // "px" for QR, "%" for gradient
+}) => {
+  const { device } = useDevice();
   
-  // Calculate QR size (same logic as OptimizedWallpaper)
-  const QR_SIZE_RATIO = 0.5;
-  const qrSize = Math.min(device.size.x, device.size.y) * QR_SIZE_RATIO;
+  // Calculate boundary constraints (only for QR)
+  let minX = 0, maxX = 100, minY = 0, maxY = 100;
+  if (type === "qr") {
+    const QR_SIZE_RATIO = 0.5;
+    const qrSize = Math.min(deviceSize.x, deviceSize.y) * QR_SIZE_RATIO;
+    minX = qrSize / 2;
+    maxX = deviceSize.x - qrSize / 2;
+    minY = qrSize / 2;
+    maxY = deviceSize.y - qrSize / 2;
+  }
   
-  // Calculate boundary constraints
-  const minX = qrSize / 2;
-  const maxX = device.size.x - qrSize / 2;
-  const minY = qrSize / 2;
-  const maxY = device.size.y - qrSize / 2;
-  
-  // Convert percentages to pixel values for display
+  // Convert to display values
   const [pos, setPos] = useState({
-    x: Math.round(device.qr.positionPercentages.x * device.size.x),
-    y: Math.round(device.qr.positionPercentages.y * device.size.y),
+    x: type === "qr" 
+      ? Math.round(position.x * deviceSize.x)
+      : Math.round(position.x * 100),
+    y: type === "qr" 
+      ? Math.round(position.y * deviceSize.y)
+      : Math.round(position.y * 100),
   });
 
-  // Update local state when device size changes
+  // Update local state when position or device size changes
   useEffect(() => {
-    const rawX = Math.round(device.qr.positionPercentages.x * device.size.x);
-    const rawY = Math.round(device.qr.positionPercentages.y * device.size.y);
+    const rawX = type === "qr" 
+      ? Math.round(position.x * deviceSize.x)
+      : Math.round(position.x * 100);
+    const rawY = type === "qr" 
+      ? Math.round(position.y * deviceSize.y)
+      : Math.round(position.y * 100);
     
-    // Apply boundary constraints
-    const constrainedX = Math.max(minX, Math.min(maxX, rawX));
-    const constrainedY = Math.max(minY, Math.min(maxY, rawY));
+    // Apply boundary constraints (only for QR)
+    let constrainedX = rawX, constrainedY = rawY;
+    if (type === "qr") {
+      constrainedX = Math.max(minX, Math.min(maxX, rawX));
+      constrainedY = Math.max(minY, Math.min(maxY, rawY));
+    }
     
     setPos({
       x: constrainedX,
       y: constrainedY,
     });
-  }, [device.size.x, device.size.y, device.qr.positionPercentages, minX, maxX, minY, maxY]);
+  }, [position.x, position.y, deviceSize.x, deviceSize.y, minX, maxX, minY, maxY, type]);
 
   const handlePositionChange = (axis, value) => {
-    // Apply boundary constraints
+    // Apply boundary constraints (only for QR)
     let constrainedValue = value;
-    
-    if (axis === 'x') {
-      constrainedValue = Math.max(minX, Math.min(maxX, value));
-    } else if (axis === 'y') {
-      constrainedValue = Math.max(minY, Math.min(maxY, value));
+    if (type === "qr") {
+      if (axis === 'x') {
+        constrainedValue = Math.max(minX, Math.min(maxX, value));
+      } else if (axis === 'y') {
+        constrainedValue = Math.max(minY, Math.min(maxY, value));
+      }
     }
     
     const newPos = { ...pos, [axis]: constrainedValue };
     setPos(newPos);
+    
+    // Update immediately for real-time feedback
+    const newPosition = {
+      x: type === "qr" ? newPos.x / deviceSize.x : newPos.x / 100,
+      y: type === "qr" ? newPos.y / deviceSize.y : newPos.y / 100,
+    };
+    onUpdate(newPosition);
   };
 
   const handlePositionBlur = () => {
-    // Apply boundary constraints before converting to percentages
-    const constrainedX = Math.max(minX, Math.min(maxX, pos.x));
-    const constrainedY = Math.max(minY, Math.min(maxY, pos.y));
+    // Apply boundary constraints (only for QR)
+    let constrainedX = pos.x, constrainedY = pos.y;
+    if (type === "qr") {
+      constrainedX = Math.max(minX, Math.min(maxX, pos.x));
+      constrainedY = Math.max(minY, Math.min(maxY, pos.y));
+    }
     
     // Update local state with constrained values
     setPos({
@@ -60,15 +89,13 @@ const PositionInput = () => {
       y: constrainedY,
     });
     
-    // Convert constrained pixel values back to percentages
-    const newPercentages = {
-      x: constrainedX / device.size.x,
-      y: constrainedY / device.size.y,
+    // Convert to position values
+    const newPosition = {
+      x: type === "qr" ? constrainedX / deviceSize.x : constrainedX / 100,
+      y: type === "qr" ? constrainedY / deviceSize.y : constrainedY / 100,
     };
     
-    updateQRConfig({
-      positionPercentages: newPercentages,
-    });
+    onUpdate(newPosition);
   };
 
   const handlePositionKeyDown = (e) => {
@@ -80,25 +107,25 @@ const PositionInput = () => {
       const increment = e.key === 'ArrowUp' ? 1 : -1;
       const newValue = pos[axis] + increment;
       
-      // Apply boundary constraints
+      // Apply boundary constraints (only for QR)
       let constrainedValue = newValue;
-      if (axis === 'x') {
-        constrainedValue = Math.max(minX, Math.min(maxX, newValue));
-      } else if (axis === 'y') {
-        constrainedValue = Math.max(minY, Math.min(maxY, newValue));
+      if (type === "qr") {
+        if (axis === 'x') {
+          constrainedValue = Math.max(minX, Math.min(maxX, newValue));
+        } else if (axis === 'y') {
+          constrainedValue = Math.max(minY, Math.min(maxY, newValue));
+        }
       }
       
       const newPos = { ...pos, [axis]: constrainedValue };
       setPos(newPos);
       
       // Update immediately
-      const newPercentages = {
-        x: newPos.x / device.size.x,
-        y: newPos.y / device.size.y,
+      const newPosition = {
+        x: type === "qr" ? newPos.x / deviceSize.x : newPos.x / 100,
+        y: type === "qr" ? newPos.y / deviceSize.y : newPos.y / 100,
       };
-      updateQRConfig({
-        positionPercentages: newPercentages,
-      });
+      onUpdate(newPosition);
     }
   };
 
@@ -122,7 +149,7 @@ const PositionInput = () => {
               className="w-full py-[2px] px-2 text-xs border border-[var(--border-color)]/25 rounded bg-[var(--bg-main)]"
             />
             <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-secondary)]/60">
-              px
+              {units}
             </span>
           </div>
     
@@ -139,7 +166,7 @@ const PositionInput = () => {
               className="w-full py-[2px] px-2 text-xs border border-[var(--border-color)]/25 rounded bg-[var(--bg-main)]"
             />
             <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-secondary)]/60">
-              px
+              {units}
             </span>
           </div>
         </div>

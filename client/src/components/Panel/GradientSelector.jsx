@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import Slider from "../Slider";
 import Dropdown from "./Dropdown";
-import GradientPositionInput from "./GradientPositionInput";
-import GradientAngleInput from "./GradientAngleInput";
+import PositionInput from "./PositionInput";
+import AngleInput from "./AngleInput";
 import { ColorPicker, Button, Space, Tooltip } from "antd";
 import chroma from "chroma-js";
 import { useDebouncedCallback } from "../../hooks/useDebounce";
@@ -345,9 +345,20 @@ function GradientSelector() {
       </div>
       <div className="flex flex-row items-center justify-center w-full space-x-1">
         {type === "linear" ? (
-          <GradientAngleInput />
+          <AngleInput 
+          type="gradient"
+          angle={device.gradient.angle}
+          onUpdate={(newAngle) => updateBackground({ gradient: { ...device.gradient, angle: newAngle } })}
+          max={360}
+        />
         ) : (
-          <GradientPositionInput />
+          <PositionInput 
+          type="gradient"
+          position={device.gradient.pos}
+          onUpdate={(newPosition) => updateBackground({ gradient: { ...device.gradient, pos: newPosition } })}
+          deviceSize={device.size}
+          units="%"
+        />
         )}
       </div>
     </div>

@@ -52,31 +52,42 @@ const [qrConfig, setQRConfig] = useState({
     return match ? `#${match.map(num => parseInt(num).toString(16).padStart(2, '0')).join('')}` : rgbString;
   };
 
+  // Helper function to truncate color to 7 characters (hex only, no opacity)
+  const truncateToHex = (colorString) => {
+    if (!colorString || typeof colorString !== "string") {
+      return colorString;
+    }
+    // Convert RGB to hex first if needed
+    const hexColor = rgbToHex(colorString);
+    // Truncate to 7 characters (including #)
+    return hexColor.slice(0, 7);
+  };
+
   // Dynamic palette that only includes active/in-use colors
   const palette = useMemo(() => {
     const activeColors = [];
 
-    // Add QR colors if they exist
+    // Add QR colors if they exist (truncated to hex only)
     if (qrConfig.custom.primaryColor) {
-      activeColors.push(rgbToHex(qrConfig.custom.primaryColor));
+      activeColors.push(truncateToHex(qrConfig.custom.primaryColor));
     }
     if (qrConfig.custom.secondaryColor) {
-      activeColors.push(rgbToHex(qrConfig.custom.secondaryColor));
+      activeColors.push(truncateToHex(qrConfig.custom.secondaryColor));
     }
     if (qrConfig.custom.borderColor) {
-      activeColors.push(rgbToHex(qrConfig.custom.borderColor));
+      activeColors.push(truncateToHex(qrConfig.custom.borderColor));
     }
 
-    // Add background colors based on style
+    // Add background colors based on style (truncated to hex only)
     if (background.style === "solid" && background.color) {
-      activeColors.push(rgbToHex(background.color));
+      activeColors.push(truncateToHex(background.color));
     } else if (background.style === "gradient" && background.gradient.stops) {
       // Extract colors from gradient stops (every odd index is a color)
       background.gradient.stops
         .filter((_, i) => i % 2 === 1) // Only color values, not positions
         .forEach(color => {
           if (color) {
-            activeColors.push(rgbToHex(color));
+            activeColors.push(truncateToHex(color));
           }
         });
     }
@@ -90,7 +101,7 @@ const [qrConfig, setQRConfig] = useState({
   const getPaletteExcluding = useCallback((excludeColor) => {
     if (!excludeColor) return palette;
     
-    const excludeHex = rgbToHex(excludeColor);
+    const excludeHex = truncateToHex(excludeColor);
     // Normalize both colors for comparison
     const normalizedExclude = excludeHex.toLowerCase();
     return palette.filter(color => color.toLowerCase() !== normalizedExclude);

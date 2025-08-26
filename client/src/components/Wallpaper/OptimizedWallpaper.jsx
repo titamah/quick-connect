@@ -243,15 +243,16 @@ useEffect(() => {
     const generateQRCode = () => {
       const startTime = PERFORMANCE_MONITORING && window.performance ? window.performance.now() : 0;
       
-      const canvas = qrRef.current?.querySelector("canvas");
-      if (!canvas) {
-        console.log('QR Canvas not found');
+      const svg = qrRef.current?.querySelector("svg");
+      if (!svg) {
+        console.log('QR SVG not found');
         return;
       }
       
       try {
-        // Get the canvas data URL directly
-        const dataUrl = canvas.toDataURL();
+        // Convert SVG to data URL
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const dataUrl = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
         
         const qrImage = new Image();
         qrImage.onload = () => {
@@ -413,7 +414,7 @@ useEffect(() => {
       <QRCode
         ref={qrRef}
         value={qrConfig.url || "www.qrki.xyz"}
-        type="canvas"
+        type="svg"
         bordered={false}
         size={qrSize}
         color={primaryColor}

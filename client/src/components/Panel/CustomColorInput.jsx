@@ -4,12 +4,7 @@ import { useState } from "react";
 export default function CustomColorInput({value, colorValue, hasOpacity, opacityValue, preset, onChange, onColorChange, onOpacityChange, onColorBlur, onColorKeyDown, onOpacityBlur, onOpacityKeyDown, onColorPickerOpen, onColorPickerClose}) {
   
   const handleOpacityKeyDown = (e) => {
-    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-      e.preventDefault();
-      const increment = e.key === 'ArrowUp' ? 1 : -1;
-      const newOpacity = Math.max(0, Math.min(100, opacityValue + increment));
-      onOpacityChange({ target: { value: newOpacity } });
-    } else if (onOpacityKeyDown) {
+    if (onOpacityKeyDown) {
       onOpacityKeyDown(e);
     }
   };

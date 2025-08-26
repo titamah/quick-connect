@@ -112,6 +112,40 @@ function QRGenerator(panelSize) {
   const currentQRCustomRef = useRef(device.qr.custom);
   currentQRCustomRef.current = device.qr.custom;
 
+  // Immediate update functions for arrow key usage
+  const immediateUpdatePrimaryColor = (color, opacity) => {
+    if (color && opacity !== undefined) {
+      updateQRConfig({
+        custom: {
+          ...currentQRCustomRef.current,
+          primaryColor: combineHexWithOpacity(color, opacity),
+        },
+      });
+    }
+  };
+
+  const immediateUpdateSecondaryColor = (color, opacity) => {
+    if (color && opacity !== undefined) {
+      updateQRConfig({
+        custom: {
+          ...currentQRCustomRef.current,
+          secondaryColor: combineHexWithOpacity(color, opacity),
+        },
+      });
+    }
+  };
+
+  const immediateUpdateBorderColor = (color, opacity) => {
+    if (color && opacity !== undefined) {
+      updateQRConfig({
+        custom: {
+          ...currentQRCustomRef.current,
+          borderColor: combineHexWithOpacity(color, opacity),
+        },
+      });
+    }
+  };
+
   // Debounced update functions to prevent excessive re-renders
   const debouncedUpdatePrimaryColor = useDebouncedCallback((color, opacity) => {
     if (color && opacity !== undefined) {
@@ -225,8 +259,19 @@ function QRGenerator(panelSize) {
         Position
       </h3>
       <div className="px-3.5">
-        <PositionInput />
-        <AngleInput />
+        <PositionInput 
+          type="qr"
+          position={device.qr.positionPercentages}
+          onUpdate={(newPosition) => updateQRConfig({ positionPercentages: newPosition })}
+          deviceSize={device.size}
+          units="px"
+        />
+        <AngleInput 
+          type="qr"
+          angle={device.qr.rotation}
+          onUpdate={(newAngle) => updateQRConfig({ rotation: newAngle })}
+          max={360}
+        />
       </div>
       <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5 mb-2.5">
         Color
@@ -277,6 +322,11 @@ function QRGenerator(panelSize) {
                   primaryColor: combineHexWithOpacity(primaryColorInput, primaryOpacityInput),
                 },
               });
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+              e.preventDefault();
+              // For color inputs, we could cycle through preset colors or adjust brightness
+              // For now, let's just update immediately with current value
+              immediateUpdatePrimaryColor(primaryColorInput, primaryOpacityInput);
             }
           }}
           onOpacityChange={(e) => {
@@ -308,7 +358,7 @@ function QRGenerator(panelSize) {
               const increment = e.key === 'ArrowUp' ? 1 : -1;
               const newOpacity = Math.max(0, Math.min(100, primaryOpacityInput + increment));
               setPrimaryOpacityInput(newOpacity);
-              debouncedUpdatePrimaryColor(primaryColorInput, newOpacity);
+              immediateUpdatePrimaryColor(primaryColorInput, newOpacity);
             }
           }}
         />
@@ -385,6 +435,12 @@ function QRGenerator(panelSize) {
               secondaryColor: combineHexWithOpacity(secondaryColorInput, secondaryOpacityInput),
             },
           });
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          const increment = e.key === 'ArrowUp' ? 1 : -1;
+          const newOpacity = Math.max(0, Math.min(100, secondaryOpacityInput + increment));
+          setSecondaryOpacityInput(newOpacity);
+          immediateUpdateSecondaryColor(secondaryColorInput, newOpacity);
         }
       }}
       />
@@ -464,6 +520,12 @@ function QRGenerator(panelSize) {
               borderColor: combineHexWithOpacity(borderColorInput, borderOpacityInput),
             },
           });
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+          e.preventDefault();
+          const increment = e.key === 'ArrowUp' ? 1 : -1;
+          const newOpacity = Math.max(0, Math.min(100, borderOpacityInput + increment));
+          setBorderOpacityInput(newOpacity);
+          immediateUpdateBorderColor(borderColorInput, newOpacity);
         }
       }}
       />
