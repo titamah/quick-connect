@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import Slider from "../Slider";
 import Dropdown from "./Dropdown";
+import GradientPositionInput from "./GradientPositionInput";
+import GradientAngleInput from "./GradientAngleInput";
 import { ColorPicker, Button, Space, Tooltip } from "antd";
 import chroma from "chroma-js";
 import { useDebouncedCallback } from "../../hooks/useDebounce";
@@ -19,15 +21,9 @@ function GradientSelector() {
   const { device, updateBackground, updateQRConfig, updateDeviceInfo, getPaletteExcluding } = useDevice();
   const [type, setType] = useState(device.gradient.type);
   const gradientBar = useRef(null);
-  const [angle, setAngle] = useState(180);
   
   // Frozen preset state to prevent flickering during color picking
   const [frozenPreset, setFrozenPreset] = useState(null);
-  const [anglePercent, setAnglePercent] = useState({
-    start: { x: 0.5, y: 0 },
-    end: { x: 0.5, y: 1 },
-  });
-  const intervalRef = useRef(null);
 
   // Debounced update functions to prevent excessive canvas re-renders
   const debouncedUpdateGradient = useDebouncedCallback((gradientData) => {
@@ -40,81 +36,20 @@ function GradientSelector() {
     updateBackground({ grain });
   }, 300);
 
-  const handleAngleChange = (e) => {
-    let value = parseInt(e.target.value, 10);
 
-    // Snap if within 3 degrees of target
-    const snapThreshold = 5;
-    const snapPoints = Array.from({ length: 9 }, (_, i) => i * 45);
 
-    for (let point of snapPoints) {
-      if (Math.abs(value - point) <= snapThreshold) {
-        value = point;
-        break;
-      }
-    }
 
-    setAngle(value);
-  };
-
-  const handleMouseDown = (val, lim) => {
-    if (intervalRef.current) return;
-
-    intervalRef.current = setInterval(() => {
-      setAngle((prevAngle) => {
-        if (prevAngle == lim) {
-          clearInterval(intervalRef.current);
-          intervalRef.current = null;
-          return lim;
-        }
-        return prevAngle + val;
-      });
-    }, 20);
-  };
-  const handleMouseUp = () => {
-    clearInterval(intervalRef.current);
-    intervalRef.current = null;
-  };
-
-  const [pos, setPos] = useState({ x: 50, y: 66 });
-  const [posPercent, setPosPercent] = useState({ x: 0.5, y: 0.66 });
-
-  useEffect(() => {
-    setPosPercent({ x: pos.x * 0.01, y: pos.y * 0.01 });
-  }, [pos]);
-
-  useEffect(() => {
-    const rad = ((angle - 90) * Math.PI) / 180;
-
-    const dx = Math.cos(rad);
-    const dy = Math.sin(rad);
-
-    const cx = device.size.x / 2;
-    const cy = device.size.y / 2;
-
-    const gradientLength =
-      (Math.abs(dx) * device.size.x + Math.abs(dy) * device.size.y) / 2;
-
-    setAnglePercent({
-      start: {
-        x: cx - dx * gradientLength,
-        y: cy - dy * gradientLength,
-      },
-      end: {
-        x: cx + dx * gradientLength,
-        y: cy + dy * gradientLength,
-      },
-    });
-  }, [angle, device.size.x, device.size.y]);
 
   const [gradientCSS, setGradientCSS] = useState(null);
 
   const updateCSS = () => {
     let css = "";
     if (type === "radial") {
-      css = `radial-gradient(circle at ${pos.x}% ${pos.y}%,`;
+      const posX = Math.round(device.gradient.pos.x * 100);
+      const posY = Math.round(device.gradient.pos.y * 100);
+      css = `radial-gradient(circle at ${posX}% ${posY}%,`;
     } else {
-      css = `linear-gradient(${angle}deg,`;
+      css = `linear-gradient(${device.gradient.angle}deg,`;
     }
     css +=
       processedStops
@@ -148,7 +83,7 @@ function GradientSelector() {
 
   useEffect(() => {
     updateCSS();
-  }, [processedStops, angle, pos, type]);
+  }, [processedStops, device.gradient, type]);
 
   useEffect(() => {
     const updatedStops = stops
@@ -227,10 +162,10 @@ function GradientSelector() {
     debouncedUpdateGradient({
       type: type,
       stops: stops.flat(),
-      angle: anglePercent,
-      pos: posPercent,
+      angle: device.gradient.angle,
+      pos: device.gradient.pos,
     });
-  }, [stops, type, anglePercent, posPercent]); // Removed debouncedUpdateGradient from dependencies
+  }, [stops, type, device.gradient.angle, device.gradient.pos]); // Removed debouncedUpdateGradient from dependencies
 
   // Frozen preset logic to prevent flickering during color picking
   const handleColorPickerOpen = (stopIndex) => {
@@ -382,8 +317,8 @@ function GradientSelector() {
                     gradient: {
                       type: type,
                       stops: stops.flat(),
-                      angle: anglePercent,
-                      pos: posPercent,
+                      angle: device.gradient.angle,
+                      pos: device.gradient.pos,
                     }
                   });
                 }}
@@ -398,8 +333,8 @@ function GradientSelector() {
                     gradient: {
                       type: type,
                       stops: stops.flat(),
-                      angle: anglePercent,
-                      pos: posPercent,
+                      angle: device.gradient.angle,
+                      pos: device.gradient.pos,
                     }
                   });
                 }}
@@ -410,137 +345,9 @@ function GradientSelector() {
       </div>
       <div className="flex flex-row items-center justify-center w-full space-x-1">
         {type === "linear" ? (
-          <div className="flex flex-row w-full my-4 items-center gap-2 " >
-          <h4 className="text-[var(--text-primary)]/75 p-1 h-full !min-w-[50px]">
-            Angle
-          </h4>
-          <div className="flex flex-row items-center w-full gap-1">
-
-            <RotateCcw
-              className="opacity-75 hover:opacity-100 cursor-pointer"
-              size={20}
-              onMouseDown={() => {
-                handleMouseDown(-1, 0);
-              }}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
-            />
-            <Slider
-              id="gradient-angle-slide"
-              color={"var(--accent)"}
-              min="0"
-              max="360"
-              value={angle}
-              onChange={handleAngleChange}
-              onBlur={() => {
-                // Immediate update on angle blur
-                updateBackground({
-                  gradient: {
-                    type: type,
-                    stops: stops.flat(),
-                    angle: anglePercent,
-                    pos: posPercent,
-                  }
-                });
-              }}
-            />
-            <RotateCw
-              className=" opacity-75 hover:opacity-100 cursor-pointer"
-              size={20}
-              onMouseDown={() => {
-                handleMouseDown(1, 360);
-              }}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
-            />
-            </div>
-          </div>
+          <GradientAngleInput />
         ) : (
-        <div className="flex-shrink-0 mx-2.5 border border-[var(--border-color)]/50 rounded-lg bg-black/5 dark:bg-black/15 w-full my-5">
-          <div className="flex flex-row gap-1 items-center">
-            <h4 className="text-[var(--text-primary)]/75 p-2 h-full">
-              Position
-            </h4>
-            <div className="flex gap-2 items-center min-w-0 p-1  w-full">
-              <span className="text-xs flex items-center text-[var(--text-secondary)]/50">X</span>
-              <div className="relative flex-1 min-w-0">
-                <input
-                  type="number"
-                  placeholder="X"
-                  value={pos.x}
-                  onChange={(e) => setPos({ ...pos, x: e.target.value })}
-                  onBlur={() => {
-                    // Immediate update on position blur
-                    updateBackground({
-                      gradient: {
-                        type: type,
-                        stops: stops.flat(),
-                        angle: anglePercent,
-                        pos: posPercent,
-                      }
-                    });
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      // Immediate update on Enter
-                      updateBackground({
-                        gradient: {
-                          type: type,
-                          stops: stops.flat(),
-                          angle: anglePercent,
-                          pos: posPercent,
-                        }
-                      });
-                    }
-                  }}
-                  className="w-full py-[2px] px-2 text-xs border border-[var(--border-color)]/25 rounded bg-[var(--bg-main)]"
-                />
-                <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-secondary)]/60">
-                  %
-                </span>
-              </div>
-        
-              <span className="text-xs flex items-center text-[var(--text-secondary)]/50">Y</span>
-              <div className="relative flex-1 min-w-0">
-                <input
-                  type="number"
-                  placeholder="Y"
-                  value={pos.y}
-                  onChange={(e) => setPos({ ...pos, y: e.target.value })}
-                  onBlur={() => {
-                    // Immediate update on position blur
-                    updateBackground({
-                      gradient: {
-                        type: type,
-                        stops: stops.flat(),
-                        angle: anglePercent,
-                        pos: posPercent,
-                      }
-                    });
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      // Immediate update on Enter
-                      updateBackground({
-                        gradient: {
-                          type: type,
-                          stops: stops.flat(),
-                          angle: anglePercent,
-                          pos: posPercent,
-                        }
-                      });
-                    }
-                  }}
-                  className="w-full py-[2px] px-2 text-xs border border-[var(--border-color)]/25 rounded bg-[var(--bg-main)]"
-                />
-                <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-secondary)]/60">
-                  %
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
+          <GradientPositionInput />
         )}
       </div>
     </div>

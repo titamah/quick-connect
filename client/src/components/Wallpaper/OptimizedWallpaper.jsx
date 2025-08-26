@@ -118,11 +118,26 @@ const actualBorderSize = useMemo(() =>
         
         case "gradient":
           if (background.gradient.type === "linear") {
+            // Convert angle to start/end points for Konva
+            const angleRad = ((background.gradient.angle - 90) * Math.PI) / 180;
+            const dx = Math.cos(angleRad);
+            const dy = Math.sin(angleRad);
+            
+            const cx = deviceInfo.size.x / 2;
+            const cy = deviceInfo.size.y / 2;
+            const gradientLength = (Math.abs(dx) * deviceInfo.size.x + Math.abs(dy) * deviceInfo.size.y) / 2;
+            
             return {
               ...baseProps,
               fillLinearGradientColorStops: background.gradient.stops,
-              fillLinearGradientStartPoint: background.gradient.angle.start,
-              fillLinearGradientEndPoint: background.gradient.angle.end,
+              fillLinearGradientStartPoint: {
+                x: cx - dx * gradientLength,
+                y: cy - dy * gradientLength,
+              },
+              fillLinearGradientEndPoint: {
+                x: cx + dx * gradientLength,
+                y: cy + dy * gradientLength,
+              },
             };
           } else {
             return {

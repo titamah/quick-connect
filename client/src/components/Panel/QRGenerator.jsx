@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import "preline/preline";
 import { useDevice } from "../../contexts/DeviceContext";
 import CustomColorInput from "./CustomColorInput";
+import PositionInput from "./PositionInput";
+import AngleInput from "./AngleInput";
 import { QRCode, ColorPicker } from "antd";
 import Slider from "../Slider";
 import chroma from "chroma-js";
@@ -218,6 +220,13 @@ function QRGenerator(panelSize) {
           color={primaryColor}
           bgColor={secondaryColor}
         />
+      </div>
+      <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5 mb-2.5">
+        Position
+      </h3>
+      <div className="px-3.5">
+        <PositionInput />
+        <AngleInput />
       </div>
       <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5 mb-2.5">
         Color

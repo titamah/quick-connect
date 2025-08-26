@@ -18,8 +18,8 @@ export const useDeviceState = () => {
     gradient: {
       type: "linear",
       stops: [0, "rgb(255, 170, 0)", 0.5, "rgb(228,88,191)", 1, "rgb(177,99,232)"],
-      angle: { x: 0, y: 0 },
-      pos: { x: 0, y: 0 },
+      angle: 180,
+      pos: { x: 0.5, y: 0.5 },
     },
     grain: false,
   });
@@ -39,6 +39,8 @@ const [qrConfig, setQRConfig] = useState({
       x: 0.25,  // 25% from left (default center-left position)
       y: 0.57,  // 57% from top (default center-bottom position)
     },
+    // QR rotation in degrees (0-360)
+    rotation: 0,
   });
 
   // Helper function to convert RGB to hex
