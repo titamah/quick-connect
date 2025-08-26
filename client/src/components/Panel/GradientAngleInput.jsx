@@ -28,6 +28,14 @@ const GradientAngleInput = () => {
     }
 
     setAngle(value);
+    
+    // Update gradient angle immediately
+    updateBackground({
+      gradient: {
+        ...device.gradient,
+        angle: value,
+      }
+    });
   };
 
   const handleMouseDown = (val, lim) => {

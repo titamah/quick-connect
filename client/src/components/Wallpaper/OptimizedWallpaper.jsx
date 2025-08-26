@@ -177,27 +177,22 @@ const actualBorderSize = useMemo(() =>
         const stageWidth = stage.width();
         const stageHeight = stage.height();
         
-        // Get the QR code rect (second child in the group, after the border)
-        const qrRect = group.children[1]; // Border is children[0], QR is children[1]
+        // Calculate boundary constraints (only QR code, border can extend beyond)
+        const qrHalfSize = qrSize / 2;
+        const minX = qrHalfSize;
+        const maxX = stageWidth - qrHalfSize;
+        const minY = qrHalfSize;
+        const maxY = stageHeight - qrHalfSize;
         
-        // Get the QR's bounding box in stage coordinates
-        const qrBoundingBox = qrRect.getClientRect({ relativeTo: stage });
-        const qrWidth = qrBoundingBox.width;
-        const qrHeight = qrBoundingBox.height;
-        
-        // Calculate the offset from the group's position to the QR's bounding box
-        const offsetX = qrBoundingBox.x - group.x();
-        const offsetY = qrBoundingBox.y - group.y();
-      
-        // Constrain the group position based on the QR's bounding box
-        const rawX = Math.max(-offsetX, Math.min(group.x(), stageWidth - qrWidth - offsetX));
-        const rawY = Math.max(-offsetY, Math.min(group.y(), stageHeight - qrHeight - offsetY));
+        // Constrain position within boundaries
+        const rawX = Math.max(minX, Math.min(maxX, group.x()));
+        const rawY = Math.max(minY, Math.min(maxY, group.y()));
         
         let targetX, targetY;
       
-        // For snapping to center, we need to account for the QR bounding box offset
-        const centerSnapX = (stageWidth - qrWidth) / 2 - offsetX;
-        const centerSnapY = (stageHeight - qrHeight) / 2 - offsetY;
+        // For snapping to center
+        const centerSnapX = stageWidth / 2;
+        const centerSnapY = stageHeight / 2;
       
         if (Math.abs(rawX - centerSnapX) < SNAP_TOLERANCE) {
           setIsCenterX(true);
@@ -218,10 +213,10 @@ const actualBorderSize = useMemo(() =>
         group.x(targetX);
         group.y(targetY);
         
-        // Update QR position to be the center of the group
+        // Update QR position (now directly the group position since it's centered)
         const newQRPos = {
-          x: targetX + qrSize / 2,
-          y: targetY + qrSize / 2,
+          x: targetX,
+          y: targetY,
         };
         setQRPos(newQRPos);
         
@@ -367,8 +362,8 @@ useEffect(() => {
           // Calculate and store position percentages after transform
           const group = qrGroup;
           const newQRPos = {
-            x: group.x() + qrSize / 2,
-            y: group.y() + qrSize / 2,
+            x: group.x(),
+            y: group.y(),
           };
           
           const newPercentages = {
@@ -376,6 +371,10 @@ useEffect(() => {
             y: newQRPos.y / deviceInfo.size.y,
           };
           updateQRPositionPercentages(newPercentages);
+          
+          // Update QR rotation from transformer
+          const newRotation = group.rotation();
+          updateQRConfig({ rotation: newRotation });
           
           // Batch draw after all changes
           transformer.getLayer().batchDraw();
@@ -498,8 +497,11 @@ useEffect(() => {
               draggable={isDraggable}
               onDragMove={handleDragMove}
               ref={shapeRef}
-              x={qrPos.x - qrSize / 2}  // Center based on QR size only, not border
-              y={qrPos.y - qrSize / 2}  // Center based on QR size only, not border
+              x={qrPos.x}  // Position at center of QR
+              y={qrPos.y}  // Position at center of QR
+              rotation={qrConfig.rotation || 0}
+              offsetX={qrSize / 2}  // Center rotation point (QR center, not border center)
+              offsetY={qrSize / 2}  // Center rotation point (QR center, not border center)
               height={qrSize + actualBorderSize}
               width={qrSize + actualBorderSize}
   onMouseDown={(e) => {

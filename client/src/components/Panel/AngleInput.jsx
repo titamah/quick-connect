@@ -28,6 +28,11 @@ const AngleInput = () => {
     }
 
     setAngle(value);
+    
+    // Update QR rotation immediately
+    updateQRConfig({
+      rotation: value,
+    });
   };
 
   const handleMouseDown = (val, lim) => {
