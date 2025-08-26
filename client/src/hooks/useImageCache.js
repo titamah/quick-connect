@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 
 // Global image cache to prevent reloading the same images
 const imageCache = new Map();
@@ -19,7 +19,7 @@ export const useImageCache = () => {
   };
 
   // Load image with caching
-  const loadImage = (src, options = {}) => {
+  const loadImage = useCallback((src, options = {}) => {
     return new Promise((resolve, reject) => {
       // Check cache first
       if (imageCache.has(src)) {
@@ -42,7 +42,7 @@ export const useImageCache = () => {
       
       img.src = src;
     });
-  };
+  }, []);
 
   // Create object URL with caching and cleanup tracking
   const createObjectURL = (file) => {

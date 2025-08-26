@@ -48,9 +48,7 @@ const OptimizedWallpaper = forwardRef(
 
     // Determine if phone UI should be shown
     const showPhoneUI = isPreviewVisible || isHovered;
-    if (background.style === "image") {
-      console.log("Background image URL:", background.imageUrl);
-    }
+
 
     // Memoized calculations to prevent unnecessary recalculations
     const stageScale = useStageCalculations(deviceInfo.size, panelSize, isOpen);

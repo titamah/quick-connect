@@ -103,7 +103,7 @@ function ImageUploader() {
   useEffect(() => {
     if (file) {
       const url = createObjectURL(file);
-      updateBackground({ bg: url });
+      updateBackground({ style: "image", bg: url });
     }
   }, [file]);
 
@@ -140,7 +140,7 @@ useEffect(() => {
   const deleteFile = () => {
     setOriginalFile(null);
     setFile(null);
-    updateBackground({ bg: "" });
+    updateBackground({ style: "solid", bg: "" });
     closeModal();
   };
 
