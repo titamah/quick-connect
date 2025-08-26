@@ -109,12 +109,20 @@ const Exporter = forwardRef(({}, ref) => {
           value={name}
           onChange={(e) => {
             setName(e.target.value);
+          }}
+          onBlur={(e) => {
             updateDeviceInfo({
               name: e.target.value,
-            })
-            console.log(device);
-          }
-          }
+            });
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              updateDeviceInfo({
+                name: e.target.value,
+              });
+              e.target.blur();
+            }
+          }}
         />
       </div>
       <div className="flex-col rounded-lg ">

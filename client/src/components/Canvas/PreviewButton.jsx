@@ -11,7 +11,7 @@ const PreviewButton = forwardRef(({}, ref) => {
     >
       <button
         type="button"
-        className="py-1.75 px-2 h-fit inline-flex items-center gap-x-2 text-sm font-medium rounded-4xl text-white bg-[var(--accent)] hover:opacity-75 cursor-pointer"
+        className="py-1.75 px-2 h-fit inline-flex items-center gap-x-2 text-sm font-medium rounded-4xl text-white bg-[var(--accent)] hover:opacity-80 cursor-pointer transition-opacity duration-300 ease-in-out"
         onClick={togglePreview}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
