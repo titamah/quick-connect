@@ -270,7 +270,7 @@ const Exporter = forwardRef(({}, ref) => {
         <button
           type="button"
           onClick={exportImage}
-          class="p-1 mt-5 mb-2.5 inline-flex justify-center w-full text-sm font-medium rounded-sm border border-transparent bg-[var(--accent)] text-white hover:bg-blue-700 focus:outline-hidden focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
+          class="p-1 mt-5 mb-2.5 inline-flex justify-center w-full text-sm font-medium rounded-2xl bg-[var(--accent)] text-white hover:opacity-80 cursor-pointer transition-opacity duration-200 ease-in-out"
         >
           Download
         </button>
