@@ -11,7 +11,7 @@ import { Resizable } from "react-resizable";
 import { useImageCache } from "../../hooks/useImageCache";
 
 function ImageUploader() {
-  const { device, updateBackground, updateQRConfig, updateDeviceInfo } = useDevice();
+  const { device, updateBackground, updateQRConfig, updateDeviceInfo, updateImagePalette } = useDevice();
   const { createObjectURL } = useImageCache();
 
   const [source, setSource] = useState("Upload");
@@ -129,8 +129,8 @@ useEffect(() => {
         return hex;
       });
 
-      // You might need to add image palette support to your new state management
-      // For now, this might not work exactly the same way
+      // Add extracted colors to the device palette
+      updateImagePalette(rgbPalette);
       console.log("New color palette:", rgbPalette);
       console.log("device palette:", device.palette);
     };
@@ -141,6 +141,7 @@ useEffect(() => {
     setOriginalFile(null);
     setFile(null);
     updateBackground({ style: "solid", bg: "" });
+    updateImagePalette([]); // Clear image palette when image is deleted
     closeModal();
   };
 

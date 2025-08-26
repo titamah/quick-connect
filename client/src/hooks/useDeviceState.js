@@ -24,6 +24,9 @@ export const useDeviceState = () => {
     grain: false,
   });
 
+  // Image palette colors extracted from uploaded images
+  const [imagePalette, setImagePalette] = useState([]);
+
 // QR Code configuration
 const [qrConfig, setQRConfig] = useState({
     url: "www.qrki.com",
@@ -90,12 +93,18 @@ const [qrConfig, setQRConfig] = useState({
             activeColors.push(truncateToHex(color));
           }
         });
+    } else if (background.style === "image" && imagePalette.length > 0) {
+      // Add image palette colors only when background style is image
+      imagePalette.forEach(color => {
+        if (color) {
+          activeColors.push(truncateToHex(color));
+        }
+      });
     }
-    // Note: Image colors will be added when image processing is implemented
 
     // Remove duplicates and return
     return [...new Set(activeColors)];
-  }, [background.style, background.color, background.gradient.stops, qrConfig.custom.primaryColor, qrConfig.custom.secondaryColor, qrConfig.custom.borderColor]);
+  }, [background.style, background.color, background.gradient.stops, qrConfig.custom.primaryColor, qrConfig.custom.secondaryColor, qrConfig.custom.borderColor, imagePalette]);
 
   // Helper function to get palette colors excluding a specific color
   const getPaletteExcluding = useCallback((excludeColor) => {
@@ -128,6 +137,11 @@ const [qrConfig, setQRConfig] = useState({
     }));
   }, []);
 
+  // Update image palette with colors extracted from uploaded images
+  const updateImagePalette = useCallback((colors) => {
+    setImagePalette(colors);
+  }, []);
+
   // Legacy compatibility - reconstruct the old device object when needed
   const device = useMemo(() => ({
     ...deviceInfo,
@@ -147,5 +161,6 @@ const [qrConfig, setQRConfig] = useState({
     updateBackground,
     updateQRConfig,
     updateQRPositionPercentages, // New function for position percentages
+    updateImagePalette, // New function for image palette
   };
 };
