@@ -7,7 +7,7 @@ const AngleInput = ({
   type = "qr", // "qr" or "gradient"
   angle: currentAngle, // current angle value
   onUpdate, // update function
-  max = 360 // max angle value
+  max = 180 // max angle value (now represents -180 to +180)
 }) => {
   const { device } = useDevice();
   const [angle, setAngle] = useState(currentAngle || 0);
@@ -23,7 +23,7 @@ const AngleInput = ({
 
     // Snap if within 5 degrees of target
     const snapThreshold = 5;
-    const snapPoints = Array.from({ length: 9 }, (_, i) => i * 45);
+    const snapPoints = [-180, -135, -90, -45, 0, 45, 90, 135, 180];
 
     for (let point of snapPoints) {
       if (Math.abs(value - point) <= snapThreshold) {
@@ -77,7 +77,7 @@ const AngleInput = ({
           className="opacity-75 hover:opacity-100 cursor-pointer"
           size={20}
           onMouseDown={() => {
-            handleMouseDown(-1, 0);
+            handleMouseDown(-1, -180);
           }}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
@@ -85,8 +85,8 @@ const AngleInput = ({
         <Slider
           id={`${type}-angle-slide`}
           color={"var(--accent)"}
-          min="0"
-          max={max}
+          min="-180"
+          max="180"
           value={angle}
           onChange={handleAngleChange}
           onBlur={handleAngleBlur}
@@ -95,7 +95,7 @@ const AngleInput = ({
           className="opacity-75 hover:opacity-100 cursor-pointer"
           size={20}
           onMouseDown={() => {
-            handleMouseDown(1, max);
+            handleMouseDown(1, 180);
           }}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}

@@ -18,7 +18,7 @@ export const useDeviceState = () => {
     gradient: {
       type: "linear",
       stops: [0, "rgb(255, 170, 0)", 0.5, "rgb(228,88,191)", 1, "rgb(177,99,232)"],
-      angle: 180,
+      angle: 0,
       pos: { x: 0.5, y: 0.5 },
     },
     grain: false,
