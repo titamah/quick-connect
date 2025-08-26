@@ -303,6 +303,12 @@ function QRGenerator(panelSize) {
                   primaryColor: combineHexWithOpacity(primaryColorInput, primaryOpacityInput),
                 },
               });
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+              e.preventDefault();
+              const increment = e.key === 'ArrowUp' ? 1 : -1;
+              const newOpacity = Math.max(0, Math.min(100, primaryOpacityInput + increment));
+              setPrimaryOpacityInput(newOpacity);
+              debouncedUpdatePrimaryColor(primaryColorInput, newOpacity);
             }
           }}
         />

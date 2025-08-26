@@ -41,6 +41,26 @@ const GradientPositionInput = () => {
   const handlePositionKeyDown = (e) => {
     if (e.key === 'Enter') {
       handlePositionBlur();
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      const axis = e.target.name === 'gradient-x-input' ? 'x' : 'y';
+      const increment = e.key === 'ArrowUp' ? 1 : -1;
+      const newValue = Math.max(0, Math.min(100, pos[axis] + increment));
+      
+      const newPos = { ...pos, [axis]: newValue };
+      setPos(newPos);
+      
+      // Update immediately
+      const newPosPercent = {
+        x: newPos.x / 100,
+        y: newPos.y / 100,
+      };
+      updateBackground({
+        gradient: {
+          ...device.gradient,
+          pos: newPosPercent,
+        }
+      });
     }
   };
 
@@ -56,6 +76,7 @@ const GradientPositionInput = () => {
             <input
               type="number"
               placeholder="X"
+              name="gradient-x-input"
               value={pos.x}
               onChange={(e) => handlePositionChange('x', parseInt(e.target.value) || 0)}
               onBlur={handlePositionBlur}
@@ -72,6 +93,7 @@ const GradientPositionInput = () => {
             <input
               type="number"
               placeholder="Y"
+              name="gradient-y-input"
               value={pos.y}
               onChange={(e) => handlePositionChange('y', parseInt(e.target.value) || 0)}
               onBlur={handlePositionBlur}

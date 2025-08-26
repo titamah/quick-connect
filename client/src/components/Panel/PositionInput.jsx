@@ -74,6 +74,31 @@ const PositionInput = () => {
   const handlePositionKeyDown = (e) => {
     if (e.key === 'Enter') {
       handlePositionBlur();
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      const axis = e.target.name === 'x-input' ? 'x' : 'y';
+      const increment = e.key === 'ArrowUp' ? 1 : -1;
+      const newValue = pos[axis] + increment;
+      
+      // Apply boundary constraints
+      let constrainedValue = newValue;
+      if (axis === 'x') {
+        constrainedValue = Math.max(minX, Math.min(maxX, newValue));
+      } else if (axis === 'y') {
+        constrainedValue = Math.max(minY, Math.min(maxY, newValue));
+      }
+      
+      const newPos = { ...pos, [axis]: constrainedValue };
+      setPos(newPos);
+      
+      // Update immediately
+      const newPercentages = {
+        x: newPos.x / device.size.x,
+        y: newPos.y / device.size.y,
+      };
+      updateQRConfig({
+        positionPercentages: newPercentages,
+      });
     }
   };
 
@@ -89,6 +114,7 @@ const PositionInput = () => {
             <input
               type="number"
               placeholder="X"
+              name="x-input"
               value={pos.x}
               onChange={(e) => handlePositionChange('x', parseInt(e.target.value) || 0)}
               onBlur={handlePositionBlur}
@@ -105,6 +131,7 @@ const PositionInput = () => {
             <input
               type="number"
               placeholder="Y"
+              name="y-input"
               value={pos.y}
               onChange={(e) => handlePositionChange('y', parseInt(e.target.value) || 0)}
               onBlur={handlePositionBlur}

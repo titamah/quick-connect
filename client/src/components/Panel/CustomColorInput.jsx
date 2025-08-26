@@ -2,6 +2,17 @@ import { ColorPicker } from "antd";
 import { useState } from "react";
 
 export default function CustomColorInput({value, colorValue, hasOpacity, opacityValue, preset, onChange, onColorChange, onOpacityChange, onColorBlur, onColorKeyDown, onOpacityBlur, onOpacityKeyDown, onColorPickerOpen, onColorPickerClose}) {
+  
+  const handleOpacityKeyDown = (e) => {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      const increment = e.key === 'ArrowUp' ? 1 : -1;
+      const newOpacity = Math.max(0, Math.min(100, opacityValue + increment));
+      onOpacityChange({ target: { value: newOpacity } });
+    } else if (onOpacityKeyDown) {
+      onOpacityKeyDown(e);
+    }
+  };
 
   return (
 <div className="flex items-center border bg-black/5 dark:bg-black/15 px-1 text-[var(--text-secondary)] min-w-0 w-full h-[24px] rounded border-[var(--border-color)]/75">
@@ -51,7 +62,7 @@ export default function CustomColorInput({value, colorValue, hasOpacity, opacity
             value={opacityValue}
             onChange={onOpacityChange}
             onBlur={onOpacityBlur}
-            onKeyDown={onOpacityKeyDown}
+            onKeyDown={handleOpacityKeyDown}
             className="w-5 outline-none"
           />
           <span className="ml-1 ">%</span>
