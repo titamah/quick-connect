@@ -68,10 +68,7 @@ const AngleInput = ({
   };
 
   return (
-    <div className="flex flex-row w-full my-4 items-center gap-2">
-      <h4 className="text-[var(--text-primary)]/75 p-1 h-full !min-w-[50px]">
-        Angle
-      </h4>
+    <div className="flex flex-row w-full items-center gap-2">
       <div className="flex flex-row items-center w-full gap-1">
         <RotateCcw
           className="opacity-75 hover:opacity-100 cursor-pointer"

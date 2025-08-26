@@ -345,13 +345,18 @@ function GradientSelector() {
       </div>
       <div className="flex flex-row items-center justify-center w-full space-x-1">
         {type === "linear" ? (
+          <div className="w-full my-4 space-y-2">
+          <h4> Angle </h4>
           <AngleInput 
           type="gradient"
           angle={device.gradient.angle}
           onUpdate={(newAngle) => updateBackground({ gradient: { ...device.gradient, angle: newAngle } })}
           max={360}
         />
+        </div>
         ) : (
+          <div className="w-full my-4 space-y-2">
+          <h4> Position </h4>
           <PositionInput 
           type="gradient"
           position={device.gradient.pos}
@@ -359,6 +364,7 @@ function GradientSelector() {
           deviceSize={device.size}
           units="%"
         />
+        </div>
         )}
       </div>
     </div>

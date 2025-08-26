@@ -7,7 +7,10 @@ import AngleInput from "./AngleInput";
 import { QRCode, ColorPicker } from "antd";
 import Slider from "../Slider";
 import chroma from "chroma-js";
-import { useDebouncedCallback, useThrottledCallback } from "../../hooks/useDebounce";
+import {
+  useDebouncedCallback,
+  useThrottledCallback,
+} from "../../hooks/useDebounce";
 
 function QRGenerator(panelSize) {
   const { device, updateQRConfig, getPaletteExcluding } = useDevice();
@@ -15,7 +18,7 @@ function QRGenerator(panelSize) {
   const [qrSize, setQRSize] = useState(
     Math.min(device.size.x, device.size.y) / 2
   );
-  
+
   // Frozen preset state to prevent flickering during color picking
   const [frozenPreset, setFrozenPreset] = useState(null);
 
@@ -31,14 +34,18 @@ function QRGenerator(panelSize) {
       if (currentColor.startsWith("rgb")) {
         const match = currentColor.match(/\d+/g);
         if (match) {
-          normalizedColor = `#${match.map(num => parseInt(num).toString(16).padStart(2, '0')).join('')}`;
+          normalizedColor = `#${match
+            .map((num) => parseInt(num).toString(16).padStart(2, "0"))
+            .join("")}`;
         }
       } else if (!currentColor.startsWith("#")) {
         normalizedColor = `#${currentColor}`;
       }
-      
+
       const normalizedExclude = normalizedColor.toLowerCase();
-      const paletteWithoutCurrent = device.palette.filter(color => color.toLowerCase() !== normalizedExclude);
+      const paletteWithoutCurrent = device.palette.filter(
+        (color) => color.toLowerCase() !== normalizedExclude
+      );
       setFrozenPreset(paletteWithoutCurrent);
     } else {
       setFrozenPreset([...device.palette]);
@@ -53,23 +60,27 @@ function QRGenerator(panelSize) {
   const getPaletteForColor = (currentColor) => {
     // Use frozen preset if available, otherwise use current palette
     const paletteToUse = frozenPreset || device.palette;
-    
+
     // Ensure we have a valid hex color for comparison
     if (!currentColor) return paletteToUse;
-    
+
     // Normalize the color format
     let normalizedColor = currentColor;
     if (currentColor.startsWith("rgb")) {
       const match = currentColor.match(/\d+/g);
       if (match) {
-        normalizedColor = `#${match.map(num => parseInt(num).toString(16).padStart(2, '0')).join('')}`;
+        normalizedColor = `#${match
+          .map((num) => parseInt(num).toString(16).padStart(2, "0"))
+          .join("")}`;
       }
     } else if (!currentColor.startsWith("#")) {
       normalizedColor = `#${currentColor}`;
     }
-    
+
     const normalizedExclude = normalizedColor.toLowerCase();
-    return paletteToUse.filter(color => color.toLowerCase() !== normalizedExclude);
+    return paletteToUse.filter(
+      (color) => color.toLowerCase() !== normalizedExclude
+    );
   };
 
   useEffect(() => {
@@ -105,8 +116,6 @@ function QRGenerator(panelSize) {
     device.qr.custom?.borderColor || "#000000"
   );
   const [borderOpacityInput, setBorderOpacityInput] = useState(100);
-
-
 
   // Use ref to always get current device.qr.custom
   const currentQRCustomRef = useRef(device.qr.custom);
@@ -158,16 +167,19 @@ function QRGenerator(panelSize) {
     }
   }, 300);
 
-  const debouncedUpdateSecondaryColor = useDebouncedCallback((color, opacity) => {
-    if (color && opacity !== undefined) {
-      updateQRConfig({
-        custom: {
-          ...currentQRCustomRef.current,
-          secondaryColor: combineHexWithOpacity(color, opacity),
-        },
-      });
-    }
-  }, 300);
+  const debouncedUpdateSecondaryColor = useDebouncedCallback(
+    (color, opacity) => {
+      if (color && opacity !== undefined) {
+        updateQRConfig({
+          custom: {
+            ...currentQRCustomRef.current,
+            secondaryColor: combineHexWithOpacity(color, opacity),
+          },
+        });
+      }
+    },
+    300
+  );
 
   const debouncedUpdateBorderColor = useDebouncedCallback((color, opacity) => {
     if (color && opacity !== undefined) {
@@ -204,7 +216,7 @@ function QRGenerator(panelSize) {
     if (!color || opacity === undefined) {
       return "#000000";
     }
-    
+
     // Ensure color is 7 chars (#RRGGBB)
     const hex = color.slice(0, 7);
 
@@ -259,19 +271,27 @@ function QRGenerator(panelSize) {
         Position
       </h3>
       <div className="px-3.5">
-        <PositionInput 
-          type="qr"
-          position={device.qr.positionPercentages}
-          onUpdate={(newPosition) => updateQRConfig({ positionPercentages: newPosition })}
-          deviceSize={device.size}
-          units="px"
-        />
-        <AngleInput 
-          type="qr"
-          angle={device.qr.rotation}
-          onUpdate={(newAngle) => updateQRConfig({ rotation: newAngle })}
-          max={360}
-        />
+        <div className="flex items-center pb-2.5">
+          <h4 className="w-[85px]"> Position </h4>
+          <PositionInput
+            type="qr"
+            position={device.qr.positionPercentages}
+            onUpdate={(newPosition) =>
+              updateQRConfig({ positionPercentages: newPosition })
+            }
+            deviceSize={device.size}
+            units="px"
+          />
+        </div>
+        <div className="flex items-center pb-5">
+          <h4 className="w-[85px]"> Angle </h4>
+          <AngleInput
+            type="qr"
+            angle={device.qr.rotation}
+            onUpdate={(newAngle) => updateQRConfig({ rotation: newAngle })}
+            max={360}
+          />
+        </div>
       </div>
       <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5 mb-2.5">
         Color
@@ -284,8 +304,8 @@ function QRGenerator(panelSize) {
           hasOpacity
           opacityValue={primaryOpacityInput}
           preset={getPaletteForColor(primaryColorInput)}
-                onColorPickerOpen={() => handleColorPickerOpen(primaryColorInput)}
-      onColorPickerClose={handleColorPickerClose}
+          onColorPickerOpen={() => handleColorPickerOpen(primaryColorInput)}
+          onColorPickerClose={handleColorPickerClose}
           onChange={(c) => {
             let color = chroma(c.toHexString());
             let hex = color.hex().slice(0, 7).toUpperCase();
@@ -309,24 +329,33 @@ function QRGenerator(panelSize) {
               updateQRConfig({
                 custom: {
                   ...device.qr.custom,
-                  primaryColor: combineHexWithOpacity(primaryColorInput, primaryOpacityInput),
+                  primaryColor: combineHexWithOpacity(
+                    primaryColorInput,
+                    primaryOpacityInput
+                  ),
                 },
               });
             }
           }}
           onColorKeyDown={(e) => {
-            if (e.key === 'Enter' && chroma.valid(primaryColorInput)) {
+            if (e.key === "Enter" && chroma.valid(primaryColorInput)) {
               updateQRConfig({
                 custom: {
                   ...device.qr.custom,
-                  primaryColor: combineHexWithOpacity(primaryColorInput, primaryOpacityInput),
+                  primaryColor: combineHexWithOpacity(
+                    primaryColorInput,
+                    primaryOpacityInput
+                  ),
                 },
               });
-            } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
               e.preventDefault();
               // For color inputs, we could cycle through preset colors or adjust brightness
               // For now, let's just update immediately with current value
-              immediateUpdatePrimaryColor(primaryColorInput, primaryOpacityInput);
+              immediateUpdatePrimaryColor(
+                primaryColorInput,
+                primaryOpacityInput
+              );
             }
           }}
           onOpacityChange={(e) => {
@@ -341,22 +370,31 @@ function QRGenerator(panelSize) {
             updateQRConfig({
               custom: {
                 ...device.qr.custom,
-                primaryColor: combineHexWithOpacity(primaryColorInput, primaryOpacityInput),
+                primaryColor: combineHexWithOpacity(
+                  primaryColorInput,
+                  primaryOpacityInput
+                ),
               },
             });
           }}
           onOpacityKeyDown={(e) => {
-            if (e.key === 'Enter') {
+            if (e.key === "Enter") {
               updateQRConfig({
                 custom: {
                   ...device.qr.custom,
-                  primaryColor: combineHexWithOpacity(primaryColorInput, primaryOpacityInput),
+                  primaryColor: combineHexWithOpacity(
+                    primaryColorInput,
+                    primaryOpacityInput
+                  ),
                 },
               });
-            } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
               e.preventDefault();
-              const increment = e.key === 'ArrowUp' ? 1 : -1;
-              const newOpacity = Math.max(0, Math.min(100, primaryOpacityInput + increment));
+              const increment = e.key === "ArrowUp" ? 1 : -1;
+              const newOpacity = Math.max(
+                0,
+                Math.min(100, primaryOpacityInput + increment)
+              );
               setPrimaryOpacityInput(newOpacity);
               immediateUpdatePrimaryColor(primaryColorInput, newOpacity);
             }
@@ -365,170 +403,203 @@ function QRGenerator(panelSize) {
       </div>
       <div className="flex items-center pb-5 px-3.5">
         <h4> Secondary </h4>
-      <CustomColorInput
-      value={combineHexWithOpacity(secondaryColorInput, secondaryOpacityInput)} 
-      colorValue={secondaryColorInput} 
-      hasOpacity
-      opacityValue={secondaryOpacityInput}
-      preset={getPaletteForColor(secondaryColorInput)}
-      onColorPickerOpen={() => handleColorPickerOpen(secondaryColorInput)}
-      onColorPickerClose={handleColorPickerClose}
-      onChange={(c) => {
-        let color = chroma(c.toHexString());
-        let hex = color.hex().slice(0,7).toUpperCase();
-        let alpha = Math.round(color.alpha() * 100);
-        setSecondaryColorInput(hex);
-        setSecondaryOpacityInput(alpha);
-        immediateUpdateSecondaryColor(hex, alpha);
-      }} 
-      onColorChange={(e)=>{
-        let color = e.target.value;
-        if (!color.startsWith("#")) {
-          color = "#" + color;
-        }
-        setSecondaryColorInput(color.toUpperCase());
-        if(chroma.valid(color)){
-          immediateUpdateSecondaryColor(color, secondaryOpacityInput);
-        }
-      }}
-      onOpacityChange={(e)=>{
-        let opacity = e.target.value;
-        console.log(opacity);
-        if (opacity < 0) opacity = 0;
-        if (opacity > 100) opacity = 100;
-        setSecondaryOpacityInput(opacity);
-        immediateUpdateSecondaryColor(secondaryColorInput, opacity);
-      }}
-      onColorBlur={() => {
-        if (chroma.valid(secondaryColorInput)) {
-          updateQRConfig({
-            custom: {
-              ...device.qr.custom,
-              secondaryColor: combineHexWithOpacity(secondaryColorInput, secondaryOpacityInput),
-            },
-          });
-        }
-      }}
-      onColorKeyDown={(e) => {
-        if (e.key === 'Enter' && chroma.valid(secondaryColorInput)) {
-          updateQRConfig({
-            custom: {
-              ...device.qr.custom,
-              secondaryColor: combineHexWithOpacity(secondaryColorInput, secondaryOpacityInput),
-            },
-          });
-        }
-      }}
-      onOpacityBlur={() => {
-        updateQRConfig({
-          custom: {
-            ...device.qr.custom,
-            secondaryColor: combineHexWithOpacity(secondaryColorInput, secondaryOpacityInput),
-          },
-        });
-      }}
-      onOpacityKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          updateQRConfig({
-            custom: {
-              ...device.qr.custom,
-              secondaryColor: combineHexWithOpacity(secondaryColorInput, secondaryOpacityInput),
-            },
-          });
-        } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-          e.preventDefault();
-          const increment = e.key === 'ArrowUp' ? 1 : -1;
-          const newOpacity = Math.max(0, Math.min(100, secondaryOpacityInput + increment));
-          setSecondaryOpacityInput(newOpacity);
-          immediateUpdateSecondaryColor(secondaryColorInput, newOpacity);
-        }
-      }}
-      />
+        <CustomColorInput
+          value={combineHexWithOpacity(
+            secondaryColorInput,
+            secondaryOpacityInput
+          )}
+          colorValue={secondaryColorInput}
+          hasOpacity
+          opacityValue={secondaryOpacityInput}
+          preset={getPaletteForColor(secondaryColorInput)}
+          onColorPickerOpen={() => handleColorPickerOpen(secondaryColorInput)}
+          onColorPickerClose={handleColorPickerClose}
+          onChange={(c) => {
+            let color = chroma(c.toHexString());
+            let hex = color.hex().slice(0, 7).toUpperCase();
+            let alpha = Math.round(color.alpha() * 100);
+            setSecondaryColorInput(hex);
+            setSecondaryOpacityInput(alpha);
+            immediateUpdateSecondaryColor(hex, alpha);
+          }}
+          onColorChange={(e) => {
+            let color = e.target.value;
+            if (!color.startsWith("#")) {
+              color = "#" + color;
+            }
+            setSecondaryColorInput(color.toUpperCase());
+            if (chroma.valid(color)) {
+              immediateUpdateSecondaryColor(color, secondaryOpacityInput);
+            }
+          }}
+          onOpacityChange={(e) => {
+            let opacity = e.target.value;
+            console.log(opacity);
+            if (opacity < 0) opacity = 0;
+            if (opacity > 100) opacity = 100;
+            setSecondaryOpacityInput(opacity);
+            immediateUpdateSecondaryColor(secondaryColorInput, opacity);
+          }}
+          onColorBlur={() => {
+            if (chroma.valid(secondaryColorInput)) {
+              updateQRConfig({
+                custom: {
+                  ...device.qr.custom,
+                  secondaryColor: combineHexWithOpacity(
+                    secondaryColorInput,
+                    secondaryOpacityInput
+                  ),
+                },
+              });
+            }
+          }}
+          onColorKeyDown={(e) => {
+            if (e.key === "Enter" && chroma.valid(secondaryColorInput)) {
+              updateQRConfig({
+                custom: {
+                  ...device.qr.custom,
+                  secondaryColor: combineHexWithOpacity(
+                    secondaryColorInput,
+                    secondaryOpacityInput
+                  ),
+                },
+              });
+            }
+          }}
+          onOpacityBlur={() => {
+            updateQRConfig({
+              custom: {
+                ...device.qr.custom,
+                secondaryColor: combineHexWithOpacity(
+                  secondaryColorInput,
+                  secondaryOpacityInput
+                ),
+              },
+            });
+          }}
+          onOpacityKeyDown={(e) => {
+            if (e.key === "Enter") {
+              updateQRConfig({
+                custom: {
+                  ...device.qr.custom,
+                  secondaryColor: combineHexWithOpacity(
+                    secondaryColorInput,
+                    secondaryOpacityInput
+                  ),
+                },
+              });
+            } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+              e.preventDefault();
+              const increment = e.key === "ArrowUp" ? 1 : -1;
+              const newOpacity = Math.max(
+                0,
+                Math.min(100, secondaryOpacityInput + increment)
+              );
+              setSecondaryOpacityInput(newOpacity);
+              immediateUpdateSecondaryColor(secondaryColorInput, newOpacity);
+            }
+          }}
+        />
       </div>
       <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5 mb-2.5">
         Border
       </h3>
       <div className="flex items-center pb-2.5 px-3.5">
         <h4> Color</h4>
-      <CustomColorInput
-      value={combineHexWithOpacity(borderColorInput, borderOpacityInput)} 
-      colorValue={borderColorInput} 
-      hasOpacity
-      opacityValue={borderOpacityInput}
-      preset={getPaletteForColor(borderColorInput)}
-      onColorPickerOpen={() => handleColorPickerOpen(borderColorInput)}
-      onColorPickerClose={handleColorPickerClose}
-      onChange={(c) => {
-        let color = chroma(c.toHexString());
-        let hex = color.hex().slice(0,7).toUpperCase();
-        let alpha = Math.round(color.alpha() * 100);
-        setBorderColorInput(hex);
-        setBorderOpacityInput(alpha);
-        immediateUpdateBorderColor(hex, alpha);
-      }} 
-      onColorChange={(e)=>{
-        let color = e.target.value;
-        if (!color.startsWith("#")) {
-          color = "#" + color;
-        }
-        setBorderColorInput(color.toUpperCase());
-        if(chroma.valid(color)){
-          immediateUpdateBorderColor(color, borderOpacityInput);
-        }
-      }}
-      onOpacityChange={(e)=>{
-        let opacity = e.target.value;
-        console.log(opacity);
-        if (opacity < 0) opacity = 0;
-        if (opacity > 100) opacity = 100;
-        setBorderOpacityInput(opacity);
-        immediateUpdateBorderColor(borderColorInput, opacity);
-      }}
-      onColorBlur={() => {
-        if (chroma.valid(borderColorInput)) {
-          updateQRConfig({
-            custom: {
-              ...device.qr.custom,
-              borderColor: combineHexWithOpacity(borderColorInput, borderOpacityInput),
-            },
-          });
-        }
-      }}
-      onColorKeyDown={(e) => {
-        if (e.key === 'Enter' && chroma.valid(borderColorInput)) {
-          updateQRConfig({
-            custom: {
-              ...device.qr.custom,
-              borderColor: combineHexWithOpacity(borderColorInput, borderOpacityInput),
-            },
-          });
-        }
-      }}
-      onOpacityBlur={() => {
-        updateQRConfig({
-          custom: {
-            ...device.qr.custom,
-            borderColor: combineHexWithOpacity(borderColorInput, borderOpacityInput),
-          },
-        });
-      }}
-      onOpacityKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          updateQRConfig({
-            custom: {
-              ...device.qr.custom,
-              borderColor: combineHexWithOpacity(borderColorInput, borderOpacityInput),
-            },
-          });
-        } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-          e.preventDefault();
-          const increment = e.key === 'ArrowUp' ? 1 : -1;
-          const newOpacity = Math.max(0, Math.min(100, borderOpacityInput + increment));
-          setBorderOpacityInput(newOpacity);
-          immediateUpdateBorderColor(borderColorInput, newOpacity);
-        }
-      }}
-      />
+        <CustomColorInput
+          value={combineHexWithOpacity(borderColorInput, borderOpacityInput)}
+          colorValue={borderColorInput}
+          hasOpacity
+          opacityValue={borderOpacityInput}
+          preset={getPaletteForColor(borderColorInput)}
+          onColorPickerOpen={() => handleColorPickerOpen(borderColorInput)}
+          onColorPickerClose={handleColorPickerClose}
+          onChange={(c) => {
+            let color = chroma(c.toHexString());
+            let hex = color.hex().slice(0, 7).toUpperCase();
+            let alpha = Math.round(color.alpha() * 100);
+            setBorderColorInput(hex);
+            setBorderOpacityInput(alpha);
+            immediateUpdateBorderColor(hex, alpha);
+          }}
+          onColorChange={(e) => {
+            let color = e.target.value;
+            if (!color.startsWith("#")) {
+              color = "#" + color;
+            }
+            setBorderColorInput(color.toUpperCase());
+            if (chroma.valid(color)) {
+              immediateUpdateBorderColor(color, borderOpacityInput);
+            }
+          }}
+          onOpacityChange={(e) => {
+            let opacity = e.target.value;
+            console.log(opacity);
+            if (opacity < 0) opacity = 0;
+            if (opacity > 100) opacity = 100;
+            setBorderOpacityInput(opacity);
+            immediateUpdateBorderColor(borderColorInput, opacity);
+          }}
+          onColorBlur={() => {
+            if (chroma.valid(borderColorInput)) {
+              updateQRConfig({
+                custom: {
+                  ...device.qr.custom,
+                  borderColor: combineHexWithOpacity(
+                    borderColorInput,
+                    borderOpacityInput
+                  ),
+                },
+              });
+            }
+          }}
+          onColorKeyDown={(e) => {
+            if (e.key === "Enter" && chroma.valid(borderColorInput)) {
+              updateQRConfig({
+                custom: {
+                  ...device.qr.custom,
+                  borderColor: combineHexWithOpacity(
+                    borderColorInput,
+                    borderOpacityInput
+                  ),
+                },
+              });
+            }
+          }}
+          onOpacityBlur={() => {
+            updateQRConfig({
+              custom: {
+                ...device.qr.custom,
+                borderColor: combineHexWithOpacity(
+                  borderColorInput,
+                  borderOpacityInput
+                ),
+              },
+            });
+          }}
+          onOpacityKeyDown={(e) => {
+            if (e.key === "Enter") {
+              updateQRConfig({
+                custom: {
+                  ...device.qr.custom,
+                  borderColor: combineHexWithOpacity(
+                    borderColorInput,
+                    borderOpacityInput
+                  ),
+                },
+              });
+            } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+              e.preventDefault();
+              const increment = e.key === "ArrowUp" ? 1 : -1;
+              const newOpacity = Math.max(
+                0,
+                Math.min(100, borderOpacityInput + increment)
+              );
+              setBorderOpacityInput(newOpacity);
+              immediateUpdateBorderColor(borderColorInput, newOpacity);
+            }
+          }}
+        />
       </div>
       <div className="flex items-center pb-1.5 px-3.5">
         <h4> Width</h4>

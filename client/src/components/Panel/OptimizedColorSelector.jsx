@@ -164,7 +164,7 @@ const OptimizedColorSelector = ({ panelSize }) => {
       {/* Active Colors Palette */}
       {colorBoxes && (
         <div className="w-full my-4 space-y-2">
-          <h4 className="text-xs text-[var(--text-secondary)]/75">Active Colors</h4>
+          <h4>Active Colors</h4>
           <div className="space-y-1">
             {colorBoxes}
           </div>
