@@ -292,7 +292,7 @@ function QRGenerator(panelSize) {
             let alpha = Math.round(color.alpha() * 100);
             setPrimaryColorInput(hex);
             setPrimaryOpacityInput(alpha);
-            debouncedUpdatePrimaryColor(hex, alpha);
+            immediateUpdatePrimaryColor(hex, alpha);
           }}
           onColorChange={(e) => {
             let color = e.target.value;
@@ -301,7 +301,7 @@ function QRGenerator(panelSize) {
             }
             setPrimaryColorInput(color.toUpperCase());
             if (chroma.valid(color)) {
-              debouncedUpdatePrimaryColor(color, primaryOpacityInput);
+              immediateUpdatePrimaryColor(color, primaryOpacityInput);
             }
           }}
           onColorBlur={() => {
@@ -335,7 +335,7 @@ function QRGenerator(panelSize) {
             if (opacity < 0) opacity = 0;
             if (opacity > 100) opacity = 100;
             setPrimaryOpacityInput(opacity);
-            debouncedUpdatePrimaryColor(primaryColorInput, opacity);
+            immediateUpdatePrimaryColor(primaryColorInput, opacity);
           }}
           onOpacityBlur={() => {
             updateQRConfig({
@@ -379,7 +379,7 @@ function QRGenerator(panelSize) {
         let alpha = Math.round(color.alpha() * 100);
         setSecondaryColorInput(hex);
         setSecondaryOpacityInput(alpha);
-        debouncedUpdateSecondaryColor(hex, alpha);
+        immediateUpdateSecondaryColor(hex, alpha);
       }} 
       onColorChange={(e)=>{
         let color = e.target.value;
@@ -388,7 +388,7 @@ function QRGenerator(panelSize) {
         }
         setSecondaryColorInput(color.toUpperCase());
         if(chroma.valid(color)){
-          debouncedUpdateSecondaryColor(color, secondaryOpacityInput);
+          immediateUpdateSecondaryColor(color, secondaryOpacityInput);
         }
       }}
       onOpacityChange={(e)=>{
@@ -397,7 +397,7 @@ function QRGenerator(panelSize) {
         if (opacity < 0) opacity = 0;
         if (opacity > 100) opacity = 100;
         setSecondaryOpacityInput(opacity);
-        debouncedUpdateSecondaryColor(secondaryColorInput, opacity);
+        immediateUpdateSecondaryColor(secondaryColorInput, opacity);
       }}
       onColorBlur={() => {
         if (chroma.valid(secondaryColorInput)) {
