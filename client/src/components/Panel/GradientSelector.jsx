@@ -6,7 +6,7 @@ import PositionInput from "./PositionInput";
 import AngleInput from "./AngleInput";
 import { ColorPicker, Button, Space, Tooltip } from "antd";
 import chroma from "chroma-js";
-import { useDebouncedCallback } from "../../hooks/useDebounce";
+
 import {
   BetweenVerticalEnd,
   ArrowLeftRight,
@@ -25,16 +25,16 @@ function GradientSelector() {
   // Frozen preset state to prevent flickering during color picking
   const [frozenPreset, setFrozenPreset] = useState(null);
 
-  // Debounced update functions to prevent excessive canvas re-renders
-  const debouncedUpdateGradient = useDebouncedCallback((gradientData) => {
+  // Real-time update functions for immediate feedback
+  const updateGradient = useCallback((gradientData) => {
     updateBackground({
       gradient: gradientData
     });
-  }, 300);
+  }, [updateBackground]);
 
-  const debouncedUpdateGrain = useDebouncedCallback((grain) => {
+  const updateGrain = useCallback((grain) => {
     updateBackground({ grain });
-  }, 300);
+  }, [updateBackground]);
 
 
 
@@ -159,13 +159,13 @@ function GradientSelector() {
   };
 
   useEffect(() => {
-    debouncedUpdateGradient({
+    updateGradient({
       type: type,
       stops: stops.flat(),
       angle: device.gradient.angle,
       pos: device.gradient.pos,
     });
-  }, [stops, type, device.gradient.angle, device.gradient.pos]); // Removed debouncedUpdateGradient from dependencies
+  }, [stops, type, device.gradient.angle, device.gradient.pos]);
 
   // Frozen preset logic to prevent flickering during color picking
   const handleColorPickerOpen = (stopIndex) => {
@@ -227,7 +227,7 @@ function GradientSelector() {
   className="opacity-75 hover:opacity-100 cursor-pointer"
   size={20}
   onClick={() => {
-    debouncedUpdateGrain(!device.grain);
+    updateGrain(!device.grain);
   }}
 />
           <BetweenVerticalEnd

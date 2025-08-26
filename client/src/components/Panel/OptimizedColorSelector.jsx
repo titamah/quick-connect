@@ -5,7 +5,7 @@ import "./styles.css";
 import { Grip } from "lucide-react";
 import chroma from "chroma-js";
 import { useDevice } from "../../contexts/DeviceContext";
-import { useDebounce } from "../../hooks/useDebounce";
+
 
 const OptimizedColorSelector = ({ panelSize }) => {
   const { device, background, updateBackground, palette } = useDevice();
@@ -15,15 +15,12 @@ const OptimizedColorSelector = ({ panelSize }) => {
   const [localColor, setLocalColor] = useState(background.color);
   const [inputText, setInputText] = useState(background.color);
   
-  // Debounce the color updates to reduce re-renders
-  const debouncedColor = useDebounce(localColor, 300);
-
-  // Update the global state only when debounced value changes
+  // Update the global state immediately for real-time feedback
   useEffect(() => {
-    if (debouncedColor !== background.color) {
-      updateBackground({ color: debouncedColor });
+    if (localColor !== background.color) {
+      updateBackground({ color: localColor });
     }
-  }, [debouncedColor, background.color, updateBackground]);
+  }, [localColor, background.color, updateBackground]);
 
   // Sync local state when background color changes externally
   useEffect(() => {

@@ -464,7 +464,7 @@ function QRGenerator(panelSize) {
         let alpha = Math.round(color.alpha() * 100);
         setBorderColorInput(hex);
         setBorderOpacityInput(alpha);
-        debouncedUpdateBorderColor(hex, alpha);
+        immediateUpdateBorderColor(hex, alpha);
       }} 
       onColorChange={(e)=>{
         let color = e.target.value;
@@ -473,7 +473,7 @@ function QRGenerator(panelSize) {
         }
         setBorderColorInput(color.toUpperCase());
         if(chroma.valid(color)){
-          debouncedUpdateBorderColor(color, borderOpacityInput);
+          immediateUpdateBorderColor(color, borderOpacityInput);
         }
       }}
       onOpacityChange={(e)=>{
@@ -482,7 +482,7 @@ function QRGenerator(panelSize) {
         if (opacity < 0) opacity = 0;
         if (opacity > 100) opacity = 100;
         setBorderOpacityInput(opacity);
-        debouncedUpdateBorderColor(borderColorInput, opacity);
+        immediateUpdateBorderColor(borderColorInput, opacity);
       }}
       onColorBlur={() => {
         if (chroma.valid(borderColorInput)) {
