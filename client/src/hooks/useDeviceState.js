@@ -26,7 +26,7 @@ export const useDeviceState = () => {
 
 // QR Code configuration
 const [qrConfig, setQRConfig] = useState({
-    url: "www.qrki.xyz",
+    url: "www.qrki.com",
     custom: { 
       primaryColor: "#000000",
       secondaryColor: "#FFFFFF",
@@ -36,8 +36,8 @@ const [qrConfig, setQRConfig] = useState({
     },
     // QR position percentages (0-1) for consistent positioning across device sizes
     positionPercentages: {
-      x: 0.25,  // 25% from left (default center-left position)
-      y: 0.57,  // 57% from top (default center-bottom position)
+      x: 0.5,   // 50% from left (centered horizontally)
+      y: 0.75,  // 75% from top (3/4 down from top)
     },
     // QR rotation in degrees (0-360)
     rotation: 0,

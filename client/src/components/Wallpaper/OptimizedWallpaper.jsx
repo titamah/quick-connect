@@ -344,9 +344,9 @@ const OptimizedWallpaper = forwardRef(
           return;
         }
 
-        // Only regenerate when URL changes
-        if (qrConfig.url !== lastURL) {
-          console.log('🔄 URL changed, extracting new SVG paths');
+        // Regenerate when URL changes or on initial load
+        if (qrConfig.url !== lastURL || !cachedSVGPaths) {
+          console.log('🔄 URL changed or initial load, extracting SVG paths');
           const newPaths = extractSVGPaths(svg);
           setCachedSVGPaths(newPaths);
           setLastURL(qrConfig.url);
