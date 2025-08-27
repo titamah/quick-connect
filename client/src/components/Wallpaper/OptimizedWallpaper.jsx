@@ -7,6 +7,8 @@ import {
   Line,
   Group,
   Text,
+  RegularPolygon,
+  Path,
 } from "react-konva";
 import { QRCode } from "antd";
 import React, {
@@ -49,7 +51,6 @@ const OptimizedWallpaper = forwardRef(
     // Determine if phone UI should be shown
     const showPhoneUI = isPreviewVisible || isHovered;
 
-
     // Memoized calculations to prevent unnecessary recalculations
     const stageScale = useStageCalculations(deviceInfo.size, panelSize, isOpen);
     const { patternImage, imageSize, isImageLoaded } = useImageLoader(
@@ -60,7 +61,7 @@ const OptimizedWallpaper = forwardRef(
 
     // QR Code state
     const [qrImg, setQRImg] = useState(null);
-    
+
     // Cache for SVG paths - only regenerate when URL changes
     const [cachedSVGPaths, setCachedSVGPaths] = useState(null);
     const [lastURL, setLastURL] = useState(qrConfig.url);
@@ -117,64 +118,79 @@ const OptimizedWallpaper = forwardRef(
     // Function to extract and cache SVG paths
     const extractSVGPaths = useCallback((svgElement) => {
       if (!svgElement) return null;
-      
+
       try {
         // Find all path elements in the SVG
-        const paths = svgElement.querySelectorAll('path');
+        const paths = svgElement.querySelectorAll("path");
         const pathData = [];
-        
+
         paths.forEach((path, index) => {
-          const fill = path.getAttribute('fill');
+          const fill = path.getAttribute("fill");
           pathData.push({
             id: `qr-path-${index}`,
-            d: path.getAttribute('d'),
+            d: path.getAttribute("d"),
             fill: fill,
             // Store original attributes for reference
-            originalFill: fill
+            originalFill: fill,
           });
           console.log(`📊 Path ${index}: fill="${fill}"`);
         });
-        
-        console.log('📊 Extracted SVG paths:', pathData.length);
-        console.log('🔍 Path details:', pathData.map(p => ({ id: p.id, fill: p.fill, dLength: p.d?.length })));
+
+        console.log("📊 Extracted SVG paths:", pathData.length);
+        console.log(
+          "🔍 Path details:",
+          pathData.map((p) => ({
+            id: p.id,
+            fill: p.fill,
+            dLength: p.d?.length,
+          }))
+        );
         return pathData;
       } catch (error) {
-        console.error('Error extracting SVG paths:', error);
+        console.error("Error extracting SVG paths:", error);
         return null;
       }
     }, []);
 
     // Function to update SVG colors in real-time
-    const updateSVGColors = useCallback((primaryColor, secondaryColor) => {
-      const svg = qrRef.current?.querySelector("svg");
-      if (!svg || !cachedSVGPaths) return;
-      
-      try {
-        const paths = svg.querySelectorAll('path');
-        console.log('🔍 Updating colors for', paths.length, 'paths');
-        
-        paths.forEach((path, index) => {
-          const originalFill = cachedSVGPaths[index]?.originalFill;
-          console.log(`Path ${index}: originalFill="${originalFill}"`);
-          
-          // Determine which color to use based on path index
-          // Path 0 = background, Path 1 = QR pattern (foreground)
-          if (index === 0) {
-            // First path is background
-            path.setAttribute('fill', secondaryColor);
-            console.log(`  → Set to secondary (background): ${secondaryColor}`);
-          } else {
-            // Second path is QR pattern
-            path.setAttribute('fill', primaryColor);
-            console.log(`  → Set to primary (QR pattern): ${primaryColor}`);
-          }
-        });
-        
-        console.log('🎨 Updated SVG colors:', { primaryColor, secondaryColor });
-      } catch (error) {
-        console.error('Error updating SVG colors:', error);
-      }
-    }, [cachedSVGPaths]);
+    const updateSVGColors = useCallback(
+      (primaryColor, secondaryColor) => {
+        const svg = qrRef.current?.querySelector("svg");
+        if (!svg || !cachedSVGPaths) return;
+
+        try {
+          const paths = svg.querySelectorAll("path");
+          console.log("🔍 Updating colors for", paths.length, "paths");
+
+          paths.forEach((path, index) => {
+            const originalFill = cachedSVGPaths[index]?.originalFill;
+            console.log(`Path ${index}: originalFill="${originalFill}"`);
+
+            // Determine which color to use based on path index
+            // Path 0 = background, Path 1 = QR pattern (foreground)
+            if (index === 0) {
+              // First path is background
+              path.setAttribute("fill", secondaryColor);
+              console.log(
+                `  → Set to secondary (background): ${secondaryColor}`
+              );
+            } else {
+              // Second path is QR pattern
+              path.setAttribute("fill", primaryColor);
+              console.log(`  → Set to primary (QR pattern): ${primaryColor}`);
+            }
+          });
+
+          console.log("🎨 Updated SVG colors:", {
+            primaryColor,
+            secondaryColor,
+          });
+        } catch (error) {
+          console.error("Error updating SVG colors:", error);
+        }
+      },
+      [cachedSVGPaths]
+    );
 
     // Refs
     const transformerRef = useRef(null);
@@ -344,11 +360,11 @@ const OptimizedWallpaper = forwardRef(
 
         // Regenerate when URL changes or on initial load
         if (qrConfig.url !== lastURL || !cachedSVGPaths) {
-          console.log('🔄 URL changed or initial load, extracting SVG paths');
+          console.log("🔄 URL changed or initial load, extracting SVG paths");
           const newPaths = extractSVGPaths(svg);
           setCachedSVGPaths(newPaths);
           setLastURL(qrConfig.url);
-          
+
           // Generate new QR image after extracting paths
           try {
             const svgData = new XMLSerializer().serializeToString(svg);
@@ -385,10 +401,10 @@ const OptimizedWallpaper = forwardRef(
     // Update colors in real-time (separate effect)
     useEffect(() => {
       if (!cachedSVGPaths) return; // Don't update if no paths cached
-      
-      console.log('🎨 Color update effect triggered');
+
+      console.log("🎨 Color update effect triggered");
       updateSVGColors(primaryColor, secondaryColor);
-      
+
       // Update the displayed QR image with the modified SVG
       const svg = qrRef.current?.querySelector("svg");
       if (svg) {
@@ -768,148 +784,184 @@ const OptimizedWallpaper = forwardRef(
 
             {/* Phone UI Layer - Topmost */}
             {showPhoneUI && (
-              <Layer listening={false} opacity={isHovered ? 0.75 : 1}>
+              <Layer listening={false} opacity={( isHovered || isDragging ) ? 0.5 : 1}>
                 {/* QRKI Text */}
                 {/* Dynamic Island */}
                 <Rect
-                  x={deviceInfo.size.x / 2 - 33 / stageScale}
-                  y={deviceInfo.size.y * 0.015}
-                  width={66 / stageScale}
-                  height={20 / stageScale}
+                  x={deviceInfo.size.x / 2 - deviceInfo.size.x * 0.15}
+                  y={deviceInfo.size.y * 0.01}
+                  width={deviceInfo.size.x * 0.3}
+                  height={deviceInfo.size.x * 0.065}
                   fill="black"
-                  cornerRadius={15 / stageScale}
+                  cornerRadius={deviceInfo.size.x * 0.15}
                 />
 
                 <Text
                   x={deviceInfo.size.x * 0.125}
-                  y={deviceInfo.size.y * 0.025}
-                  fontWeight={900}
+                  y={deviceInfo.size.y * 0.0175}
                   text="QRKI"
-                  fontSize={13 / stageScale}
+                  fontSize={deviceInfo.size.x * 0.05}
                   fontFamily="Rubik, -apple-system, BlinkMacSystemFont, sans-serif"
                   fill="white"
                   opacity={1}
                 />
 
                 {/* Signal Bars */}
-                <Group x={deviceInfo.size.x * 0.725} y={deviceInfo.size.y * 0.025} listening={false}>
+                <Group
+                  x={deviceInfo.size.x * 0.725}
+                  y={deviceInfo.size.y * 0.0175}
+                  listening={false}
+                >
                   <Rect
-                    x={(2 / stageScale) * 7.5}
-                    y={0}
-                    width={2.5 / stageScale}
-                    height={9.5 / stageScale}
+                    x={deviceInfo.size.x * 0.045}
+                    y={deviceInfo.size.x * 0}
+                    width={deviceInfo.size.x * 0.01}
+                    height={deviceInfo.size.x * 0.0375}
                     fill="white"
                     opacity={0.5}
                   />
                   <Rect
-                    x={(2 / stageScale) * 5}
-                    y={2.5 / stageScale}
-                    width={2.5 / stageScale}
-                    height={7 / stageScale}
+                    x={deviceInfo.size.x * 0.03}
+                    y={deviceInfo.size.x * 0.0095}
+                    width={deviceInfo.size.x * 0.01}
+                    height={deviceInfo.size.x * 0.028}
                     fill="white"
                     opacity={1}
                   />
                   <Rect
-                    x={(2 / stageScale) * 2.5}
-                    y={4.5 / stageScale}
-                    width={2.5 / stageScale}
-                    height={5 / stageScale}
+                    x={deviceInfo.size.x * 0.015}
+                    y={deviceInfo.size.x * 0.0195}
+                    width={deviceInfo.size.x * 0.01}
+                    height={deviceInfo.size.x * 0.01825}
                     fill="white"
                     opacity={1}
                   />
                   <Rect
                     x={0}
-                    y={6 / stageScale}
-                    width={2.5 / stageScale}
-                    height={3.5 / stageScale}
+                    y={deviceInfo.size.x * 0.0295}
+                    width={deviceInfo.size.x * 0.01}
+                    height={deviceInfo.size.x * 0.009}
                     fill="white"
                     opacity={1}
                   />
                 </Group>
 
                 {/* Battery */}
-                <Group x={deviceInfo.size.x * 0.83} y={deviceInfo.size.y * 0.025} listening={false}>
+                <Group
+                  x={deviceInfo.size.x * 0.805}
+                  y={deviceInfo.size.y * 0.0175}
+                  listening={false}
+                >
                   <Rect
                     x={0}
                     y={0}
-                    width={19 / stageScale}
-                    height={9.5 / stageScale}
+                    width={deviceInfo.size.x * 0.075}
+                    height={deviceInfo.size.x * 0.035}
                     stroke="white"
-                    strokeWidth={1 / stageScale}
-                    cornerRadius={2 / stageScale}
+                    strokeWidth={deviceInfo.size.x * 0.002}
+                    cornerRadius={deviceInfo.size.x * 0.01}
                   />
                   <Rect
-                    x={2 / stageScale}
-                    y={1.75 / stageScale}
-                    width={15 / stageScale}
-                    height={6 / stageScale}
+                    x={deviceInfo.size.x * 0.0075}
+                    y={deviceInfo.size.x * 0.005}
+                    width={deviceInfo.size.x * 0.06}
+                    height={deviceInfo.size.x * 0.025}
                     fill="white"
-                    cornerRadius={1 / stageScale}
+                    cornerRadius={deviceInfo.size.x * 0.005}
                   />
                   <Rect
-                    x={20.5 / stageScale}
-                    y={2.5 / stageScale}
-                    width={2 / stageScale}
-                    height={4 / stageScale}
+                    x={deviceInfo.size.x * 0.0775}
+                    y={deviceInfo.size.x * 0.012}
+                    width={deviceInfo.size.x * 0.005}
+                    height={deviceInfo.size.x * 0.01}
                     fill="white"
-                    cornerRadius={1 / stageScale}
+                    cornerRadius={deviceInfo.size.x * 0.00175}
                   />
                 </Group>
 
                 {/* Time */}
                 <Text
-                  x={deviceInfo.size.x / 2}
-                  y={deviceInfo.size.y / 2 - 40}
-                  text="4:44 PM"
-                  fontSize={48 / stageScale}
+                  x={0}
+                  y={deviceInfo.size.y / 6}
+                  width={deviceInfo.size.x}
+                  text="4:44"
+                  stroke="white"
+                  strokeWidth={deviceInfo.size.x * 0.001}
+                  fontSize={deviceInfo.size.x * 0.3}
+                  fontWeight="bold"
                   fontFamily="Rubik, -apple-system, BlinkMacSystemFont, sans-serif"
                   fill="white"
                   align="center"
                   listening={false}
-                  offsetX={100 / stageScale}
-                  offsetY={24 / stageScale}
                 />
 
                 {/* Notification */}
-                <Group x={24} y={deviceInfo.size.y / 2 + 40} listening={false}>
+                <Group x={0} y={deviceInfo.size.y * 0.75} listening={false}>
                   <Rect
-                    x={0}
+                    x={deviceInfo.size.x * 0.05}
                     y={0}
-                    width={(deviceInfo.size.x - 48) / stageScale}
-                    height={48 / stageScale}
-                    fill="rgba(255, 255, 255, 0.2)"
-                    cornerRadius={16 / stageScale}
+                    width={deviceInfo.size.x * 0.9}
+                    height={
+                      deviceInfo.size.y * 0.095 + deviceInfo.size.x * 0.095
+                    }
+                    fillLinearGradientStartPoint={{ x: 0, y: 0 }}
+                    fillLinearGradientEndPoint={{ x: deviceInfo.size.x, y: deviceInfo.size.y * 0.175 }}
+                    fillLinearGradientColorStops={[
+                      0, 'rgba(255,255,255,0.95)',  // slightly brighter at top
+                      1, 'rgba(225, 225, 225, 0.85)'   // slightly darker at bottom
+                    ]}
+                    shadowBlur={8}
+                    shadowOpacity={0.1}
+                    shadowOffset={{ x: 0, y: 4 }}
+                    filters={[Konva.Filters.Blur]}
+                    blurRadius={10}
+                    cornerRadius={deviceInfo.size.x * 0.045}
                     stroke="rgba(255, 255, 255, 0.3)"
-                    strokeWidth={1 / stageScale}
+                    strokeWidth={deviceInfo.size.x * 0.001}
+                  />
+                  <Rect
+                    x={deviceInfo.size.x * 0.1}
+                    y={deviceInfo.size.x * 0.05}
+                    width={deviceInfo.size.y * 0.095}
+                    height={deviceInfo.size.y * 0.095}
+                    cornerRadius={deviceInfo.size.x * 0.025}
+                    fill="#F0F66E"
                   />
                   <Text
-                    x={16 / stageScale}
-                    y={16 / stageScale}
-                    text="New Messages"
-                    fontSize={16 / stageScale}
+                    x={deviceInfo.size.x * 0.125 + deviceInfo.size.y * 0.095}
+                    y={deviceInfo.size.x * 0.06}
+                    text="Quacki"
+                    fontSize={deviceInfo.size.x * 0.075}
                     fontFamily="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif"
-                    fill="white"
                     listening={false}
+                    fill="rgba(0, 0, 0, 0.75)"
                   />
                   <Text
-                    x={16 / stageScale}
-                    y={36 / stageScale}
-                    text="1 notification"
-                    fontSize={14 / stageScale}
+                    x={deviceInfo.size.x * 0.125 + deviceInfo.size.y * 0.095}
+                    y={deviceInfo.size.x * 0.15}
+                    text="2 New Messages"
+                    fontSize={deviceInfo.size.x * 0.045}
                     fontFamily="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif"
-                    fill="rgba(255, 255, 255, 0.8)"
-                    listening={false}
-                  />
+                    fill="rgba(0, 0, 0, 0.75)"
+                    />
                   <Text
-                    x={(deviceInfo.size.x - 72) / stageScale}
-                    y={16 / stageScale}
+                    x={deviceInfo.size.x * 0.775}
+                    y={deviceInfo.size.x * 0.0575}
                     text="3:33 AM"
-                    fontSize={14 / stageScale}
+                    fontSize={deviceInfo.size.x * 0.035}
                     fontFamily="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif"
-                    fill="rgba(255, 255, 255, 0.8)"
-                    listening={false}
-                  />
+                    fill="rgba(0, 0, 0, 0.75)"
+                    />
                 </Group>
+                <Rect
+                  x={deviceInfo.size.x * 0.25}
+                  y={deviceInfo.size.y * 0.95}
+                  width={deviceInfo.size.x * 0.5}
+                  height={deviceInfo.size.y * 0.0125}
+                  fill="white"
+                  opacity={0.5}
+                  cornerRadius={deviceInfo.size.x * 0.5}
+                />
               </Layer>
             )}
           </Stage>
