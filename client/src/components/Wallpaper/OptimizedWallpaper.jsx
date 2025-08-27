@@ -768,67 +768,89 @@ const OptimizedWallpaper = forwardRef(
 
             {/* Phone UI Layer - Topmost */}
             {showPhoneUI && (
-              <Layer listening={false} opacity={isHovered ? 0.5 : 1}>
+              <Layer listening={false} opacity={isHovered ? 0.75 : 1}>
+                {/* QRKI Text */}
+                {/* Dynamic Island */}
+                <Rect
+                  x={deviceInfo.size.x / 2 - 33 / stageScale}
+                  y={deviceInfo.size.y * 0.015}
+                  width={66 / stageScale}
+                  height={20 / stageScale}
+                  fill="black"
+                  cornerRadius={15 / stageScale}
+                />
+
+                <Text
+                  x={deviceInfo.size.x * 0.125}
+                  y={deviceInfo.size.y * 0.025}
+                  fontWeight={900}
+                  text="QRKI"
+                  fontSize={13 / stageScale}
+                  fontFamily="Rubik, -apple-system, BlinkMacSystemFont, sans-serif"
+                  fill="white"
+                  opacity={1}
+                />
+
                 {/* Signal Bars */}
-                <Group x={24} y={20} listening={false}>
+                <Group x={deviceInfo.size.x * 0.725} y={deviceInfo.size.y * 0.025} listening={false}>
+                  <Rect
+                    x={(2 / stageScale) * 7.5}
+                    y={0}
+                    width={2.5 / stageScale}
+                    height={9.5 / stageScale}
+                    fill="white"
+                    opacity={0.5}
+                  />
+                  <Rect
+                    x={(2 / stageScale) * 5}
+                    y={2.5 / stageScale}
+                    width={2.5 / stageScale}
+                    height={7 / stageScale}
+                    fill="white"
+                    opacity={1}
+                  />
+                  <Rect
+                    x={(2 / stageScale) * 2.5}
+                    y={4.5 / stageScale}
+                    width={2.5 / stageScale}
+                    height={5 / stageScale}
+                    fill="white"
+                    opacity={1}
+                  />
                   <Rect
                     x={0}
-                    y={0}
-                    width={1 / stageScale}
-                    height={16 / stageScale}
+                    y={6 / stageScale}
+                    width={2.5 / stageScale}
+                    height={3.5 / stageScale}
                     fill="white"
-                    cornerRadius={0.5 / stageScale}
-                  />
-                  <Rect
-                    x={2 / stageScale}
-                    y={2 / stageScale}
-                    width={1 / stageScale}
-                    height={14 / stageScale}
-                    fill="white"
-                    cornerRadius={0.5 / stageScale}
-                  />
-                  <Rect
-                    x={4 / stageScale}
-                    y={1 / stageScale}
-                    width={1 / stageScale}
-                    height={15 / stageScale}
-                    fill="white"
-                    cornerRadius={0.5 / stageScale}
-                  />
-                  <Rect
-                    x={6 / stageScale}
-                    y={0}
-                    width={1 / stageScale}
-                    height={16 / stageScale}
-                    fill="white"
-                    cornerRadius={0.5 / stageScale}
+                    opacity={1}
                   />
                 </Group>
 
                 {/* Battery */}
-                <Group x={deviceInfo.size.x - 60} y={20} listening={false}>
+                <Group x={deviceInfo.size.x * 0.83} y={deviceInfo.size.y * 0.025} listening={false}>
                   <Rect
                     x={0}
                     y={0}
-                    width={24 / stageScale}
-                    height={16 / stageScale}
+                    width={19 / stageScale}
+                    height={9.5 / stageScale}
                     stroke="white"
                     strokeWidth={1 / stageScale}
                     cornerRadius={2 / stageScale}
                   />
                   <Rect
                     x={2 / stageScale}
-                    y={2 / stageScale}
-                    width={18 / stageScale}
-                    height={12 / stageScale}
+                    y={1.75 / stageScale}
+                    width={15 / stageScale}
+                    height={6 / stageScale}
                     fill="white"
                     cornerRadius={1 / stageScale}
                   />
                   <Rect
-                    x={26 / stageScale}
-                    y={4 / stageScale}
+                    x={20.5 / stageScale}
+                    y={2.5 / stageScale}
                     width={2 / stageScale}
-                    height={8 / stageScale}
+                    height={4 / stageScale}
                     fill="white"
                     cornerRadius={1 / stageScale}
                   />
@@ -840,7 +862,7 @@ const OptimizedWallpaper = forwardRef(
                   y={deviceInfo.size.y / 2 - 40}
                   text="4:44 PM"
                   fontSize={48 / stageScale}
-                  fontFamily="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif"
+                  fontFamily="Rubik, -apple-system, BlinkMacSystemFont, sans-serif"
                   fill="white"
                   align="center"
                   listening={false}
