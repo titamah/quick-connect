@@ -86,6 +86,7 @@ const Slider = ({
             presets={presets}
             onChange={changeColor}
             onOpenChange={(e) => {
+              takeSnapshot();
               setOpenPicker(e && !drag);
               if (e && !drag) {
                 onColorPickerOpen?.(); // Call when picker opens
@@ -111,6 +112,7 @@ const Slider = ({
                 setDrag(true);
               }}
               onMouseDown={() => {
+                takeSnapshot();
                 setDrag(false);
               }}
               onMouseUp={takeSnapshot}
@@ -135,9 +137,9 @@ const Slider = ({
               setDrag(true);
             }}
             onMouseDown={() => {
+              takeSnapshot();
               setDrag(false);
             }}
-            onMouseUp={takeSnapshot}
             onChange={onChange}
             onBlur={onBlur}
             className={`appearance-none w-full absolute -translate-y-[2px] ${

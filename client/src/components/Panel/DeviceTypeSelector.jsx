@@ -82,7 +82,7 @@ function DeviceTypeSelector() {
       size: deviceInfo.size,
     });
     setShowCustomSizeInput(false);
-    takeSnapshot();
+    setTimeout(() => takeSnapshot("Device changed"), 0);
   };
 
   const handleCustomSizeSubmit = () => {
@@ -97,7 +97,6 @@ function DeviceTypeSelector() {
       updateDevice(customDevice);
       setCustomWidth("");
       setCustomHeight("");
-      takeSnapshot();
     }
   };
 

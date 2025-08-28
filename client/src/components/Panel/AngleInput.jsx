@@ -38,6 +38,8 @@ const AngleInput = ({
   };
 
   const handleMouseDown = (val, lim) => {
+    takeSnapshot();
+
     if (intervalRef.current) return;
 
     intervalRef.current = setInterval(() => {
@@ -75,7 +77,7 @@ const AngleInput = ({
           onMouseDown={() => {
             handleMouseDown(-1, -180);
           }}
-          onMouseUp={()=>{handleMouseUp(); takeSnapshot();}}
+          onMouseUp={()=>{handleMouseUp()}}
           onMouseLeave={handleMouseUp}
         />
         <Slider
@@ -93,7 +95,7 @@ const AngleInput = ({
           onMouseDown={() => {
             handleMouseDown(1, 180);
           }}
-          onMouseUp={()=>{handleMouseUp(); takeSnapshot();}}
+          onMouseUp={()=>{handleMouseUp()}}
           onMouseLeave={handleMouseUp}
         />
       </div>
