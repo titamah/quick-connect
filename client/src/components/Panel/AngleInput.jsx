@@ -7,9 +7,8 @@ const AngleInput = ({
   type = "qr", // "qr" or "gradient"
   angle: currentAngle, // current angle value
   onUpdate, // update function
-  takeSnapshot, // blur function
 }) => {
-  const { device } = useDevice();
+  const { device, takeSnapshot } = useDevice();
   const [angle, setAngle] = useState(currentAngle || 0);
   const intervalRef = useRef(null);
 
@@ -87,7 +86,6 @@ const AngleInput = ({
           value={angle}
           onChange={handleAngleChange}
           onBlur={handleAngleBlur}
-          takeSnapshot={takeSnapshot}
         />
         <RotateCw
           className="opacity-75 hover:opacity-100 cursor-pointer"
