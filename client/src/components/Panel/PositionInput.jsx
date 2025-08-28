@@ -126,7 +126,7 @@ const PositionInput = ({
   const handlePositionBlur = () => {
     // Only take snapshot if not from arrow key interaction
     if (!isArrowKeyActive) {
-      takeSnapshot();
+      // takeSnapshot();
     }
     
     // Convert string inputs to numbers
