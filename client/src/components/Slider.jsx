@@ -1,7 +1,7 @@
 import { ColorPicker } from "antd";
 import React, { useState, useRef, useEffect } from "react";
 
-const Slider = ({ id, presets, stacked, deleteStop, value, onChange, changeColor, color, min = 0, max = 100, onColorPickerOpen, onColorPickerClose, onBlur }) => {
+const Slider = ({ id, presets, stacked, deleteStop, value, onChange, changeColor, color, min = 0, max = 100, onColorPickerOpen, onColorPickerClose, onBlur, takeSnapshot }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [thumbLeft, setThumbLeft] = useState(0);
   const [openPicker, setOpenPicker] = useState(false);
@@ -84,6 +84,7 @@ const Slider = ({ id, presets, stacked, deleteStop, value, onChange, changeColor
         max={max}
         onChangeCapture={(e)=>{setDrag(true)}}
         onMouseDown={()=>{setDrag(false)}}
+        onMouseUp={takeSnapshot}
         onChange={onChange}
         onBlur={onBlur}
         className={`appearance-none w-full absolute -translate-y-[2px] ${ stacked ? "" : "rounded-full relative mt-[7.5px] h-[8px] bg-[var(--contrast-sheer)]"}`}

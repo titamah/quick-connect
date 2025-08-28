@@ -304,6 +304,31 @@ export const useDeviceStore = create(
       }));
       
       console.log('🔄 Updated history state - canUndo:', canUndo, 'canRedo:', canRedo);
+      
+      // Log detailed state information
+      console.log('📊 History State Details:');
+      console.log('Past states:', state.history.past.map((snapshot, index) => ({
+        index,
+        deviceType: snapshot.deviceInfo.type,
+        deviceSize: snapshot.deviceInfo.size,
+        backgroundStyle: snapshot.background.style,
+        qrUrl: snapshot.qrConfig.url
+      })));
+      
+      console.log('Present state:', {
+        deviceType: state.deviceInfo.type,
+        deviceSize: state.deviceInfo.size,
+        backgroundStyle: state.background.style,
+        qrUrl: state.qrConfig.url
+      });
+      
+      console.log('Future states:', state.history.future.map((snapshot, index) => ({
+        index,
+        deviceType: snapshot.deviceInfo.type,
+        deviceSize: snapshot.deviceInfo.size,
+        backgroundStyle: snapshot.background.style,
+        qrUrl: snapshot.qrConfig.url
+      })));
     },
 
     getHistoryInfo: () => {

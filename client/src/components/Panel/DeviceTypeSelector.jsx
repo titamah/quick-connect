@@ -4,7 +4,7 @@ import { Plus } from  "lucide-react";
 import "./styles.css";
 
 function DeviceTypeSelector() {
-  const { device, updateBackground, updateQRConfig, updateDeviceInfo } = useDevice();
+  const { device, updateBackground, updateQRConfig, updateDeviceInfo, takeSnapshot } = useDevice();
   const [deviceSize, setDeviceSize] = useState(device.size);
   const [deviceName, setDeviceName] = useState(device.type);
   const [showCustomSizeInput, setShowCustomSizeInput] = useState(false);
@@ -82,6 +82,7 @@ function DeviceTypeSelector() {
       size: deviceInfo.size,
     });
     setShowCustomSizeInput(false);
+    takeSnapshot();
   };
 
   const handleCustomSizeSubmit = () => {
@@ -96,6 +97,7 @@ function DeviceTypeSelector() {
       updateDevice(customDevice);
       setCustomWidth("");
       setCustomHeight("");
+      takeSnapshot();
     }
   };
 

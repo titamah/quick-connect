@@ -1,7 +1,6 @@
 // hooks/useDeviceState.js
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 
-// Split the massive device state into logical pieces
 export const useDeviceState = () => {
   // Basic device info
   const [deviceInfo, setDeviceInfo] = useState({
@@ -24,53 +23,160 @@ export const useDeviceState = () => {
     grain: false,
   });
 
-  // Image palette colors extracted from uploaded images
-  const [imagePalette, setImagePalette] = useState([]);
-
-// QR Code configuration
-const [qrConfig, setQRConfig] = useState({
+  // QR Code configuration
+  const [qrConfig, setQRConfig] = useState({
     url: "www.qrki.com",
     custom: { 
       primaryColor: "#000000",
       secondaryColor: "#FFFFFF",
-      borderSizeRatio: 0,        // 0-20% of QR size
+      borderSizeRatio: 0,
       borderColor: "#000000", 
-      cornerRadiusRatio: 0       // 0-50% of border size
+      cornerRadiusRatio: 0
     },
-    // QR position percentages (0-1) for consistent positioning across device sizes
     positionPercentages: {
-      x: 0.5,   // 50% from left (centered horizontally)
-      y: 0.75,  // 75% from top (3/4 down from top)
+      x: 0.5,
+      y: 0.75,
     },
-    // QR rotation in degrees (0-360)
     rotation: 0,
   });
 
-  // Helper function to convert RGB to hex
+  // Image palette
+  const [imagePalette, setImagePalette] = useState([]);
+
+  // SIMPLE HISTORY - just 3 things
+  const [past, setPast] = useState([]);
+  const [present, setPresent] = useState(null);
+  const [future, setFuture] = useState([]);
+
+  // SIMPLE FUNCTIONS - no useCallback bullshit
+
+  // Get current state
+  const getCurrentState = () => ({
+    deviceInfo,
+    background,
+    qrConfig,
+    imagePalette
+  });
+
+  useEffect(() => {
+    console.log('past', past);
+    console.log('present', present);
+    console.log('future', future);
+  }, [past, present, future]);
+
+  // Take snapshot
+  const takeSnapshot = (description = '') => {
+    const currentState = getCurrentState();
+    const snapshot = structuredClone(currentState);
+    
+    // Skip if same as last
+    if (past.length > 0 && JSON.stringify(past[past.length - 1].state) === JSON.stringify(snapshot)) {
+      console.log('⏭️ Skip duplicate snapshot');
+      return;
+    }
+    
+    console.log('📸 Snapshot:', description);
+    
+    // Add to past, limit to 50
+    const newPast = [...past, { state: snapshot, description, timestamp: Date.now() }];
+    if (newPast.length > 50) {
+      newPast.shift(); // Remove oldest
+    }
+    
+    setPast(newPast);
+    setPresent(snapshot);
+    setFuture([]); // Clear future
+  };
+
+  // Undo
+  const undo = () => {
+    if (past.length === 0) return false;
+    
+    const previousState = past[past.length - 1];
+    const currentState = getCurrentState();
+    
+    console.log('↶ Undo:', previousState.description);
+    
+    // Move current to future
+    setFuture([structuredClone(currentState), ...future]);
+    
+    // Remove from past
+    setPast(past.slice(0, -1));
+    
+    // Apply previous state
+    setPresent(previousState.state);
+    setDeviceInfo(previousState.state.deviceInfo);
+    setBackground(previousState.state.background);
+    setQRConfig(previousState.state.qrConfig);
+    setImagePalette(previousState.state.imagePalette);
+    
+    return true;
+  };
+
+  // Redo
+  const redo = () => {
+    if (future.length === 0) return false;
+    
+    const nextState = future[0];
+    const currentState = getCurrentState();
+    
+    console.log('↷ Redo');
+    
+    // Move current to past
+    setPast([...past, { state: structuredClone(currentState), description: 'Redo point', timestamp: Date.now() }]);
+    
+    // Remove from future
+    setFuture(future.slice(1));
+    
+    // Apply next state
+    setPresent(nextState);
+    setDeviceInfo(nextState.deviceInfo);
+    setBackground(nextState.background);
+    setQRConfig(nextState.qrConfig);
+    setImagePalette(nextState.imagePalette);
+    
+    return true;
+  };
+
+  // Simple booleans
+  const canUndo = past.length > 0;
+  const canRedo = future.length > 0;
+
+
+  // Debug info
+  const historyDebug = {
+    pastCount: past.length,
+    futureCount: future.length,
+    canRedo: canRedo,
+    canUndo: canUndo,
+    totalSize: past.length + future.length + (present ? 1 : 0),
+    lastAction: past.length > 0 ? past[past.length - 1].description : 'No history',
+    present: present,
+    past: past,
+    future: future
+  };
+
+  // Helper functions
   const rgbToHex = (rgbString) => {
     if (typeof rgbString !== "string" || !rgbString.startsWith("rgb")) {
-      return rgbString; // Return as-is if not RGB
+      return rgbString;
     }
     const match = rgbString.match(/\d+/g);
     return match ? `#${match.map(num => parseInt(num).toString(16).padStart(2, '0')).join('')}` : rgbString;
   };
 
-  // Helper function to truncate color to 7 characters (hex only, no opacity)
   const truncateToHex = (colorString) => {
     if (!colorString || typeof colorString !== "string") {
       return colorString;
     }
-    // Convert RGB to hex first if needed
     const hexColor = rgbToHex(colorString);
-    // Truncate to 7 characters (including #)
     return hexColor.slice(0, 7);
   };
 
-  // Dynamic palette that only includes active/in-use colors
-  const palette = useMemo(() => {
+  // Dynamic palette
+  const palette = (() => {
     const activeColors = [];
 
-    // Add QR colors if they exist (truncated to hex only)
     if (qrConfig.custom.primaryColor) {
       activeColors.push(truncateToHex(qrConfig.custom.primaryColor));
     }
@@ -81,20 +187,17 @@ const [qrConfig, setQRConfig] = useState({
       activeColors.push(truncateToHex(qrConfig.custom.borderColor));
     }
 
-    // Add background colors based on style (truncated to hex only)
     if (background.style === "solid" && background.color) {
       activeColors.push(truncateToHex(background.color));
     } else if (background.style === "gradient" && background.gradient.stops) {
-      // Extract colors from gradient stops (every odd index is a color)
       background.gradient.stops
-        .filter((_, i) => i % 2 === 1) // Only color values, not positions
+        .filter((_, i) => i % 2 === 1)
         .forEach(color => {
           if (color) {
             activeColors.push(truncateToHex(color));
           }
         });
     } else if (background.style === "image" && imagePalette.length > 0) {
-      // Add image palette colors only when background style is image
       imagePalette.forEach(color => {
         if (color) {
           activeColors.push(truncateToHex(color));
@@ -102,65 +205,67 @@ const [qrConfig, setQRConfig] = useState({
       });
     }
 
-    // Remove duplicates and return
     return [...new Set(activeColors)];
-  }, [background.style, background.color, background.gradient.stops, qrConfig.custom.primaryColor, qrConfig.custom.secondaryColor, qrConfig.custom.borderColor, imagePalette]);
+  })();
 
-  // Helper function to get palette colors excluding a specific color
-  const getPaletteExcluding = useCallback((excludeColor) => {
+  // Get palette excluding a color
+  const getPaletteExcluding = (excludeColor) => {
     if (!excludeColor) return palette;
-    
-    const excludeHex = truncateToHex(excludeColor);
-    // Normalize both colors for comparison
-    const normalizedExclude = excludeHex.toLowerCase();
-    return palette.filter(color => color.toLowerCase() !== normalizedExclude);
-  }, [palette]);
+    const excludeHex = truncateToHex(excludeColor).toLowerCase();
+    return palette.filter(color => color.toLowerCase() !== excludeHex);
+  };
 
-  // Optimized update functions
-  const updateDeviceInfo = useCallback((updates) => {
+  // Update functions
+  const updateDeviceInfo = (updates) => {
     setDeviceInfo(prev => ({ ...prev, ...updates }));
-  }, []);
+  };
 
-  const updateBackground = useCallback((updates) => {
+  const updateBackground = (updates) => {
     setBackground(prev => ({ ...prev, ...updates }));
-  }, []);
+  };
 
-  const updateQRConfig = useCallback((updates) => {
+  const updateQRConfig = (updates) => {
     setQRConfig(prev => ({ ...prev, ...updates }));
-  }, []);
+  };
 
-  // Update QR position percentages (for device switching consistency)
-  const updateQRPositionPercentages = useCallback((percentages) => {
+  const updateQRPositionPercentages = (percentages) => {
     setQRConfig(prev => ({
       ...prev,
       positionPercentages: { ...prev.positionPercentages, ...percentages }
     }));
-  }, []);
+  };
 
-  // Update image palette with colors extracted from uploaded images
-  const updateImagePalette = useCallback((colors) => {
+  const updateImagePalette = (colors) => {
     setImagePalette(colors);
-  }, []);
+  };
 
-  // Legacy compatibility - reconstruct the old device object when needed
-  const device = useMemo(() => ({
+  // Legacy device object
+  const device = {
     ...deviceInfo,
     ...background,
     qr: qrConfig,
     palette,
-  }), [deviceInfo, background, qrConfig, palette]);
+  };
 
   return {
-    device, // For backward compatibility
+    device,
     deviceInfo,
     background,
     qrConfig,
     palette,
-    getPaletteExcluding, // New helper function
+    getPaletteExcluding,
     updateDeviceInfo,
     updateBackground,
     updateQRConfig,
-    updateQRPositionPercentages, // New function for position percentages
-    updateImagePalette, // New function for image palette
+    updateQRPositionPercentages,
+    updateImagePalette,
+    
+    // UNDO/REDO STUFF
+    takeSnapshot,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    historyDebug,
   };
 };

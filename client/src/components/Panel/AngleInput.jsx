@@ -7,7 +7,7 @@ const AngleInput = ({
   type = "qr", // "qr" or "gradient"
   angle: currentAngle, // current angle value
   onUpdate, // update function
-  max = 180 // max angle value (now represents -180 to +180)
+  takeSnapshot, // blur function
 }) => {
   const { device } = useDevice();
   const [angle, setAngle] = useState(currentAngle || 0);
@@ -76,7 +76,7 @@ const AngleInput = ({
           onMouseDown={() => {
             handleMouseDown(-1, -180);
           }}
-          onMouseUp={handleMouseUp}
+          onMouseUp={()=>{handleMouseUp(); takeSnapshot();}}
           onMouseLeave={handleMouseUp}
         />
         <Slider
@@ -87,6 +87,7 @@ const AngleInput = ({
           value={angle}
           onChange={handleAngleChange}
           onBlur={handleAngleBlur}
+          takeSnapshot={takeSnapshot}
         />
         <RotateCw
           className="opacity-75 hover:opacity-100 cursor-pointer"
@@ -94,7 +95,7 @@ const AngleInput = ({
           onMouseDown={() => {
             handleMouseDown(1, 180);
           }}
-          onMouseUp={handleMouseUp}
+          onMouseUp={()=>{handleMouseUp(); takeSnapshot();}}
           onMouseLeave={handleMouseUp}
         />
       </div>

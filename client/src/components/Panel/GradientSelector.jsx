@@ -18,7 +18,7 @@ import {
 import "./styles.css";
 
 function GradientSelector() {
-  const { device, updateBackground, updateQRConfig, updateDeviceInfo, getPaletteExcluding } = useDevice();
+  const { device, updateBackground, updateQRConfig, updateDeviceInfo, getPaletteExcluding, takeSnapshot } = useDevice();
   const [type, setType] = useState(device.gradient.type);
   const gradientBar = useRef(null);
   
@@ -352,6 +352,7 @@ function GradientSelector() {
           angle={device.gradient.angle}
           onUpdate={(newAngle) => updateBackground({ gradient: { ...device.gradient, angle: newAngle } })}
           max={360}
+          takeSnapshot={takeSnapshot}
         />
         </div>
         ) : (

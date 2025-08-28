@@ -13,7 +13,7 @@ import {
 } from "../../hooks/useDebounce";
 
 function QRGenerator(panelSize) {
-  const { device, updateQRConfig, getPaletteExcluding } = useDevice();
+  const { device, updateQRConfig, getPaletteExcluding, takeSnapshot , historyDebug} = useDevice();
   const qrCodeRef = useRef(null);
   const [qrSize, setQRSize] = useState(
     Math.min(device.size.x, device.size.y) / 2
@@ -289,7 +289,7 @@ function QRGenerator(panelSize) {
             type="qr"
             angle={device.qr.rotation}
             onUpdate={(newAngle) => updateQRConfig({ rotation: newAngle })}
-            max={360}
+            takeSnapshot={()=>{takeSnapshot(); console.log(historyDebug);}}
           />
         </div>
       </div>

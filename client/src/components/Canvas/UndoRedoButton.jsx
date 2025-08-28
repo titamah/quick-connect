@@ -1,19 +1,20 @@
 import { forwardRef } from "react";
 import { Undo2, Redo2 } from "lucide-react";
+import { useDevice } from "../../contexts/DeviceContext";
 
 const UndoRedoButton = forwardRef(({}, ref) => {
-  // TODO: Implement undo/redo functionality
-  const canUndo = false; // Will be connected to undo state
-  const canRedo = false; // Will be connected to redo state
+  const { canUndo, canRedo, undo, redo } = useDevice();
 
   const handleUndo = () => {
-    // TODO: Implement undo logic
-    console.log("Undo clicked");
+    if (canUndo) {
+    undo();
+  }
   };
 
   const handleRedo = () => {
-    // TODO: Implement redo logic
-    console.log("Redo clicked");
+    if (canRedo) {
+    redo();
+  }
   };
 
   return (
@@ -27,7 +28,6 @@ const UndoRedoButton = forwardRef(({}, ref) => {
               : "bg-black/50 cursor-not-allowed"
           }`}
           onClick={handleUndo}
-          disabled={!canUndo}
           title="Undo"
         >
           <Undo2 size={18} />
@@ -36,12 +36,11 @@ const UndoRedoButton = forwardRef(({}, ref) => {
         <button
           type="button"
           className={`py-2 px-2 h-fit inline-flex items-center gap-x-2 text-sm font-medium rounded-4xl text-white hover:opacity-75 ${
-            canUndo 
+            canRedo 
               ? "bg-[var(--accent)] cursor-pointer" 
               : "bg-black/50 cursor-not-allowed"
           }`}
           onClick={handleRedo}
-          disabled={!canRedo}
           title="Redo"
         >
           <Redo2 size={18} />
@@ -49,6 +48,7 @@ const UndoRedoButton = forwardRef(({}, ref) => {
       </div>
     </div>
   );
+
 });
 
 export default UndoRedoButton;
