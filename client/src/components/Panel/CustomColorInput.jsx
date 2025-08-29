@@ -5,16 +5,14 @@ import chroma from "chroma-js";
 
 export default function CustomColorInput({
   value,
-  colorValue,
   hasOpacity,
-  opacityValue,
   preset,
   onChange,
   onColorPickerOpen,
   onColorPickerClose,
   submitColor,
 }) {
-  const { takeSnapshot, qrConfig } = useDevice();
+  const { takeSnapshot } = useDevice();
   const [needsSnapshot, setNeedsSnapshot] = useState(false);
   const timeoutRef = useRef(null);
   const hexInputRef = useRef(null);

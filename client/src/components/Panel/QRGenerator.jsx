@@ -1,89 +1,28 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import "preline/preline";
 import { useDevice } from "../../contexts/DeviceContext";
 import CustomColorInput from "./CustomColorInput";
 import PositionInput from "./PositionInput";
 import AngleInput from "./AngleInput";
-import { QRCode, ColorPicker } from "antd";
 import Slider from "../Slider";
 import chroma from "chroma-js";
 import {
-  useDebouncedCallback,
   useThrottledCallback,
 } from "../../hooks/useDebounce";
 
 function QRGenerator(panelSize) {
   const { device, updateQRConfig, qrConfig, takeSnapshot } = useDevice();
   const qrCodeRef = useRef(null);
-  const [qrSize, setQRSize] = useState(
-    Math.min(device.size.x, device.size.y) / 2
-  );
+
+  // const [qrSize, setQRSize] = useState(
+  //   Math.min(device.size.x, device.size.y) / 2
+  // );
+  // useEffect(() => {
+  //   setQRSize(Math.min(device.size.x, device.size.y) / 2);
+  // }, [device.size]);
 
   // Frozen preset state to prevent flickering during color picking
   const [frozenPreset, setFrozenPreset] = useState(null);
-
-
-
-  useEffect(() => {
-    setQRSize(Math.min(device.size.x, device.size.y) / 2);
-  }, [device.size]);
-
-  // Get current colors from QR config (with fallbacks)
-  const primaryColor = qrConfig.custom?.primaryColor || "#000000";
-  const secondaryColor = qrConfig.custom?.secondaryColor || "#FFFFFF";
-  const borderColor = qrConfig.custom?.borderColor || "#000000";
-
-  // Display states (like inputValues in PositionInput)
-  const [primaryColorInput, setPrimaryColorInput] = useState(
-    extractHexFromColor(primaryColor)
-  );
-  const [primaryOpacityInput, setPrimaryOpacityInput] = useState(
-    extractOpacityFromColor(primaryColor).toString()
-  );
-
-  const [secondaryColorInput, setSecondaryColorInput] = useState(
-    extractHexFromColor(secondaryColor)
-  );
-  const [secondaryOpacityInput, setSecondaryOpacityInput] = useState(
-    extractOpacityFromColor(secondaryColor).toString()
-  );
-
-  const [borderColorInput, setBorderColorInput] = useState(
-    extractHexFromColor(borderColor)
-  );
-  const [borderOpacityInput, setBorderOpacityInput] = useState(
-    extractOpacityFromColor(borderColor).toString()
-  );
-
-  // Helper functions to extract hex and opacity
-  function extractHexFromColor(color) {
-    if (!color) return "#000000";
-    return color.slice(0, 7);
-  }
-
-  function extractOpacityFromColor(color) {
-    if (!color || color.length <= 7) return 100;
-    const alphaHex = color.slice(7, 9);
-    if (!alphaHex) return 100;
-    const alpha = parseInt(alphaHex, 16);
-    return Math.round((alpha / 255) * 100);
-  }
-
-  // Update display states when device state changes
-  useEffect(() => {
-    setPrimaryColorInput(extractHexFromColor(primaryColor));
-    setPrimaryOpacityInput(extractOpacityFromColor(primaryColor).toString());
-  }, [primaryColor]);
-
-  useEffect(() => {
-    setSecondaryColorInput(extractHexFromColor(secondaryColor));
-    setSecondaryOpacityInput(extractOpacityFromColor(secondaryColor).toString());
-  }, [secondaryColor]);
-
-  useEffect(() => {
-    setBorderColorInput(extractHexFromColor(borderColor));
-    setBorderOpacityInput(extractOpacityFromColor(borderColor).toString());
-  }, [borderColor]);
 
   // Frozen preset logic
   const handleColorPickerOpen = (currentColor) => {
@@ -150,9 +89,6 @@ function QRGenerator(panelSize) {
     }
   }, [panelSize]);
 
-  const getColorString = (colorObj) => {
-    return typeof colorObj === "string" ? colorObj : colorObj?.toHexString();
-  };
 
   // Use ref to always get current qrConfig.custom
   const currentQRCustomRef = useRef(qrConfig.custom);
@@ -176,14 +112,6 @@ function QRGenerator(panelSize) {
 
     return hex + alpha;
   }
-
-
-
-
-
-
-
-
 
   // Throttled update functions for border size and radius (60 FPS)
   const throttledUpdateBorderSize = useThrottledCallback((size) => {
@@ -223,18 +151,6 @@ function QRGenerator(panelSize) {
           }
         />
       </div>
-      <div className="hidden">
-        <QRCode
-          ref={qrCodeRef}
-          value={qrConfig.url || "www.qrki.xyz"}
-          id="QRCode"
-          type="svg"
-          bordered={false}
-          size={qrSize}
-          color={primaryColor}
-          bgColor={secondaryColor}
-        />
-      </div>
       <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5 mb-2.5">
         Position
       </h3>
@@ -267,18 +183,14 @@ function QRGenerator(panelSize) {
         <h4> Primary </h4>
         <CustomColorInput
           value={qrConfig.custom.primaryColor}
-          colorValue={primaryColorInput}
           hasOpacity
-          opacityValue={primaryOpacityInput}
-          preset={getPaletteForColor(primaryColorInput)}
-          onColorPickerOpen={() => handleColorPickerOpen(primaryColorInput)}
+          preset={getPaletteForColor(qrConfig.custom.primaryColor)}
+          onColorPickerOpen={() => handleColorPickerOpen(qrConfig.custom.primaryColor)}
           onColorPickerClose={handleColorPickerClose}
           onChange={(c) => {
             let color = chroma(c.toHexString());
             let hex = color.hex().slice(0, 7).toUpperCase();
             let alpha = Math.round(color.alpha() * 100);
-            setPrimaryColorInput(hex);
-            setPrimaryOpacityInput(alpha.toString());
             updateQRConfig({
               custom: {
                 ...currentQRCustomRef.current,
@@ -308,18 +220,14 @@ function QRGenerator(panelSize) {
               },
             });}}
           value={qrConfig.custom.secondaryColor}
-          colorValue={secondaryColorInput}
           hasOpacity
-          opacityValue={secondaryOpacityInput}
-          preset={getPaletteForColor(secondaryColorInput)}
-          onColorPickerOpen={() => handleColorPickerOpen(secondaryColorInput)}
+          preset={getPaletteForColor(qrConfig.custom.secondaryColor)}
+          onColorPickerOpen={() => handleColorPickerOpen(qrConfig.custom.secondaryColor)}
           onColorPickerClose={handleColorPickerClose}
           onChange={(c) => {
             let color = chroma(c.toHexString());
             let hex = color.hex().slice(0, 7).toUpperCase();
             let alpha = Math.round(color.alpha() * 100);
-            setSecondaryColorInput(hex);
-            setSecondaryOpacityInput(alpha.toString());
             updateQRConfig({
               custom: {
                 ...currentQRCustomRef.current,
@@ -344,18 +252,14 @@ function QRGenerator(panelSize) {
               },
             });}}
           value={qrConfig.custom.borderColor}
-          colorValue={borderColorInput}
           hasOpacity
-          opacityValue={borderOpacityInput}
-          preset={getPaletteForColor(borderColorInput)}
-          onColorPickerOpen={() => handleColorPickerOpen(borderColorInput)}
+          preset={getPaletteForColor(qrConfig.custom.borderColor)}
+          onColorPickerOpen={() => handleColorPickerOpen(qrConfig.custom.borderColor)}
           onColorPickerClose={handleColorPickerClose}
           onChange={(c) => {
             let color = chroma(c.toHexString());
             let hex = color.hex().slice(0, 7).toUpperCase();
             let alpha = Math.round(color.alpha() * 100);
-            setBorderColorInput(hex);
-            setBorderOpacityInput(alpha.toString());
             updateQRConfig({
               custom: {
                 ...currentQRCustomRef.current,
