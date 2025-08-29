@@ -62,11 +62,20 @@ export const useDeviceState = () => {
   // Image palette
   const [imagePalette, setImagePalette] = useState([]);
 
-  // Crop information for image backgrounds
-  const [cropInfo, setCropInfo] = useState({
+  // Upload information for image backgrounds
+  const [uploadInfo, setUploadInfo] = useState({
+    filename: null,
     originalImageData: null, // base64 data URL of original image
+    croppedImageData: null,  // base64 data URL of cropped result
     crop: null, // crop position data
-    filename: null, // original filename
+  });
+
+  // Library information for image backgrounds
+  const [libraryInfo, setLibraryInfo] = useState({
+    selectedImageId: null,
+    originalImageData: null, // base64 data URL of library image
+    croppedImageData: null,  // base64 data URL of cropped result
+    crop: null, // crop position data
   });
 
   // HISTORY
@@ -132,7 +141,8 @@ export const useDeviceState = () => {
     background: structuredClone(background),
     qrConfig: structuredClone(qrConfig),
     imagePalette: structuredClone(imagePalette),
-    cropInfo: structuredClone(cropInfo)
+    uploadInfo: structuredClone(uploadInfo),
+    libraryInfo: structuredClone(libraryInfo)
   });
 
   useEffect(() => {
@@ -199,7 +209,8 @@ export const useDeviceState = () => {
     setBackground(previousState.state.background);
     setQRConfig(previousState.state.qrConfig);
     setImagePalette(previousState.state.imagePalette);
-    setCropInfo(previousState.state.cropInfo);
+    setUploadInfo(previousState.state.uploadInfo);
+    setLibraryInfo(previousState.state.libraryInfo);
     
     return true;
   };
@@ -221,7 +232,8 @@ export const useDeviceState = () => {
     setBackground(nextState.background);
     setQRConfig(nextState.qrConfig);
     setImagePalette(nextState.imagePalette);
-    setCropInfo(nextState.cropInfo);
+    setUploadInfo(nextState.uploadInfo);
+    setLibraryInfo(nextState.libraryInfo);
     
     return true;
   };
@@ -279,9 +291,14 @@ export const useDeviceState = () => {
     setImagePalette(colors);
   };
 
-  const updateCropInfo = (updates) => {
-    console.log('🔧 updateCropInfo:', updates);
-    setCropInfo(prev => deepMerge(prev, updates));
+  const updateUploadInfo = (updates) => {
+    console.log('🔧 updateUploadInfo:', updates);
+    setUploadInfo(prev => deepMerge(prev, updates));
+  };
+
+  const updateLibraryInfo = (updates) => {
+    console.log('🔧 updateLibraryInfo:', updates);
+    setLibraryInfo(prev => deepMerge(prev, updates));
   };
 
   // Legacy device object
@@ -298,14 +315,16 @@ export const useDeviceState = () => {
     background,
     qrConfig,
     palette,
-    cropInfo,
+    uploadInfo,
+    libraryInfo,
     getPaletteExcluding,
     updateDeviceInfo,
     updateBackground,
     updateQRConfig,
     updateQRPositionPercentages,
     updateImagePalette,
-    updateCropInfo,
+    updateUploadInfo,
+    updateLibraryInfo,
     
     // UNDO/REDO STUFF
     takeSnapshot,
