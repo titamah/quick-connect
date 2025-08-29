@@ -55,9 +55,9 @@ export default function CustomColorInput({
     console.log("🔍 BEFORE keydown:", { key: e.key, isPressing: isPressing.current });
     
     if (e.key === "Enter") {
+      e.preventDefault();
       alphaInputRef.current.blur();
-    } 
-    else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+    } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
       console.log("�� Arrow key pressed, isPressing before:", isPressing.current);
       setLocalAlpha(e.target.value);
       submitColor(localHex, e.target.value, !isPressing.current);
