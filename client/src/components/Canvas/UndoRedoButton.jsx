@@ -1,14 +1,17 @@
 import { forwardRef } from "react";
 import { Undo2, Redo2 } from "lucide-react";
 import { useDevice } from "../../contexts/DeviceContext";
+import chroma from "chroma-js";
 
 const UndoRedoButton = forwardRef(({}, ref) => {
-  const { canUndo, canRedo, undo, redo, device } = useDevice();
+  const { canUndo, canRedo, undo, redo, qrConfig } = useDevice();
 
   const handleUndo = () => {
     if (canUndo) {
     undo();
-    console.log("TEST: ", device);
+    setTimeout(() => {
+      console.log("TEST: ", chroma(qrConfig.custom.primaryColor).alpha());
+    }, 2000);
   }
   };
 
@@ -16,7 +19,9 @@ const UndoRedoButton = forwardRef(({}, ref) => {
     if (canRedo) {
     redo();
   }
-  console.log("TEST: ", device);
+  setTimeout(() => {
+    console.log("TEST: ", chroma(qrConfig.custom.primaryColor).alpha());
+  }, 2000);
   };
 
   return (

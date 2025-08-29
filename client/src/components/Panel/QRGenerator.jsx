@@ -595,7 +595,7 @@ function QRGenerator(panelSize) {
               },
             });
           }}
-          submitColor={(hex, alpha, snap) =>{
+          submitColor={(hex, alpha, snap = true) =>{
             snap && takeSnapshot();
             updateQRConfig({
               custom: {
@@ -618,7 +618,7 @@ function QRGenerator(panelSize) {
       <div className="flex items-center pb-5 px-3.5">
         <h4> Secondary </h4>
         <CustomColorInput
-        submitColor={(hex, alpha, snap) =>{
+        submitColor={(hex, alpha, snap = true) =>{
           snap && takeSnapshot();
           updateQRConfig({
             custom: {
@@ -626,7 +626,7 @@ function QRGenerator(panelSize) {
               secondaryColor: combineHexWithOpacity(hex, alpha),
             },
           });}}
-          value={combineHexWithOpacity(secondaryColorInput, parseInt(secondaryOpacityInput) || 100)}
+          value={qrConfig.custom.secondaryColor}
           colorValue={secondaryColorInput}
           hasOpacity
           opacityValue={secondaryOpacityInput}
@@ -663,7 +663,7 @@ function QRGenerator(panelSize) {
       <div className="flex items-center pb-2.5 px-3.5">
         <h4> Color</h4>
         <CustomColorInput
-        submitColor={(hex, alpha, snap) =>{
+        submitColor={(hex, alpha, snap = true) =>{
           snap && takeSnapshot();
           updateQRConfig({
             custom: {
@@ -671,7 +671,7 @@ function QRGenerator(panelSize) {
               borderColor: combineHexWithOpacity(hex, alpha),
             },
           });}}
-          value={combineHexWithOpacity(borderColorInput, parseInt(borderOpacityInput) || 100)}
+          value={qrConfig.custom.borderColor}
           colorValue={borderColorInput}
           hasOpacity
           opacityValue={borderOpacityInput}

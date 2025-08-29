@@ -23,8 +23,6 @@ export default function CustomColorInput({
   const [localHex, setLocalHex] = useState(colorValue);
   const [localAlpha, setLocalAlpha] = useState(opacityValue);
 
-  const [isPressing, setIsPressing] = useState(false);
-
   useEffect(() => {
     setLocalHex(colorValue.slice(0, 7).toUpperCase());
     setLocalAlpha(Math.round(chroma(colorValue).alpha() * 100));
@@ -52,24 +50,28 @@ export default function CustomColorInput({
     submitColor(localHex, localAlpha);
   };
 
+  const isPressing = useRef(false);
+
   const handleAlphaKeyDown = (e) => {
+    console.log("🔍 BEFORE keydown:", { key: e.key, isPressing: isPressing.current });
+    
     if (e.key === "Enter") {
       alphaInputRef.current.blur();
     } 
-    else if (e.key === "ArrowUp") {
-      setLocalAlpha(parseInt(localAlpha) + 1);
-      submitColor(localHex, e.target.value, !isPressing);
-    } else if (e.key === "ArrowDown") {
-      setLocalAlpha(parseInt(localAlpha) - 1);
-      submitColor(localHex, e.target.value, !isPressing);
+    else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+      console.log("�� Arrow key pressed, isPressing before:", isPressing.current);
+      setLocalAlpha(e.target.value);
+      submitColor(localHex, e.target.value, !isPressing.current);
+      isPressing.current = true;
+      console.log("�� Arrow key pressed, isPressing after:", isPressing.current);
     }
-    setIsPressing(true);
   };
-
+  
   const handleAlphaKeyUp = () => {
-    setIsPressing(false);
+    console.log("🔍 BEFORE keyup, isPressing:", isPressing.current);
+    isPressing.current = false;
+    console.log("🔍 AFTER keyup, isPressing:", isPressing.current);
   };
-
 
   // Handle color change - snapshot before first change of each interaction
   const handleColorChange = (color) => {
@@ -149,6 +151,9 @@ export default function CustomColorInput({
               value={localAlpha}
               onChange={(e) => {
                 setLocalAlpha(e.target.value);
+              }}
+              onClick={() => {
+                isPressing.current = false;
               }}
               onBlur={handleAlphaBlur}
               onKeyDown={handleAlphaKeyDown}
