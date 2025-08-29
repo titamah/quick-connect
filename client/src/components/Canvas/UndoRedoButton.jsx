@@ -4,13 +4,13 @@ import { useDevice } from "../../contexts/DeviceContext";
 import chroma from "chroma-js";
 
 const UndoRedoButton = forwardRef(({}, ref) => {
-  const { canUndo, canRedo, undo, redo, qrConfig } = useDevice();
+  const { canUndo, canRedo, undo, redo, cropInfo } = useDevice();
 
   const handleUndo = () => {
     if (canUndo) {
     undo();
     setTimeout(() => {
-      console.log("TEST: ", chroma(qrConfig.custom.primaryColor).alpha());
+      console.log("TEST: ", cropInfo);
     }, 2000);
   }
   };
@@ -20,7 +20,7 @@ const UndoRedoButton = forwardRef(({}, ref) => {
     redo();
   }
   setTimeout(() => {
-    console.log("TEST: ", chroma(qrConfig.custom.primaryColor).alpha());
+    console.log("TEST: ", cropInfo);
   }, 2000);
   };
 

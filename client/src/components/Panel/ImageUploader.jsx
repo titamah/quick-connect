@@ -13,6 +13,12 @@ import { useImageCache } from "../../hooks/useImageCache";
 function ImageUploader() {
   const { device, background, updateBackground, takeSnapshot, updateImagePalette, cropInfo, updateCropInfo } = useDevice();
   const { createObjectURL } = useImageCache();
+  
+  const [localFilename, setLocalFilename] = useState(cropInfo.filename);
+
+useEffect(() => {
+  setLocalFilename(cropInfo.filename);
+}, [cropInfo.filename]);
 
   const [source, setSource] = useState("Upload");
   // const [source, setSource] = useState("Upload");
@@ -27,6 +33,7 @@ function ImageUploader() {
   const closeModal = () => setModalOpen(false);
 
   function handleChange(file) {
+    takeSnapshot("Upload image");
     file.preventDefault();
     if (file.dataTransfer.items.length > 1) return;
 
@@ -96,7 +103,7 @@ function ImageUploader() {
 
 
   const cropImage = async () => {
-    takeSnapshot("Crop image");
+    background.bg && takeSnapshot("Crop image");
     
     // Get cropped image from the original data URL
     const croppedBlob = await getCroppedImg(cropInfo.originalImageData, crop);
@@ -129,11 +136,6 @@ function ImageUploader() {
   }, [cropInfo.crop, crop]);
 
 useEffect(() => {
-  if (!cropInfo.originalImageData) {
-    // Just clear the file - palette will update automatically
-    setModalOpen(false);
-  } else {
-    setModalOpen(true);
     // Create an image from the original data URL
     const img = new Image();
     img.crossOrigin = "Anonymous";
@@ -153,7 +155,7 @@ useEffect(() => {
       updateImagePalette(rgbPalette);
       console.log("New color palette:", rgbPalette);
       console.log("device palette:", device.palette);
-    };
+    
   }
 }, [cropInfo.originalImageData]);
 
@@ -305,7 +307,7 @@ useEffect(() => {
             border-[var(--border-color)]/50 rounded-md flex items-center justify-between"
             >
               <span>
-                {cropInfo.filename || "No image selected"}
+                {localFilename || "No image selected"}
               </span>
               <Trash2 size={16} onClick={deleteFile} />
             </div>{" "}
