@@ -36,29 +36,6 @@ function GradientSelector() {
   }, [updateBackground]);
 
 
-  const [stops, setStops] = useState([
-    [0, "rgb(255,170,0)"],
-    [0.5, "rgb(228,88,191)"],
-    [1, "rgb(177,99,232)"],
-  ]);
-
-  const DEFAULT_COLOR = [
-    {
-      color: "rgb(255,170,0)",
-      percent: 0,
-    },
-    {
-      color: "rgb(228, 88, 191)",
-      percent: 0.5,
-    },
-    {
-      color: "rgb(177, 99, 232)",
-      percent: 1,
-    },
-  ];
-
-  const [processedStops, setProcessedStops] = useState(DEFAULT_COLOR);
-
   const [gradientCSS, setGradientCSS] = useState(null);
 
   const updateCSS = () => {
@@ -70,53 +47,22 @@ function GradientSelector() {
     } else {
       css = `linear-gradient(${device.gradient.angle}deg,`;
     }
-    css +=
-      processedStops
-        .map(({ percent, color }) => `${color} ${percent * 100}%`)
-        .join(", ") + ")";
+    
+    // Convert flat array to CSS format
+    const stopsCSS = [];
+    for (let i = 0; i < device.gradient.stops.length; i += 2) {
+      const percent = device.gradient.stops[i] * 100;
+      const color = device.gradient.stops[i + 1];
+      stopsCSS.push(`${color} ${percent}%`);
+    }
+    
+    css += stopsCSS.join(", ") + ")";
     setGradientCSS(css);
   };
 
   useEffect(() => {
     updateCSS();
-  }, [processedStops, device.gradient, device.gradient.type]);
-
-  useEffect(() => {
-    // Convert flat array [0, "color1", 0.5, "color2", 1, "color3"] to processed format
-    const flatStops = device.gradient.stops;
-    const updatedStops = [];
-    
-    for (let i = 0; i < flatStops.length; i += 2) {
-      const percent = flatStops[i];
-      const color = flatStops[i + 1];
-      if (percent !== undefined && color !== undefined) {
-        updatedStops.push({
-          color,
-          percent: percent,
-        });
-      }
-    }
-    
-    // Sort by percent
-    updatedStops.sort((a, b) => a.percent - b.percent);
-    setProcessedStops(updatedStops);
-    
-  }, [device.gradient.stops]);
-
-  const updateStops = (colors) => {
-    if (colors instanceof Array) {
-      setStops(colors);
-    } else {
-      const rawArray = colors.split(", ").slice(1);
-      const stopsArray = [];
-      rawArray.forEach((element) => {
-        const [color, percent] = element.split(" ");
-        const percentValue = parseFloat(percent.replace("%", "")) / 100;
-        stopsArray.push([percentValue, color]);
-      });
-      setStops(stopsArray);
-    }
-  };
+  }, [device.gradient.stops, device.gradient.type, device.gradient.angle, device.gradient.pos]);
 
   function rgbToHex(rgbString) {
     const match = rgbString.match(/\d+/g); // extracts ["255", "170", "0"]
@@ -131,39 +77,49 @@ function GradientSelector() {
     const rect = gradientBar.current.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const percent = clickX / rect.width;
-    let prevStops = [...stops];
+    let currentStops = [...device.gradient.stops];
 
-    if (stops.length < 1){ 
-      let newStop = [parseFloat(percent.toFixed(2)), chroma.random().css()];
-      prevStops.push(newStop);
-
+    if (currentStops.length < 2) { 
+      // No stops exist, create first stop
+      const newStop = [parseFloat(percent.toFixed(2)), chroma.random().css()];
+      currentStops.push(...newStop);
     } else {
+      // Add new stop to flat array
+      const newStop = [parseFloat(percent.toFixed(2)), "???"];
+      currentStops.push(...newStop);
       
-    let newStop = [parseFloat(percent.toFixed(2)), "???"];
-    prevStops.push(newStop);
-    prevStops = prevStops.sort((a, b) => a[0] - b[0]);
-
-    const addedStop = prevStops.findIndex((i) => i[1] === "???");
-
-    let preStop = null;
-    let postStop = null;
-    if (addedStop > 0) {
-      preStop = prevStops[addedStop - 1];
+      // Sort the flat array by percent values (even indices)
+      const sortedStops = [];
+      for (let i = 0; i < currentStops.length; i += 2) {
+        sortedStops.push([currentStops[i], currentStops[i + 1]]);
+      }
+      sortedStops.sort((a, b) => a[0] - b[0]);
+      
+      // Find the added stop and calculate its color
+      const addedStopIndex = sortedStops.findIndex(stop => stop[1] === "???");
+      
+      if (addedStopIndex > 0 && addedStopIndex < sortedStops.length - 1) {
+        const preStop = sortedStops[addedStopIndex - 1];
+        const postStop = sortedStops[addedStopIndex + 1];
+        const mix = (sortedStops[addedStopIndex][0] - preStop[0]) / (postStop[0] - preStop[0]);
+        sortedStops[addedStopIndex][1] = chroma.mix(preStop[1], postStop[1], mix).css();
+      } else if (addedStopIndex === 0) {
+        sortedStops[addedStopIndex][1] = sortedStops[1]?.[1] || chroma.random().css();
+      } else {
+        sortedStops[addedStopIndex][1] = sortedStops[sortedStops.length - 2]?.[1] || chroma.random().css();
+      }
+      
+      // Flatten back to device format
+      currentStops = sortedStops.flat();
     }
-    if (addedStop < prevStops.length - 1) {
-      postStop = prevStops[addedStop + 1];
-    }
-    if (preStop && postStop) {
-      let mix =
-        (prevStops[addedStop][0] - preStop[0]) / (postStop[0] - preStop[0]);
-      prevStops[addedStop][1] = chroma.mix(preStop[1], postStop[1], mix).css();
-    } else if (!preStop) {
-      prevStops[addedStop][1] = postStop[1];
-    } else if (!postStop) {
-      prevStops[addedStop][1] = preStop[1];
-    }
-  }
-    setStops(prevStops);
+    
+    // Update device state directly
+    updateBackground({
+      gradient: {
+        ...device.gradient,
+        stops: currentStops,
+      }
+    });
   };
 
   // Remove the problematic useEffect that causes infinite loops
@@ -179,7 +135,7 @@ function GradientSelector() {
   // Frozen preset logic to prevent flickering during color picking
   const handleColorPickerOpen = (stopIndex) => {
     // Freeze palette without the current stop color
-    const currentStopColor = stops[stopIndex]?.[1];
+    const currentStopColor = device.gradient.stops[stopIndex * 2 + 1]; // Color is at odd index
     if (currentStopColor) {
       const hexColor = currentStopColor.startsWith("rgb") 
         ? currentStopColor.match(/\d+/g)?.map(num => parseInt(num).toString(16).padStart(2, '0')).join('')
@@ -201,7 +157,7 @@ function GradientSelector() {
 
   // Use frozen preset if available, otherwise use current palette
   const getPresetForGradientStop = (stopIndex) => {
-    const currentStopColor = stops[stopIndex]?.[1];
+    const currentStopColor = device.gradient.stops[stopIndex * 2 + 1]; // Color is at odd index
     if (!currentStopColor) return frozenPreset || device.palette;
     
     // Convert RGB to hex if needed
@@ -254,21 +210,21 @@ function GradientSelector() {
             size={20}
             onClick={() => {
               takeSnapshot("Evenly spaced gradient");
-              const stopsInterval = 1 / (stops.length - 1);
+              const stopsCount = device.gradient.stops.length / 2;
+              const stopsInterval = 1 / (stopsCount - 1);
               let val = -stopsInterval;
-              const spaced = stops
-                .sort((a, b) => a[0] - b[0])
-                .map(([percent, color]) => {
-                  val += stopsInterval;
-                  return [val, color];
-                });
-              setStops(spaced);
+              
+              // Create new evenly spaced stops
+              const newStops = [];
+              for (let i = 0; i < device.gradient.stops.length; i += 2) {
+                val += stopsInterval;
+                newStops.push(val, device.gradient.stops[i + 1]); // percent, color
+              }
+              
               updateBackground({
                 gradient: {
-                  type: device.gradient.type,
-                  stops: spaced.flat(),
-                  angle: device.gradient.angle,
-                  pos: device.gradient.pos,
+                  ...device.gradient,
+                  stops: newStops,
                 }
               });
             }}
@@ -278,16 +234,19 @@ function GradientSelector() {
             size={20}
             onClick={() => {
               takeSnapshot("Reverse gradient");
-              const reverse = stops.map(([percent, color]) => {
-                return [1 - percent, color];
-              });
-              setStops(reverse.sort((a, b) => a[0] - b[0]));
+              
+              // Create reversed stops
+              const newStops = [];
+              for (let i = 0; i < device.gradient.stops.length; i += 2) {
+                const percent = device.gradient.stops[i];
+                const color = device.gradient.stops[i + 1];
+                newStops.push(1 - percent, color); // reverse percent, keep color
+              }
+              
               updateBackground({
                 gradient: {
-                  type: device.gradient.type,
-                  stops: reverse.flat(),
-                  angle: device.gradient.angle,
-                  pos: device.gradient.pos,
+                  ...device.gradient,
+                  stops: newStops,
                 }
               });
             }}
@@ -317,96 +276,100 @@ function GradientSelector() {
             className="w-full h-3 rounded-full cursor-pointer relative react-colorful__hue"
             onClick={handleClick}
             style={{
-              background: `linear-gradient(90deg, ${processedStops
-                .map(({ color, percent }) => `${color} ${percent * 100}%`)
-                .join(", ")})`,
+              background: `linear-gradient(90deg, ${(() => {
+                const stopsCSS = [];
+                for (let i = 0; i < device.gradient.stops.length; i += 2) {
+                  const percent = device.gradient.stops[i] * 100;
+                  const color = device.gradient.stops[i + 1];
+                  stopsCSS.push(`${color} ${percent}%`);
+                }
+                return stopsCSS.join(", ");
+              })()})`,
             }}
           ></div>
           <div className="absolute w-full top-2/3">
-            {processedStops.map(({percent, color}, index) => (
-              <Slider
-                id={`gradient-slider-${index}`}
-                index={index}
-                stacked
-                deleteStop={(e) => {
-                  takeSnapshot("Delete gradient stop");
-                  const newStops = [...stops]
-                  newStops.splice(index, 1);
-                  setStops(newStops);
-                  updateBackground({
-                    gradient: {
-                      type: device.gradient.type,
-                      stops: newStops.flat(),
-                      angle: device.gradient.angle,
-                      pos: device.gradient.pos,
-                    }
-                  });
-                }}
-                on
-                min="0"
-                max="100"
-                color={color}
-                presets={[
-                  { label: "Active Colors", colors: getPresetForGradientStop(index) },
-                ]}
-                onColorPickerOpen={() => handleColorPickerOpen(index)}
-                onColorPickerClose={handleColorPickerClose}
-                value={percent * 100}
-                onChange={(e) => {
-                  const newPercent = Number(e.target.value) / 100;
-                  const newStops = [...stops];
-                  newStops[index][0] = newPercent;
-                  setStops(newStops);
-                  
-                  // Explicitly update device state for real-time feedback
-                  updateBackground({
-                    gradient: {
-                      type: device.gradient.type,
-                      stops: newStops.flat(),
-                      angle: device.gradient.angle,
-                      pos: device.gradient.pos,
-                    }
-                  });
-                }}
-                onBlur={() => {
-                  // Immediate update on blur
-                  updateBackground({
-                    gradient: {
-                      type: device.gradient.type,
-                      stops: stops.flat(),
-                      angle: device.gradient.angle,
-                      pos: device.gradient.pos,
-                    }
-                  });
-                }}
-                changeColor={(e) => {
-                  const newStops = [...stops];
-                  newStops[index][1] = e.toHexString();
-                  setStops(newStops);
-                  
-                  // Explicitly update device state for real-time feedback
-                  updateBackground({
-                    gradient: {
-                      type: device.gradient.type,
-                      stops: newStops.flat(),
-                      angle: device.gradient.angle,
-                      pos: device.gradient.pos,
-                    }
-                  });
-                }}
-                onColorBlur={() => {
-                  // Immediate update on color blur
-                  updateBackground({
-                    gradient: {
-                      type: device.gradient.type,
-                      stops: stops.flat(),
-                      angle: device.gradient.angle,
-                      pos: device.gradient.pos,
-                    }
-                  });
-                }}
-              />
-            ))}
+            {(() => {
+              // Convert flat array to array of stops for mapping
+              const stopsArray = [];
+              for (let i = 0; i < device.gradient.stops.length; i += 2) {
+                stopsArray.push({
+                  index: i / 2,
+                  percent: device.gradient.stops[i],
+                  color: device.gradient.stops[i + 1]
+                });
+              }
+              return stopsArray.map(({ index, percent, color }) => (
+                <Slider
+                  key={index}
+                  id={`gradient-slider-${index}`}
+                  index={index}
+                  stacked
+                  deleteStop={(e) => {
+                    takeSnapshot("Delete gradient stop");
+                    const newStops = [...device.gradient.stops];
+                    newStops.splice(index * 2, 2); // Remove percent and color
+                    updateBackground({
+                      gradient: {
+                        ...device.gradient,
+                        stops: newStops,
+                      }
+                    });
+                  }}
+                  min="0"
+                  max="100"
+                  color={color}
+                  presets={[
+                    { label: "Active Colors", colors: getPresetForGradientStop(index) },
+                  ]}
+                  onColorPickerOpen={() => handleColorPickerOpen(index)}
+                  onColorPickerClose={handleColorPickerClose}
+                  value={percent * 100}
+                  onChange={(e) => {
+                    const newPercent = Number(e.target.value) / 100;
+                    const newStops = [...device.gradient.stops];
+                    newStops[index * 2] = newPercent; // Update percent at even index
+                    
+                    // Explicitly update device state for real-time feedback
+                    updateBackground({
+                      gradient: {
+                        ...device.gradient,
+                        stops: newStops,
+                      }
+                    });
+                  }}
+                  onBlur={() => {
+                    // Final update on blur (redundant but safe)
+                    updateBackground({
+                      gradient: {
+                        ...device.gradient,
+                        stops: device.gradient.stops,
+                      }
+                    });
+                  }}
+                  changeColor={(e) => {
+                    const newStops = [...device.gradient.stops];
+                    newStops[index * 2 + 1] = e.toHexString(); // Update color at odd index
+                    
+                    // Explicitly update device state for real-time feedback
+                    updateBackground({
+                      gradient: {
+                        ...device.gradient,
+                        stops: newStops,
+                      }
+                    });
+                  }}
+                  onColorBlur={() => {
+                    // Final update on color blur (redundant but safe)
+                    updateBackground({
+                      gradient: {
+                        ...device.gradient,
+                        stops: device.gradient.stops,
+                      }
+                    });
+                  }}
+                />
+              ));
+            })()}
           </div>
         </div>
       </div>

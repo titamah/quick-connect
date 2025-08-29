@@ -11,15 +11,13 @@ import { Resizable } from "react-resizable";
 import { useImageCache } from "../../hooks/useImageCache";
 
 function ImageUploader() {
-  const { device, updateBackground, updateQRConfig, updateDeviceInfo, updateImagePalette } = useDevice();
+  const { device, background, updateBackground, takeSnapshot, updateImagePalette, cropInfo, updateCropInfo } = useDevice();
   const { createObjectURL } = useImageCache();
 
   const [source, setSource] = useState("Upload");
   // const [source, setSource] = useState("Upload");
   const menuOptions = source !== "Upload" ? ["Upload"] : ["Library"];
 
-  const [file, setFile] = useState(null);
-  const [originalFile, setOriginalFile] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [crop, setCrop] = useState();
 
@@ -35,9 +33,19 @@ function ImageUploader() {
     const items = file.dataTransfer.items || file.dataTransfer.files;
     for (const item of items) {
       const currFile = item.kind === "file" ? item.getAsFile?.() || item : item;
-      if (currFile) setOriginalFile(currFile);
+      if (currFile) {
+        // Convert file to base64 and store in device state
+        const reader = new FileReader();
+        reader.onload = () => {
+          updateCropInfo({
+            originalImageData: reader.result,
+            filename: currFile.name
+          });
+        };
+        reader.readAsDataURL(currFile);
+        openModal();
+      }
     }
-    openModal();
   }
 
   const initCrop = (e) => {
@@ -75,7 +83,7 @@ function ImageUploader() {
   }, [source]);
 
   useEffect(() => {
-    if (file) {
+    if (cropInfo.originalImageData) {
       const newMinMax = [180.5, 180.5];
       setMinMax(newMinMax);
       setHeight(newMinMax[0]);
@@ -84,40 +92,52 @@ function ImageUploader() {
       setMinMax(newMinMax);
       setHeight(newMinMax[0]);
     }
-  }, [file]);
+  }, [cropInfo.originalImageData]);
 
-  useEffect(() => {
-    deleteFile();
-  }, [source]);
 
   const cropImage = async () => {
-    const objectUrl = createObjectURL(originalFile);
-    const croppedBlob = await getCroppedImg(objectUrl, crop);
-    const croppedFile = new File([croppedBlob], originalFile.name, {
-      type: originalFile.type,
+    takeSnapshot("Crop image");
+    
+    // Get cropped image from the original data URL
+    const croppedBlob = await getCroppedImg(cropInfo.originalImageData, crop);
+    
+    // Convert cropped image to base64 data URL
+    const croppedDataUrl = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(croppedBlob);
     });
-    setFile(croppedFile);
+    
+    // Store crop position in device state
+    updateCropInfo({
+      crop: crop
+    });
+    
+    updateBackground({ 
+      style: "image", 
+      bg: croppedDataUrl 
+    });
+    
     closeModal();
   };
 
+  // Sync local crop state with device cropInfo on undo/redo
   useEffect(() => {
-    if (file) {
-      const url = createObjectURL(file);
-      updateBackground({ style: "image", bg: url });
+    if (cropInfo.crop && !crop) {
+      setCrop(cropInfo.crop);
     }
-  }, [file]);
+  }, [cropInfo.crop, crop]);
 
 useEffect(() => {
-  if (!originalFile) {
+  if (!cropInfo.originalImageData) {
     // Just clear the file - palette will update automatically
     setModalOpen(false);
   } else {
     setModalOpen(true);
-    // Create an image from the original file with proper object URL management
-    const objectUrl = createObjectURL(originalFile);
+    // Create an image from the original data URL
     const img = new Image();
     img.crossOrigin = "Anonymous";
-    img.src = objectUrl;
+    img.src = cropInfo.originalImageData;
 
     img.onload = () => {
       const colorThiefInstance = new ColorThief();
@@ -135,13 +155,14 @@ useEffect(() => {
       console.log("device palette:", device.palette);
     };
   }
-}, [originalFile]);
+}, [cropInfo.originalImageData]);
 
   const deleteFile = () => {
-    setOriginalFile(null);
-    setFile(null);
-    updateBackground({ style: "solid", bg: "" });
+    takeSnapshot("Delete image");
+    // Don't change background style - keep it as "image" so tab stays on Image
+    updateBackground({ bg: "" });
     updateImagePalette([]); // Clear image palette when image is deleted
+    updateCropInfo({ originalImageData: null, crop: null, filename: null }); // Clear crop info
     closeModal();
   };
 
@@ -165,7 +186,7 @@ useEffect(() => {
           ruleOfThirds
         >
           <img
-            src={originalFile ? createObjectURL(originalFile) : undefined}
+            src={cropInfo.originalImageData || undefined}
             onLoad={initCrop}
             alt="Crop preview"
           />
@@ -183,6 +204,7 @@ useEffect(() => {
   className="opacity-75 hover:opacity-100 cursor-pointer"
   size={20}
   onClick={() => {
+    takeSnapshot("Toggle grain");
     updateBackground({ grain: !device.grain });
   }}
 />
@@ -205,7 +227,7 @@ useEffect(() => {
             style={{ height }}
             className="w-fill mb-[1.5px] rounded-sm border border-[5px] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)]"
           >
-            {file ? (
+            {background.bg ? (
               <div
                 onDrop={handleChange}
                 className="w-full h-[170.5px] flex items-center justify-center relative"
@@ -224,7 +246,7 @@ useEffect(() => {
                   />
                 </div>
                 <img
-                  src={originalFile ? URL.createObjectURL(originalFile) : null}
+                  src={background.bg || null}
                   alt="Thumbnail"
                   style={{
                     objectFit: "fit",
@@ -245,7 +267,15 @@ useEffect(() => {
                   input.onchange = (event) => {
                     const selectedFile = event.target.files[0];
                     if (selectedFile) {
-                      setOriginalFile(selectedFile);
+                      // Convert file to base64 and store in device state
+                      const reader = new FileReader();
+                      reader.onload = () => {
+                        updateCropInfo({
+                          originalImageData: reader.result,
+                          filename: selectedFile.name
+                        });
+                      };
+                      reader.readAsDataURL(selectedFile);
                       setModalOpen(true);
                     }
                   };
@@ -260,11 +290,11 @@ useEffect(() => {
                 </span>
               </div>
             ) : (
-              <ImageLibrary setOriginalFile={setOriginalFile} />
+              <ImageLibrary />
             )}
           </div>
         </Resizable>
-        {(source == "Upload" || file) && (
+        {(source == "Upload" || background.bg) && (
           <>
             <h4 className="p-1 pt-2">
               {" "}
@@ -275,7 +305,7 @@ useEffect(() => {
             border-[var(--border-color)]/50 rounded-md flex items-center justify-between"
             >
               <span>
-                {originalFile ? originalFile.name : "No image selected"}
+                {cropInfo.filename || "No image selected"}
               </span>
               <Trash2 size={16} onClick={deleteFile} />
             </div>{" "}

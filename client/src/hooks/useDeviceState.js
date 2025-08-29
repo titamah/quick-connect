@@ -32,7 +32,7 @@ export const useDeviceState = () => {
   const [background, setBackground] = useState({
     style: "solid",
     color: "#7ED03B",
-    bg: "https://wallpapers.com/images/featured/iphone-12-pro-max-hknmpjtf3rmp9egv.jpg",
+    bg: "",
     gradient: {
       type: "linear",
       stops: [0, "rgb(255, 170, 0)", 0.5, "rgb(228,88,191)", 1, "rgb(177,99,232)"],
@@ -61,6 +61,13 @@ export const useDeviceState = () => {
 
   // Image palette
   const [imagePalette, setImagePalette] = useState([]);
+
+  // Crop information for image backgrounds
+  const [cropInfo, setCropInfo] = useState({
+    originalImageData: null, // base64 data URL of original image
+    crop: null, // crop position data
+    filename: null, // original filename
+  });
 
   // HISTORY
   const [past, setPast] = useState([]);
@@ -124,7 +131,8 @@ export const useDeviceState = () => {
     deviceInfo: structuredClone(deviceInfo),
     background: structuredClone(background),
     qrConfig: structuredClone(qrConfig),
-    imagePalette: structuredClone(imagePalette)
+    imagePalette: structuredClone(imagePalette),
+    cropInfo: structuredClone(cropInfo)
   });
 
   useEffect(() => {
@@ -191,6 +199,7 @@ export const useDeviceState = () => {
     setBackground(previousState.state.background);
     setQRConfig(previousState.state.qrConfig);
     setImagePalette(previousState.state.imagePalette);
+    setCropInfo(previousState.state.cropInfo);
     
     return true;
   };
@@ -212,6 +221,7 @@ export const useDeviceState = () => {
     setBackground(nextState.background);
     setQRConfig(nextState.qrConfig);
     setImagePalette(nextState.imagePalette);
+    setCropInfo(nextState.cropInfo);
     
     return true;
   };
@@ -269,6 +279,11 @@ export const useDeviceState = () => {
     setImagePalette(colors);
   };
 
+  const updateCropInfo = (updates) => {
+    console.log('🔧 updateCropInfo:', updates);
+    setCropInfo(prev => deepMerge(prev, updates));
+  };
+
   // Legacy device object
   const device = {
     ...deviceInfo,
@@ -283,12 +298,14 @@ export const useDeviceState = () => {
     background,
     qrConfig,
     palette,
+    cropInfo,
     getPaletteExcluding,
     updateDeviceInfo,
     updateBackground,
     updateQRConfig,
     updateQRPositionPercentages,
     updateImagePalette,
+    updateCropInfo,
     
     // UNDO/REDO STUFF
     takeSnapshot,
