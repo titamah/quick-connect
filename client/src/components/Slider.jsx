@@ -48,6 +48,47 @@ const Slider = ({
     }
   }, [openPicker, thumbLeft]);
 
+
+
+  const [needsSnapshot, setNeedsSnapshot] = useState(false);
+  const timeoutRef = useRef(null);
+
+  // Handle color change - snapshot before first change of each interaction
+  const handleColorChange = (color) => {
+
+
+    if (needsSnapshot) {
+      takeSnapshot();
+      setNeedsSnapshot(false);
+    }
+
+    changeColor(color);
+
+    // Set up timeout to mark next change as needing snapshot
+    // (indicates start of new interaction after pause)
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      setNeedsSnapshot(true);
+    }, 500); // 500ms pause = new interaction
+  };
+
+  // Handle picker open/close
+  const handleOpenChange = (open) => {
+    setOpenPicker(open && !drag);
+
+    if (open && !drag) {
+      // Mark that next change needs snapshot
+      setNeedsSnapshot(true);
+      onColorPickerOpen?.();
+    } else {
+      // Clean up when picker closes
+      setNeedsSnapshot(false);
+      clearTimeout(timeoutRef.current);
+      onColorPickerClose?.();
+    }
+  };
+  
+
   return (
     <div
       // ref={containerRef}
@@ -84,16 +125,8 @@ const Slider = ({
             mode="solid"
             disabledAlpha
             presets={presets}
-            onChange={changeColor}
-            onOpenChange={(e) => {
-              takeSnapshot();
-              setOpenPicker(e && !drag);
-              if (e && !drag) {
-                onColorPickerOpen?.(); // Call when picker opens
-              } else {
-                onColorPickerClose?.(); // Call when picker closes
-              }
-            }}
+            onChange={handleColorChange}
+            onOpenChange={handleOpenChange}
             getPopupContainer={() => containerRef.current}
             popupStyle={{
               position: "absolute",
@@ -115,7 +148,6 @@ const Slider = ({
                 takeSnapshot();
                 setDrag(false);
               }}
-              onMouseUp={takeSnapshot}
               onChange={onChange}
               onBlur={onBlur}
               className={`appearance-none w-full absolute -translate-y-[2px] ${

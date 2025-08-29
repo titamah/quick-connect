@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import ImageUploader from "./ImageUploader";
 import OptimizedColorSelector from "./OptimizedColorSelector";
@@ -11,11 +11,16 @@ const BACKGROUND_TYPES = [
 ];
 
 function CustomBackgroundSelector({ panelSize }) {
-  const [activeTab, setActiveTab] = useState(1);
-  const { updateBackground } = useDevice();
+  const { background, updateBackground, takeSnapshot } = useDevice();
+
+  // Derive active tab from device background style - memoized to prevent infinite loops
+  const activeTab = useMemo(() => {
+    return BACKGROUND_TYPES.find(type => type.style === background.style)?.id || 1;
+  }, [background.style]);
 
   const handleTabChange = (tabId, style) => {
-    setActiveTab(tabId);
+    // Take snapshot before changing background style
+    takeSnapshot(`Switch to ${BACKGROUND_TYPES.find(t => t.id === tabId)?.label} background`);
     updateBackground({ style });
   };
 

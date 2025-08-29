@@ -19,7 +19,6 @@ import "./styles.css";
 
 function GradientSelector() {
   const { device, updateBackground, updateQRConfig, updateDeviceInfo, getPaletteExcluding, takeSnapshot } = useDevice();
-  const [type, setType] = useState(device.gradient.type);
   const gradientBar = useRef(null);
   
   // Frozen preset state to prevent flickering during color picking
@@ -37,27 +36,6 @@ function GradientSelector() {
   }, [updateBackground]);
 
 
-
-
-
-  const [gradientCSS, setGradientCSS] = useState(null);
-
-  const updateCSS = () => {
-    let css = "";
-    if (type === "radial") {
-      const posX = Math.round(device.gradient.pos.x * 100);
-      const posY = Math.round(device.gradient.pos.y * 100);
-      css = `radial-gradient(circle at ${posX}% ${posY}%,`;
-    } else {
-      css = `linear-gradient(${device.gradient.angle}deg,`;
-    }
-    css +=
-      processedStops
-        .map(({ percent, color }) => `${color} ${percent}%`)
-        .join(", ") + ")";
-    setGradientCSS(css);
-  };
-
   const [stops, setStops] = useState([
     [0, "rgb(255,170,0)"],
     [0.5, "rgb(228,88,191)"],
@@ -71,29 +49,59 @@ function GradientSelector() {
     },
     {
       color: "rgb(228, 88, 191)",
-      percent: 50,
+      percent: 0.5,
     },
     {
       color: "rgb(177, 99, 232)",
-      percent: 100,
+      percent: 1,
     },
   ];
 
   const [processedStops, setProcessedStops] = useState(DEFAULT_COLOR);
 
-  useEffect(() => {
-    updateCSS();
-  }, [processedStops, device.gradient, type]);
+  const [gradientCSS, setGradientCSS] = useState(null);
+
+  const updateCSS = () => {
+    let css = "";
+    if (device.gradient.type === "radial") {
+      const posX = Math.round(device.gradient.pos.x * 100);
+      const posY = Math.round(device.gradient.pos.y * 100);
+      css = `radial-gradient(circle at ${posX}% ${posY}%,`;
+    } else {
+      css = `linear-gradient(${device.gradient.angle}deg,`;
+    }
+    css +=
+      processedStops
+        .map(({ percent, color }) => `${color} ${percent * 100}%`)
+        .join(", ") + ")";
+    setGradientCSS(css);
+  };
 
   useEffect(() => {
-    const updatedStops = stops
-      .map(([percent, color]) => ({
-        color,
-        percent: percent * 100,
-      }))
-      .sort((a, b) => a.percent - b.percent);
+    updateCSS();
+  }, [processedStops, device.gradient, device.gradient.type]);
+
+  useEffect(() => {
+    // Convert flat array [0, "color1", 0.5, "color2", 1, "color3"] to processed format
+    const flatStops = device.gradient.stops;
+    const updatedStops = [];
+    
+    for (let i = 0; i < flatStops.length; i += 2) {
+      const percent = flatStops[i];
+      const color = flatStops[i + 1];
+      if (percent !== undefined && color !== undefined) {
+        updatedStops.push({
+          color,
+          percent: percent,
+        });
+      }
+    }
+    
+    // Sort by percent
+    updatedStops.sort((a, b) => a.percent - b.percent);
     setProcessedStops(updatedStops);
-  }, [stops]);
+    
+  }, [device.gradient.stops]);
 
   const updateStops = (colors) => {
     if (colors instanceof Array) {
@@ -158,14 +166,15 @@ function GradientSelector() {
     setStops(prevStops);
   };
 
-  useEffect(() => {
-    updateGradient({
-      type: type,
-      stops: stops.flat(),
-      angle: device.gradient.angle,
-      pos: device.gradient.pos,
-    });
-  }, [stops, type, device.gradient.angle, device.gradient.pos]);
+  // Remove the problematic useEffect that causes infinite loops
+  // useEffect(() => {
+  //   updateGradient({
+  //     type: type,
+  //     stops: stops.flat(),
+  //     angle: device.gradient.angle,
+  //     pos: device.gradient.pos,
+  //   });
+  // }, [stops, type, device.gradient.angle, device.gradient.pos]);
 
   // Frozen preset logic to prevent flickering during color picking
   const handleColorPickerOpen = (stopIndex) => {
@@ -209,17 +218,26 @@ function GradientSelector() {
   };
 
   const handleMenuClick = (e) => {
-    setType(type === "linear" ? "radial" : "linear");
+    takeSnapshot("Toggle gradient type");
+    const newType = device.gradient.type === "linear" ? "radial" : "linear";
+    
+    // Explicitly update device state for real-time feedback
+    updateBackground({
+      gradient: {
+        ...device.gradient,
+        type: newType,
+      }
+    });
   };
 
-  const menuOptions = type === "linear" ? ["Radial"] : ["Linear"];
+  const menuOptions = device.gradient.type === "linear" ? ["Radial"] : ["Linear"];
 
   return (
     <div className="dark:text-white w-full">
       <div className="flex flex-row items-center justify-between w-full mb-2">
         <Dropdown
           options={menuOptions}
-          value={type}
+          value={device.gradient.type}
           onChange={handleMenuClick}
         />
         <span className="flex items-center gap-2 pointer-events-auto">
@@ -227,6 +245,7 @@ function GradientSelector() {
   className="opacity-75 hover:opacity-100 cursor-pointer"
   size={20}
   onClick={() => {
+    takeSnapshot("Toggle grain");
     updateGrain(!device.grain);
   }}
 />
@@ -234,6 +253,7 @@ function GradientSelector() {
             className="opacity-75 hover:opacity-100 cursor-pointer"
             size={20}
             onClick={() => {
+              takeSnapshot("Evenly spaced gradient");
               const stopsInterval = 1 / (stops.length - 1);
               let val = -stopsInterval;
               const spaced = stops
@@ -243,23 +263,40 @@ function GradientSelector() {
                   return [val, color];
                 });
               setStops(spaced);
+              updateBackground({
+                gradient: {
+                  type: device.gradient.type,
+                  stops: spaced.flat(),
+                  angle: device.gradient.angle,
+                  pos: device.gradient.pos,
+                }
+              });
             }}
           />
           <ArrowLeftRight
             className="opacity-75 hover:opacity-100 cursor-pointer"
             size={20}
             onClick={() => {
+              takeSnapshot("Reverse gradient");
               const reverse = stops.map(([percent, color]) => {
                 return [1 - percent, color];
               });
               setStops(reverse.sort((a, b) => a[0] - b[0]));
+              updateBackground({
+                gradient: {
+                  type: device.gradient.type,
+                  stops: reverse.flat(),
+                  angle: device.gradient.angle,
+                  pos: device.gradient.pos,
+                }
+              });
             }}
           />
         </span>
       </div>
       <div className="react-colorful space-y-1 !w-full">
         {/* <ColorPicker
-          ref={gradientPreview}
+          // ref={gradientPreview}
           value={processedStops}
           size="large"
           placement="topRight"
@@ -281,21 +318,31 @@ function GradientSelector() {
             onClick={handleClick}
             style={{
               background: `linear-gradient(90deg, ${processedStops
-                .map(({ color, percent }) => `${color} ${percent}%`)
+                .map(({ color, percent }) => `${color} ${percent * 100}%`)
                 .join(", ")})`,
             }}
           ></div>
           <div className="absolute w-full top-2/3">
-            {stops.map(([percent, color], index) => (
+            {processedStops.map(({percent, color}, index) => (
               <Slider
                 id={`gradient-slider-${index}`}
                 index={index}
                 stacked
                 deleteStop={(e) => {
+                  takeSnapshot("Delete gradient stop");
                   const newStops = [...stops]
                   newStops.splice(index, 1);
                   setStops(newStops);
+                  updateBackground({
+                    gradient: {
+                      type: device.gradient.type,
+                      stops: newStops.flat(),
+                      angle: device.gradient.angle,
+                      pos: device.gradient.pos,
+                    }
+                  });
                 }}
+                on
                 min="0"
                 max="100"
                 color={color}
@@ -309,13 +356,23 @@ function GradientSelector() {
                   const newPercent = Number(e.target.value) / 100;
                   const newStops = [...stops];
                   newStops[index][0] = newPercent;
-                  updateStops(newStops);
+                  setStops(newStops);
+                  
+                  // Explicitly update device state for real-time feedback
+                  updateBackground({
+                    gradient: {
+                      type: device.gradient.type,
+                      stops: newStops.flat(),
+                      angle: device.gradient.angle,
+                      pos: device.gradient.pos,
+                    }
+                  });
                 }}
                 onBlur={() => {
                   // Immediate update on blur
                   updateBackground({
                     gradient: {
-                      type: type,
+                      type: device.gradient.type,
                       stops: stops.flat(),
                       angle: device.gradient.angle,
                       pos: device.gradient.pos,
@@ -325,13 +382,23 @@ function GradientSelector() {
                 changeColor={(e) => {
                   const newStops = [...stops];
                   newStops[index][1] = e.toHexString();
-                  updateStops(newStops);
+                  setStops(newStops);
+                  
+                  // Explicitly update device state for real-time feedback
+                  updateBackground({
+                    gradient: {
+                      type: device.gradient.type,
+                      stops: newStops.flat(),
+                      angle: device.gradient.angle,
+                      pos: device.gradient.pos,
+                    }
+                  });
                 }}
                 onColorBlur={() => {
                   // Immediate update on color blur
                   updateBackground({
                     gradient: {
-                      type: type,
+                      type: device.gradient.type,
                       stops: stops.flat(),
                       angle: device.gradient.angle,
                       pos: device.gradient.pos,
@@ -344,7 +411,7 @@ function GradientSelector() {
         </div>
       </div>
       <div className="flex flex-row items-center justify-center w-full space-x-1">
-        {type === "linear" ? (
+        {device.gradient.type === "linear" ? (
           <div className="w-full my-4 space-y-2">
           <h4> Angle </h4>
           <AngleInput 
