@@ -20,16 +20,17 @@ export default function CustomColorInput({
   const hexInputRef = useRef(null);
   const alphaInputRef = useRef(null);
 
-  const [localHex, setLocalHex] = useState(colorValue);
-  const [localAlpha, setLocalAlpha] = useState(opacityValue);
+  const [localHex, setLocalHex] = useState(value.slice(0, 7).toUpperCase());
+  const [localAlpha, setLocalAlpha] = useState(Math.round(chroma(value).alpha() * 100));
 
   useEffect(() => {
-    setLocalHex(colorValue.slice(0, 7).toUpperCase());
-    setLocalAlpha(Math.round(chroma(colorValue).alpha() * 100));
-  }, [colorValue]);
+    setLocalHex(value.slice(0, 7).toUpperCase());
+    setLocalAlpha(Math.round(chroma(value).alpha() * 100));
+  }, [value]);
 
 
   const handleHexBlur = () => {
+    console.log("BLURRRRRRR");
     let hex = localHex.slice(0, 7).toUpperCase();
     if (!chroma.valid(hex) || hex.length !== 7) {
       setLocalHex("#FFFFFF");

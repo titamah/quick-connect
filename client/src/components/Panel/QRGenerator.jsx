@@ -22,29 +22,7 @@ function QRGenerator(panelSize) {
   // Frozen preset state to prevent flickering during color picking
   const [frozenPreset, setFrozenPreset] = useState(null);
 
-  // Arrow key tracking states (like PositionInput)
-  const [isPrimaryColorArrowActive, setIsPrimaryColorArrowActive] = useState(false);
-  const [isPrimaryOpacityArrowActive, setIsPrimaryOpacityArrowActive] = useState(false);
-  const [isSecondaryColorArrowActive, setIsSecondaryColorArrowActive] = useState(false);
-  const [isSecondaryOpacityArrowActive, setIsSecondaryOpacityArrowActive] = useState(false);
-  const [isBorderColorArrowActive, setIsBorderColorArrowActive] = useState(false);
-  const [isBorderOpacityArrowActive, setIsBorderOpacityArrowActive] = useState(false);
 
-  // Timeout refs for arrow key intervals
-  const primaryColorTimeoutRef = useRef(null);
-  const primaryOpacityTimeoutRef = useRef(null);
-  const secondaryColorTimeoutRef = useRef(null);
-  const secondaryOpacityTimeoutRef = useRef(null);
-  const borderColorTimeoutRef = useRef(null);
-  const borderOpacityTimeoutRef = useRef(null);
-
-  // Interval refs for arrow key intervals
-  const primaryColorIntervalRef = useRef(null);
-  const primaryOpacityIntervalRef = useRef(null);
-  const secondaryColorIntervalRef = useRef(null);
-  const secondaryOpacityIntervalRef = useRef(null);
-  const borderColorIntervalRef = useRef(null);
-  const borderOpacityIntervalRef = useRef(null);
 
   useEffect(() => {
     setQRSize(Math.min(device.size.x, device.size.y) / 2);
@@ -199,300 +177,13 @@ function QRGenerator(panelSize) {
     return hex + alpha;
   }
 
-  // Clear arrow key intervals helper
-  const clearArrowKeyState = (timeoutRef, intervalRef, setArrowActive) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    setArrowActive(false);
-  };
 
-  // PRIMARY COLOR HANDLERS
-  const handlePrimaryColorChange = (e) => {
-    let color = e.target.value;
-    if (!color.startsWith("#")) {
-      color = "#" + color;
-    }
-    setPrimaryColorInput(color.toUpperCase());
-  };
 
-  const handlePrimaryColorBlur = () => {
-    // Only take snapshot if not from arrow key interaction
-    if (!isPrimaryColorArrowActive && chroma.valid(primaryColorInput)) {
-      takeSnapshot();
-    }
-    
-    if (chroma.valid(primaryColorInput)) {
-      const opacity = parseInt(primaryOpacityInput) || 100;
-      updateQRConfig({
-        custom: {
-          ...currentQRCustomRef.current,
-          primaryColor: combineHexWithOpacity(primaryColorInput, opacity),
-        },
-      });
-    }
-  };
 
-  const handlePrimaryColorKeyDown = (e) => {
-    if (e.key === "Enter" && chroma.valid(primaryColorInput)) {
-      handlePrimaryColorBlur();
-    }
-  };
 
-  const handlePrimaryOpacityChange = (e) => {
-    setPrimaryOpacityInput(e.target.value);
-  };
 
-  const updatePrimaryOpacity = (increment) => {
-    const currentOpacity = parseInt(primaryOpacityInput) || 0;
-    const newOpacity = Math.max(0, Math.min(100, currentOpacity + increment));
-    setPrimaryOpacityInput(newOpacity.toString());
-    
-    if (chroma.valid(primaryColorInput)) {
-      updateQRConfig({
-        custom: {
-          ...currentQRCustomRef.current,
-          primaryColor: combineHexWithOpacity(primaryColorInput, newOpacity),
-        },
-      });
-    }
-  };
 
-  const handlePrimaryOpacityBlur = () => {
-    // Only take snapshot if not from arrow key interaction
-    if (!isPrimaryOpacityArrowActive) {
-      takeSnapshot();
-    }
-    
-    const opacity = parseInt(primaryOpacityInput) || 100;
-    setPrimaryOpacityInput(opacity.toString());
-    
-    if (chroma.valid(primaryColorInput)) {
-      updateQRConfig({
-        custom: {
-          ...currentQRCustomRef.current,
-          primaryColor: combineHexWithOpacity(primaryColorInput, opacity),
-        },
-      });
-    }
-  };
 
-  const handlePrimaryOpacityKeyDown = (e) => {
-    if (e.key === "Enter") {
-      handlePrimaryOpacityBlur();
-    } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-      e.preventDefault();
-      
-      // Take snapshot BEFORE changes on first arrow key press
-      if (!isPrimaryOpacityArrowActive) {
-        setIsPrimaryOpacityArrowActive(true);
-        takeSnapshot();
-      }
-      
-      const increment = e.key === "ArrowUp" ? 1 : -1;
-      
-      clearArrowKeyState(primaryOpacityTimeoutRef, primaryOpacityIntervalRef, () => {});
-      
-      updatePrimaryOpacity(increment);
-      
-      primaryOpacityTimeoutRef.current = setTimeout(() => {
-        primaryOpacityIntervalRef.current = setInterval(() => {
-          updatePrimaryOpacity(increment);
-        }, 50);
-      }, 200);
-    }
-  };
-
-  // SECONDARY COLOR HANDLERS  
-  const handleSecondaryColorChange = (e) => {
-    let color = e.target.value;
-    if (!color.startsWith("#")) {
-      color = "#" + color;
-    }
-    setSecondaryColorInput(color.toUpperCase());
-  };
-
-  const handleSecondaryColorBlur = () => {
-    if (!isSecondaryColorArrowActive && chroma.valid(secondaryColorInput)) {
-      takeSnapshot();
-    }
-    
-    if (chroma.valid(secondaryColorInput)) {
-      const opacity = parseInt(secondaryOpacityInput) || 100;
-      updateQRConfig({
-        custom: {
-          ...currentQRCustomRef.current,
-          secondaryColor: combineHexWithOpacity(secondaryColorInput, opacity),
-        },
-      });
-    }
-  };
-
-  const handleSecondaryColorKeyDown = (e) => {
-    if (e.key === "Enter" && chroma.valid(secondaryColorInput)) {
-      handleSecondaryColorBlur();
-    }
-  };
-
-  const handleSecondaryOpacityChange = (e) => {
-    setSecondaryOpacityInput(e.target.value);
-  };
-
-  const updateSecondaryOpacity = (increment) => {
-    const currentOpacity = parseInt(secondaryOpacityInput) || 0;
-    const newOpacity = Math.max(0, Math.min(100, currentOpacity + increment));
-    setSecondaryOpacityInput(newOpacity.toString());
-    
-    if (chroma.valid(secondaryColorInput)) {
-      updateQRConfig({
-        custom: {
-          ...currentQRCustomRef.current,
-          secondaryColor: combineHexWithOpacity(secondaryColorInput, newOpacity),
-        },
-      });
-    }
-  };
-
-  const handleSecondaryOpacityBlur = () => {
-    if (!isSecondaryOpacityArrowActive) {
-      takeSnapshot();
-    }
-    
-    const opacity = parseInt(secondaryOpacityInput) || 100;
-    setSecondaryOpacityInput(opacity.toString());
-    
-    if (chroma.valid(secondaryColorInput)) {
-      updateQRConfig({
-        custom: {
-          ...currentQRCustomRef.current,
-          secondaryColor: combineHexWithOpacity(secondaryColorInput, opacity),
-        },
-      });
-    }
-  };
-
-  const handleSecondaryOpacityKeyDown = (e) => {
-    if (e.key === "Enter") {
-      handleSecondaryOpacityBlur();
-    } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-      e.preventDefault();
-      
-      if (!isSecondaryOpacityArrowActive) {
-        setIsSecondaryOpacityArrowActive(true);
-        takeSnapshot();
-      }
-      
-      const increment = e.key === "ArrowUp" ? 1 : -1;
-      
-      clearArrowKeyState(secondaryOpacityTimeoutRef, secondaryOpacityIntervalRef, () => {});
-      
-      updateSecondaryOpacity(increment);
-      
-      secondaryOpacityTimeoutRef.current = setTimeout(() => {
-        secondaryOpacityIntervalRef.current = setInterval(() => {
-          updateSecondaryOpacity(increment);
-        }, 50);
-      }, 200);
-    }
-  };
-
-  // BORDER COLOR HANDLERS
-  const handleBorderColorChange = (e) => {
-    let color = e.target.value;
-    if (!color.startsWith("#")) {
-      color = "#" + color;
-    }
-    setBorderColorInput(color.toUpperCase());
-  };
-
-  const handleBorderColorBlur = () => {
-    if (!isBorderColorArrowActive && chroma.valid(borderColorInput)) {
-      takeSnapshot();
-    }
-    
-    if (chroma.valid(borderColorInput)) {
-      const opacity = parseInt(borderOpacityInput) || 100;
-      updateQRConfig({
-        custom: {
-          ...currentQRCustomRef.current,
-          borderColor: combineHexWithOpacity(borderColorInput, opacity),
-        },
-      });
-    }
-  };
-
-  const handleBorderColorKeyDown = (e) => {
-    if (e.key === "Enter" && chroma.valid(borderColorInput)) {
-      handleBorderColorBlur();
-    }
-  };
-
-  const handleBorderOpacityChange = (e) => {
-    setBorderOpacityInput(e.target.value);
-  };
-
-  const updateBorderOpacity = (increment) => {
-    const currentOpacity = parseInt(borderOpacityInput) || 0;
-    const newOpacity = Math.max(0, Math.min(100, currentOpacity + increment));
-    setBorderOpacityInput(newOpacity.toString());
-    
-    if (chroma.valid(borderColorInput)) {
-      updateQRConfig({
-        custom: {
-          ...currentQRCustomRef.current,
-          borderColor: combineHexWithOpacity(borderColorInput, newOpacity),
-        },
-      });
-    }
-  };
-
-  const handleBorderOpacityBlur = () => {
-    if (!isBorderOpacityArrowActive) {
-      takeSnapshot();
-    }
-    
-    const opacity = parseInt(borderOpacityInput) || 100;
-    setBorderOpacityInput(opacity.toString());
-    
-    if (chroma.valid(borderColorInput)) {
-      updateQRConfig({
-        custom: {
-          ...currentQRCustomRef.current,
-          borderColor: combineHexWithOpacity(borderColorInput, opacity),
-        },
-      });
-    }
-  };
-
-  const handleBorderOpacityKeyDown = (e) => {
-    if (e.key === "Enter") {
-      handleBorderOpacityBlur();
-    } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-      e.preventDefault();
-      
-      if (!isBorderOpacityArrowActive) {
-        setIsBorderOpacityArrowActive(true);
-        takeSnapshot();
-      }
-      
-      const increment = e.key === "ArrowUp" ? 1 : -1;
-      
-      clearArrowKeyState(borderOpacityTimeoutRef, borderOpacityIntervalRef, () => {});
-      
-      updateBorderOpacity(increment);
-      
-      borderOpacityTimeoutRef.current = setTimeout(() => {
-        borderOpacityIntervalRef.current = setInterval(() => {
-          updateBorderOpacity(increment);
-        }, 50);
-      }, 200);
-    }
-  };
 
   // Throttled update functions for border size and radius (60 FPS)
   const throttledUpdateBorderSize = useThrottledCallback((size) => {
@@ -603,29 +294,19 @@ function QRGenerator(panelSize) {
                 primaryColor: combineHexWithOpacity(hex, alpha),
               },
             });}}
-          onOpacityChange={handlePrimaryOpacityChange}
-          onOpacityBlur={handlePrimaryOpacityBlur}
-          onOpacityKeyDown={(e) => {
-            handlePrimaryOpacityKeyDown(e);
-            
-            // Handle keyup to clear arrow key state
-            if (e.type === "keyup" && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
-              clearArrowKeyState(primaryOpacityTimeoutRef, primaryOpacityIntervalRef, setIsPrimaryOpacityArrowActive);
-            }
-          }}
         />
       </div>
       <div className="flex items-center pb-5 px-3.5">
         <h4> Secondary </h4>
         <CustomColorInput
-        submitColor={(hex, alpha, snap = true) =>{
-          snap && takeSnapshot();
-          updateQRConfig({
-            custom: {
-              ...currentQRCustomRef.current,
-              secondaryColor: combineHexWithOpacity(hex, alpha),
-            },
-          });}}
+          submitColor={(hex, alpha, snap = true) =>{
+            snap && takeSnapshot();
+            updateQRConfig({
+              custom: {
+                ...currentQRCustomRef.current,
+                secondaryColor: combineHexWithOpacity(hex, alpha),
+              },
+            });}}
           value={qrConfig.custom.secondaryColor}
           colorValue={secondaryColorInput}
           hasOpacity
@@ -646,15 +327,6 @@ function QRGenerator(panelSize) {
               },
             });
           }}
-          onOpacityChange={handleSecondaryOpacityChange}
-          onOpacityBlur={handleSecondaryOpacityBlur}
-          onOpacityKeyDown={(e) => {
-            handleSecondaryOpacityKeyDown(e);
-            
-            if (e.type === "keyup" && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
-              clearArrowKeyState(secondaryOpacityTimeoutRef, secondaryOpacityIntervalRef, setIsSecondaryOpacityArrowActive);
-            }
-          }}
         />
       </div>
       <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5 mb-2.5">
@@ -663,14 +335,14 @@ function QRGenerator(panelSize) {
       <div className="flex items-center pb-2.5 px-3.5">
         <h4> Color</h4>
         <CustomColorInput
-        submitColor={(hex, alpha, snap = true) =>{
-          snap && takeSnapshot();
-          updateQRConfig({
-            custom: {
-              ...currentQRCustomRef.current,
-              borderColor: combineHexWithOpacity(hex, alpha),
-            },
-          });}}
+          submitColor={(hex, alpha, snap = true) =>{
+            snap && takeSnapshot();
+            updateQRConfig({
+              custom: {
+                ...currentQRCustomRef.current,
+                borderColor: combineHexWithOpacity(hex, alpha),
+              },
+            });}}
           value={qrConfig.custom.borderColor}
           colorValue={borderColorInput}
           hasOpacity
@@ -690,15 +362,6 @@ function QRGenerator(panelSize) {
                 borderColor: combineHexWithOpacity(hex, alpha),
               },
             });
-          }}
-          onOpacityChange={handleBorderOpacityChange}
-          onOpacityBlur={handleBorderOpacityBlur}
-          onOpacityKeyDown={(e) => {
-            handleBorderOpacityKeyDown(e);
-            
-            if (e.type === "keyup" && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
-              clearArrowKeyState(borderOpacityTimeoutRef, borderOpacityIntervalRef, setIsBorderOpacityArrowActive);
-            }
           }}
         />
       </div>
