@@ -3,11 +3,12 @@ import { Undo2, Redo2 } from "lucide-react";
 import { useDevice } from "../../contexts/DeviceContext";
 
 const UndoRedoButton = forwardRef(({}, ref) => {
-  const { canUndo, canRedo, undo, redo } = useDevice();
+  const { canUndo, canRedo, undo, redo, device } = useDevice();
 
   const handleUndo = () => {
     if (canUndo) {
     undo();
+    console.log("TEST: ", device);
   }
   };
 
@@ -15,6 +16,7 @@ const UndoRedoButton = forwardRef(({}, ref) => {
     if (canRedo) {
     redo();
   }
+  console.log("TEST: ", device);
   };
 
   return (

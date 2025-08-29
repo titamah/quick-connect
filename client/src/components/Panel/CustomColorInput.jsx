@@ -1,28 +1,87 @@
 import { ColorPicker } from "antd";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
+import chroma from "chroma-js";
 
-export default function CustomColorInput({value, colorValue, hasOpacity, opacityValue, preset, onChange, onColorChange, onOpacityChange, onColorBlur, onColorKeyDown, onOpacityBlur, onOpacityKeyDown, onColorPickerOpen, onColorPickerClose}) {
-  const {takeSnapshot} = useDevice();
-  const [isPickerOpen, setIsPickerOpen] = useState(false);
+export default function CustomColorInput({
+  value,
+  colorValue,
+  hasOpacity,
+  opacityValue,
+  preset,
+  onChange,
+  onColorPickerOpen,
+  onColorPickerClose,
+  submitColor,
+}) {
+  const { takeSnapshot, qrConfig } = useDevice();
   const [needsSnapshot, setNeedsSnapshot] = useState(false);
   const timeoutRef = useRef(null);
-  
-  const handleOpacityKeyDown = (e) => {
-    if (onOpacityKeyDown) {
-      onOpacityKeyDown(e);
+  const hexInputRef = useRef(null);
+  const alphaInputRef = useRef(null);
+
+  const [localHex, setLocalHex] = useState(colorValue);
+  const [localAlpha, setLocalAlpha] = useState(opacityValue);
+
+  const [isPressing, setIsPressing] = useState(false);
+
+  useEffect(() => {
+    setLocalHex(colorValue.slice(0, 7).toUpperCase());
+    setLocalAlpha(Math.round(chroma(colorValue).alpha() * 100));
+  }, [colorValue]);
+
+
+  const handleHexBlur = () => {
+    let hex = localHex.slice(0, 7).toUpperCase();
+    if (!chroma.valid(hex) || hex.length !== 7) {
+      setLocalHex("#FFFFFF");
+        submitColor("#FFFFFF", localAlpha);
+    } else {
+      setLocalHex(hex);
+        submitColor(hex, localAlpha);
     }
   };
 
+  const handleHexEnter = (e) => {
+    if (e.key === "Enter") {
+      handleHexBlur();
+    }
+  };
+
+  const handleAlphaBlur = () => {
+    submitColor(localHex, localAlpha);
+  };
+
+  const handleAlphaKeyDown = (e) => {
+    if (e.key === "Enter") {
+      alphaInputRef.current.blur();
+    } 
+    else if (e.key === "ArrowUp") {
+      setLocalAlpha(parseInt(localAlpha) + 1);
+      submitColor(localHex, e.target.value, !isPressing);
+    } else if (e.key === "ArrowDown") {
+      setLocalAlpha(parseInt(localAlpha) - 1);
+      submitColor(localHex, e.target.value, !isPressing);
+    }
+    setIsPressing(true);
+  };
+
+  const handleAlphaKeyUp = () => {
+    setIsPressing(false);
+  };
+
+
   // Handle color change - snapshot before first change of each interaction
   const handleColorChange = (color) => {
+    setLocalHex(color.toHexString().slice(0, 7).toUpperCase());
+
     if (needsSnapshot) {
       takeSnapshot();
       setNeedsSnapshot(false);
     }
-    
+
     onChange(color);
-    
+
     // Set up timeout to mark next change as needing snapshot
     // (indicates start of new interaction after pause)
     clearTimeout(timeoutRef.current);
@@ -33,8 +92,6 @@ export default function CustomColorInput({value, colorValue, hasOpacity, opacity
 
   // Handle picker open/close
   const handleOpenChange = (open) => {
-    setIsPickerOpen(open);
-    
     if (open) {
       // Mark that next change needs snapshot
       setNeedsSnapshot(true);
@@ -53,9 +110,7 @@ export default function CustomColorInput({value, colorValue, hasOpacity, opacity
       <ColorPicker
         value={value}
         placement="bottomRight"
-        presets={[
-          { label: "Active Colors", colors: preset },
-        ]}
+        presets={[{ label: "Active Colors", colors: preset }]}
         onChange={handleColorChange}
         format="hex"
         size="small"
@@ -64,37 +119,46 @@ export default function CustomColorInput({value, colorValue, hasOpacity, opacity
       >
         <div
           className={`w-4 h-4 rounded-xs`}
-          style={{ backgroundColor: colorValue }}
+          style={{ backgroundColor: value.slice(0, 7) }}
         />
       </ColorPicker>
       <input
+        ref={hexInputRef}
         type="text"
-        value={colorValue}
-        onChange={onColorChange}
-        onBlur={onColorBlur}
-        onKeyDown={onColorKeyDown}
+        value={localHex}
+        onChange={(e) => {
+          setLocalHex(e.target.value);
+        }}
+        onBlur={handleHexBlur}
+        onKeyDown={handleHexEnter}
         className="flex-1 min-w-0 px-2 py-2 bg-transparent outline-none text-xs"
       />
 
       {/* Divider */}
-      {hasOpacity && <>
-      <div className="w-px h-5 bg-[var(--border-color)]" />
+      {hasOpacity && (
+        <>
+          <div className="w-px h-5 bg-[var(--border-color)]" />
 
-      {/* Right input (number with % suffix) */}
-      <div className="flex items-center px-2 font-light text-xs">
-        <input
-          type="number"
-          min="0"
-          max="100"
-          value={opacityValue}
-          onChange={onOpacityChange}
-          onBlur={onOpacityBlur}
-          onKeyDown={handleOpacityKeyDown}
-          className="w-5 outline-none"
-        />
-        <span className="ml-1 ">%</span>
-      </div>
-      </>}
+          {/* Right input (number with % suffix) */}
+          <div className="flex items-center px-2 font-light text-xs">
+            <input
+              ref={alphaInputRef}
+              type="number"
+              min="0"
+              max="100"
+              value={localAlpha}
+              onChange={(e) => {
+                setLocalAlpha(e.target.value);
+              }}
+              onBlur={handleAlphaBlur}
+              onKeyDown={handleAlphaKeyDown}
+              onKeyUp={handleAlphaKeyUp}
+              className="w-5 outline-none"
+            />
+            <span className="ml-1 ">%</span>
+          </div>
+        </>
+      )}
     </div>
   );
 }
