@@ -3,7 +3,6 @@ import "preline/preline";
 import { Tabs } from "antd";
 import { QrCode, Proportions, Image, Download } from "lucide-react";
 import { Resizable } from "react-resizable";
-import { useDevice } from "../../contexts/DeviceContext";
 import QRGenerator from "./QRGenerator";
 import DeviceTypeSelector from "./DeviceTypeSelector";
 import CustomBackgroundSelector from "./CustomBackgroudSelector";
@@ -11,8 +10,6 @@ import Exporter from "./Exporter";
 import "./styles.css";
 
 function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
-  const { device, updateDeviceInfo } = useDevice();
-
   const panelRef = useRef(null);
   const [maxHeight, setMaxHeight] = useState(0);
 
@@ -52,7 +49,6 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
     setMaxHeight(canvas.clientHeight);
     console.log(maxHeight);
   };
-
 
   const items = [
     {

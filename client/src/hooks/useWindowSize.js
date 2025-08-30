@@ -3,14 +3,14 @@ import { useState, useEffect } from "react";
 function useWindowSize() {
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
-    height: window.innerHeight
+    height: window.innerHeight,
   });
 
   useEffect(() => {
     const handleResize = () => {
       setWindowSize({
         width: window.innerWidth,
-        height: window.innerHeight
+        height: window.innerHeight,
       });
     };
 
@@ -24,14 +24,14 @@ function useWindowSize() {
 
     const debouncedHandleResize = debounce(handleResize, 1);
 
-    window.addEventListener('resize', debouncedHandleResize);
+    window.addEventListener("resize", debouncedHandleResize);
 
     return () => {
-      window.removeEventListener('resize', debouncedHandleResize);
+      window.removeEventListener("resize", debouncedHandleResize);
     };
   }, []);
 
   return windowSize;
-};
+}
 
 export default useWindowSize;

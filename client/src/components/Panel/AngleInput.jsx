@@ -3,16 +3,11 @@ import { useDevice } from "../../contexts/DeviceContext";
 import Slider from "../Slider";
 import { RotateCcw, RotateCw } from "lucide-react";
 
-const AngleInput = ({ 
-  type = "qr", // "qr" or "gradient"
-  angle: currentAngle, // current angle value
-  onUpdate, // update function
-}) => {
-  const { device, takeSnapshot } = useDevice();
+const AngleInput = ({ type = "qr", angle: currentAngle, onUpdate }) => {
+  const { takeSnapshot } = useDevice();
   const [angle, setAngle] = useState(currentAngle || 0);
   const intervalRef = useRef(null);
 
-  // Update local state when angle changes
   useEffect(() => {
     setAngle(currentAngle || 0);
   }, [currentAngle]);
@@ -20,7 +15,6 @@ const AngleInput = ({
   const handleAngleChange = (e) => {
     let value = parseInt(e.target.value, 10);
 
-    // Snap if within 5 degrees of target
     const snapThreshold = 5;
     const snapPoints = [-180, -135, -90, -45, 0, 45, 90, 135, 180];
 
@@ -32,8 +26,7 @@ const AngleInput = ({
     }
 
     setAngle(value);
-    
-    // Update angle immediately
+
     onUpdate(value);
   };
 
@@ -45,15 +38,14 @@ const AngleInput = ({
     intervalRef.current = setInterval(() => {
       setAngle((prevAngle) => {
         const newAngle = prevAngle === lim ? lim : prevAngle + val;
-        
+
         if (newAngle === lim) {
           clearInterval(intervalRef.current);
           intervalRef.current = null;
         }
-        
-        // Update angle immediately
+
         onUpdate(newAngle);
-        
+
         return newAngle;
       });
     }, 20);
@@ -77,7 +69,9 @@ const AngleInput = ({
           onMouseDown={() => {
             handleMouseDown(-1, -180);
           }}
-          onMouseUp={()=>{handleMouseUp()}}
+          onMouseUp={() => {
+            handleMouseUp();
+          }}
           onMouseLeave={handleMouseUp}
         />
         <Slider
@@ -95,7 +89,9 @@ const AngleInput = ({
           onMouseDown={() => {
             handleMouseDown(1, 180);
           }}
-          onMouseUp={()=>{handleMouseUp()}}
+          onMouseUp={() => {
+            handleMouseUp();
+          }}
           onMouseLeave={handleMouseUp}
         />
       </div>

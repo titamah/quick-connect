@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
-import { Col, Modal } from "antd";
+import { Modal } from "antd";
 import { ReactCrop, makeAspectCrop, centerCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { Grip, Trash2, Upload, Pencil } from "lucide-react";
@@ -8,18 +8,24 @@ import ColorThief from "colorthief";
 import Dropdown from "../Panel/Dropdown";
 import ImageLibrary from "../Panel/ImageLibrary";
 import { Resizable } from "react-resizable";
-import { useImageCache } from "../../hooks/useImageCache";
 
 function ImageUploader() {
-  const { device, background, updateBackground, takeSnapshot, updateImagePalette, uploadInfo, libraryInfo, updateUploadInfo, updateLibraryInfo } = useDevice();
-  const { createObjectURL } = useImageCache();
-  
-  // Determine active source and info
+  const {
+    device,
+    background,
+    updateBackground,
+    takeSnapshot,
+    updateImagePalette,
+    uploadInfo,
+    libraryInfo,
+    updateUploadInfo,
+    updateLibraryInfo,
+  } = useDevice();
+
   const [activeSource, setActiveSource] = useState("Upload");
   const activeInfo = activeSource === "Upload" ? uploadInfo : libraryInfo;
   const menuOptions = activeSource !== "Upload" ? ["Upload"] : ["Library"];
 
-  
   const [modalOpen, setModalOpen] = useState(false);
   const [crop, setCrop] = useState();
 
@@ -36,12 +42,11 @@ function ImageUploader() {
     for (const item of items) {
       const currFile = item.kind === "file" ? item.getAsFile?.() || item : item;
       if (currFile) {
-        // Convert file to base64 and store in device state
         const reader = new FileReader();
         reader.onload = () => {
           updateUploadInfo({
             originalImageData: reader.result,
-            filename: currFile.name
+            filename: currFile.name,
           });
         };
         reader.readAsDataURL(currFile);
@@ -90,48 +95,44 @@ function ImageUploader() {
       setMinMax(newMinMax);
       setHeight(newMinMax[0]);
     } else {
-      const newMinMax = activeSource == "Upload" ? [180.5, 180.5] : [236, Infinity];
+      const newMinMax =
+        activeSource == "Upload" ? [180.5, 180.5] : [236, Infinity];
       setMinMax(newMinMax);
       setHeight(newMinMax[0]);
     }
   }, [activeInfo.originalImageData, activeSource]);
 
   const cropImage = async () => {
-    //FIGURE OUT HOW TO DO THIS SO A NEW UPLOAD TAKES A SNAPSHOT AFTER FIRST CROP ONLY
     takeSnapshot("Crop image");
-    
-    // Get cropped image from the original data URL
+
     const croppedBlob = await getCroppedImg(activeInfo.originalImageData, crop);
-    
-    // Convert cropped image to base64 data URL
+
     const croppedDataUrl = await new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
       reader.readAsDataURL(croppedBlob);
     });
-    
-    // Store crop position and cropped image in device state
+
     if (activeSource === "Upload") {
       updateUploadInfo({
         crop: crop,
-        croppedImageData: croppedDataUrl
+        croppedImageData: croppedDataUrl,
       });
     } else {
       updateLibraryInfo({
         crop: crop,
-        croppedImageData: croppedDataUrl
+        croppedImageData: croppedDataUrl,
       });
     }
-    
-    updateBackground({ 
-      style: "image", 
-      bg: croppedDataUrl 
+
+    updateBackground({
+      style: "image",
+      bg: croppedDataUrl,
     });
-    
+
     closeModal();
   };
 
-  // Sync local crop state with device activeInfo on undo/redo
   useEffect(() => {
     if (activeInfo.crop && !crop) {
       setCrop(activeInfo.crop);
@@ -139,7 +140,6 @@ function ImageUploader() {
   }, [activeInfo.crop, crop]);
 
   useEffect(() => {
-    // Create an image from the original data URL
     const img = new Image();
     img.crossOrigin = "Anonymous";
     img.src = activeInfo.originalImageData;
@@ -154,27 +154,33 @@ function ImageUploader() {
         return hex;
       });
 
-      // Add extracted colors to the device palette
       updateImagePalette(rgbPalette);
       console.log("New color palette:", rgbPalette);
       console.log("device palette:", device.palette);
-    
-  }
-}, [activeInfo.originalImageData]);
+    };
+  }, [activeInfo.originalImageData]);
 
   const deleteFile = () => {
     takeSnapshot("Delete image");
-    // Don't change background style - keep it as "image" so tab stays on Image
     updateBackground({ bg: "" });
-    updateImagePalette([]); // Clear image palette when image is deleted
-    
-    // Clear the active source's data
+    updateImagePalette([]);
+
     if (activeSource === "Upload") {
-      updateUploadInfo({ originalImageData: null, croppedImageData: null, crop: null, filename: null });
+      updateUploadInfo({
+        originalImageData: null,
+        croppedImageData: null,
+        crop: null,
+        filename: null,
+      });
     } else {
-      updateLibraryInfo({ selectedImageId: null, originalImageData: null, croppedImageData: null, crop: null });
+      updateLibraryInfo({
+        selectedImageId: null,
+        originalImageData: null,
+        croppedImageData: null,
+        crop: null,
+      });
     }
-    
+
     closeModal();
   };
 
@@ -187,7 +193,17 @@ function ImageUploader() {
         okText="Crop"
         cancelText="Cancel"
         width={400}
-        style={{ display: "flex", alignItems: "center", justifyContent: "center", position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000 }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 1000,
+        }}
       >
         <ReactCrop
           crop={crop}
@@ -212,14 +228,14 @@ function ImageUploader() {
             onChange={changeSource}
           />
           <span className="flex items-center gap-2 pointer-events-auto">
-          <Grip
-  className="opacity-75 hover:opacity-100 cursor-pointer"
-  size={20}
-  onClick={() => {
-    takeSnapshot("Toggle grain");
-    updateBackground({ grain: !device.grain });
-  }}
-/>
+            <Grip
+              className="opacity-75 hover:opacity-100 cursor-pointer"
+              size={20}
+              onClick={() => {
+                takeSnapshot("Toggle grain");
+                updateBackground({ grain: !device.grain });
+              }}
+            />
           </span>
         </div>
         <Resizable
@@ -247,7 +263,6 @@ function ImageUploader() {
                 className="w-full h-[170.5px] flex items-center justify-center relative"
               >
                 <div className="hover absolute inset-0 bg-black/50 flex items-center justify-center transition-opacity">
-                  
                   <Pencil
                     onClick={openModal}
                     className="p-2 z-1500 mx-2"
@@ -281,12 +296,11 @@ function ImageUploader() {
                   input.onchange = (event) => {
                     const selectedFile = event.target.files[0];
                     if (selectedFile) {
-                      // Convert file to base64 and store in device state
                       const reader = new FileReader();
                       reader.onload = () => {
                         updateUploadInfo({
                           originalImageData: reader.result,
-                          filename: selectedFile.name
+                          filename: selectedFile.name,
                         });
                       };
                       reader.readAsDataURL(selectedFile);
@@ -308,17 +322,16 @@ function ImageUploader() {
         </Resizable>
         {(activeSource == "Upload" || background.bg) && (
           <>
-            <h4 className="p-1 pt-2">
-              {" "}
-              File Name{" "}
-            </h4>
+            <h4 className="p-1 pt-2"> File Name </h4>
             <div
               className="w-fill h-full px-2 py-1 border text-sm
             border-[var(--border-color)]/50 rounded-md flex items-center justify-between"
             >
-                              <span>
-                  {activeInfo.crop ? (activeInfo.filename || "Library image") : "No image selected"}
-                </span>
+              <span>
+                {activeInfo.crop
+                  ? activeInfo.filename || "Library image"
+                  : "No image selected"}
+              </span>
               <Trash2 size={16} onClick={deleteFile} />
             </div>{" "}
           </>

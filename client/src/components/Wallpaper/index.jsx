@@ -1,467 +1,892 @@
-import { Stage, Rect, Layer, Transformer, Line, Group } from "react-konva";
-import React, { forwardRef, useEffect, useState, useRef, use } from "react";
-import useWindowSize from "../../hooks/useWindowSize";
-import ColorThief from "colorthief";
-import Konva from "konva";
+import {
+  Stage,
+  Rect,
+  Layer,
+  Transformer,
+  Line,
+  Group,
+  Text,
+} from "react-konva";
+import { QRCode } from "antd";
+import React, {
+  forwardRef,
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
+import { useDevice } from "../../contexts/DeviceContext";
+import { usePreview } from "../../contexts/PreviewContext";
+import { useImageLoader } from "../../hooks/useImageLoader";
+import { useStageCalculations } from "../../hooks/useStageCalculations";
+import { useImageCache } from "../../hooks/useImageCache";
+
+const PERFORMANCE_MONITORING = process.env.NODE_ENV === "development";
+
+const QR_SIZE_RATIO = 0.5;
+const SNAP_TOLERANCE = 25;
 
 const Wallpaper = forwardRef(
-  (
-    { device, panelSize, isOpen, locked, setIsZoomEnabled },
-    ref
-  ) => {
-    const windowSize = useWindowSize();
-    const [patternImage, setPatternImage] = useState(null);
-    const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+  ({ panelSize, isOpen, locked, setIsZoomEnabled }, ref) => {
+    const {
+      deviceInfo,
+      background,
+      qrConfig,
+      updateQRConfig,
+      updateQRPositionPercentages,
+      takeSnapshot,
+    } = useDevice();
+    const { isPreviewVisible, isHovered } = usePreview();
 
-    const getStageScale = () => {
-      let panelX, panelY;
-      if (window.innerHeight > 640) {
-        panelX = panelSize.width;
-        panelY = 0;
-      } else {
-        panelX = 0;
-        panelY = panelSize.height;
-      }
-      const scaleX = isOpen
-        ? (0.85 * window.innerWidth - panelX) / device.size.x
-        : (0.85 * window.innerWidth) / device.size.x;
-      const scaleY = isOpen
-        ? (0.85 * (window.innerHeight - panelY - 52)) / device.size.y
-        : (0.85 * (window.innerHeight - 52)) / device.size.y;
-      const scale = Math.min(scaleX, scaleY);
-      return scale;
-    };
+    const showPhoneUI = isPreviewVisible || isHovered;
 
-    const [stageScale, setStageScale] = useState({
-      x: getStageScale(),
-      y: getStageScale(),
-    });
-
-    const [isDraggable, setIsDraggable] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
-
-    const [isCenterX, setIsCenterX] = useState(true);
-    const [isCenterY, setIsCenterY] = useState(false);
-
-    const [isImageLoaded, setIsImageLoaded] = useState(false);
-    const [qrPos, setQRPos] = useState({
-      x: device.size.x / 4,
-      y: device.size.y / 1.75,
-    });
+    const stageScale = useStageCalculations(deviceInfo.size, panelSize, isOpen);
+    const { patternImage, imageSize } = useImageLoader(
+      background,
+      deviceInfo.size
+    );
+    const { loadImage } = useImageCache();
 
     const [qrImg, setQRImg] = useState(null);
-    const [qrSize, setQRSize] = useState(
-      Math.min(device.size.x, device.size.y) / 2
+
+    const [cachedSVGPaths, setCachedSVGPaths] = useState(null);
+    const [lastURL, setLastURL] = useState(qrConfig.url);
+    const [qrPos, setQRPos] = useState(() => {
+      const qrSize =
+        Math.min(deviceInfo.size.x, deviceInfo.size.y) * QR_SIZE_RATIO;
+      return {
+        x: deviceInfo.size.x * qrConfig.positionPercentages.x,
+        y: deviceInfo.size.y * qrConfig.positionPercentages.y,
+      };
+    });
+
+    const [grainImage, setGrainImage] = useState(null);
+    const grainLoadedRef = useRef(false);
+
+    const qrSize = useMemo(
+      () => Math.min(deviceInfo.size.x, deviceInfo.size.y) * QR_SIZE_RATIO,
+      [deviceInfo.size.x, deviceInfo.size.y]
+    );
+
+    const primaryColor = qrConfig.custom?.primaryColor || "#000";
+    const secondaryColor = qrConfig.custom?.secondaryColor || "#fff";
+
+    const actualBorderSize = useMemo(
+      () => qrSize * (qrConfig.custom.borderSizeRatio / 100),
+      [qrSize, qrConfig.custom.borderSizeRatio]
+    );
+
+    const actualCornerRadius = useMemo(() => {
+      const maxRadius = (qrSize + actualBorderSize) / 2;
+      return maxRadius * (qrConfig.custom.cornerRadiusRatio / 100);
+    }, [qrSize, actualBorderSize, qrConfig.custom.cornerRadiusRatio]);
+
+    const qrRef = useRef(null);
+
+    const extractSVGPaths = useCallback((svgElement) => {
+      if (!svgElement) return null;
+
+      try {
+        const paths = svgElement.querySelectorAll("path");
+        const pathData = [];
+
+        paths.forEach((path, index) => {
+          const fill = path.getAttribute("fill");
+          pathData.push({
+            id: `qr-path-${index}`,
+            d: path.getAttribute("d"),
+            fill: fill,
+            originalFill: fill,
+          });
+          console.log(`📊 Path ${index}: fill="${fill}"`);
+        });
+
+        console.log("📊 Extracted SVG paths:", pathData.length);
+        console.log(
+          "🔍 Path details:",
+          pathData.map((p) => ({
+            id: p.id,
+            fill: p.fill,
+            dLength: p.d?.length,
+          }))
+        );
+        return pathData;
+      } catch (error) {
+        console.error("Error extracting SVG paths:", error);
+        return null;
+      }
+    }, []);
+
+    const updateSVGColors = useCallback(
+      (primaryColor, secondaryColor) => {
+        const svg = qrRef.current?.querySelector("svg");
+        if (!svg || !cachedSVGPaths) return;
+
+        try {
+          const paths = svg.querySelectorAll("path");
+          console.log("🔍 Updating colors for", paths.length, "paths");
+
+          paths.forEach((path, index) => {
+            const originalFill = cachedSVGPaths[index]?.originalFill;
+            console.log(`Path ${index}: originalFill="${originalFill}"`);
+
+            if (index === 0) {
+              path.setAttribute("fill", secondaryColor);
+              console.log(
+                `  → Set to secondary (background): ${secondaryColor}`
+              );
+            } else {
+              path.setAttribute("fill", primaryColor);
+              console.log(`  → Set to primary (QR pattern): ${primaryColor}`);
+            }
+          });
+
+          console.log("🎨 Updated SVG colors:", {
+            primaryColor,
+            secondaryColor,
+          });
+        } catch (error) {
+          console.error("Error updating SVG colors:", error);
+        }
+      },
+      [cachedSVGPaths]
     );
 
     const transformerRef = useRef(null);
     const shapeRef = useRef(null);
+    const [isDraggable, setIsDraggable] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
+    const [isCenterX, setIsCenterX] = useState(true);
+    const [isCenterY, setIsCenterY] = useState(false);
+
+    const backgroundProps = useMemo(() => {
+      const baseProps = {
+        width:
+          background.style === "image"
+            ? imageSize.scaledWidth
+            : deviceInfo.size.x,
+        height:
+          background.style === "image"
+            ? imageSize.scaledHeight
+            : deviceInfo.size.y,
+        x: background.style === "image" ? imageSize.offsetX : 0,
+        y: background.style === "image" ? imageSize.offsetY : 0,
+      };
+
+      switch (background.style) {
+        case "solid":
+          return { ...baseProps, fill: background.color };
+
+        case "gradient":
+          if (background.gradient.type === "linear") {
+            const angleRad = ((background.gradient.angle - 90) * Math.PI) / 180;
+            const dx = Math.cos(angleRad);
+            const dy = Math.sin(angleRad);
+
+            const cx = deviceInfo.size.x / 2;
+            const cy = deviceInfo.size.y / 2;
+            const gradientLength =
+              (Math.abs(dx) * deviceInfo.size.x +
+                Math.abs(dy) * deviceInfo.size.y) /
+              2;
+
+            return {
+              ...baseProps,
+              fillLinearGradientColorStops: background.gradient.stops,
+              fillLinearGradientStartPoint: {
+                x: cx - dx * gradientLength,
+                y: cy - dy * gradientLength,
+              },
+              fillLinearGradientEndPoint: {
+                x: cx + dx * gradientLength,
+                y: cy + dy * gradientLength,
+              },
+            };
+          } else {
+            return {
+              ...baseProps,
+              fillRadialGradientColorStops: background.gradient.stops,
+              fillRadialGradientStartPoint: {
+                x: deviceInfo.size.x * background.gradient.pos.x,
+                y: deviceInfo.size.y * background.gradient.pos.y,
+              },
+              fillRadialGradientEndPoint: {
+                x: deviceInfo.size.x * background.gradient.pos.x,
+                y: deviceInfo.size.y * background.gradient.pos.y,
+              },
+              fillRadialGradientStartRadius: 0,
+              fillRadialGradientEndRadius:
+                Math.max(deviceInfo.size.x, deviceInfo.size.y) / 1.5,
+            };
+          }
+
+        case "image":
+          return {
+            ...baseProps,
+            fillPatternImage: patternImage,
+            fillPatternScale: imageSize.scaleFactors,
+            fillPatternRepeat: "no-repeat",
+            fillPriority: "pattern",
+          };
+
+        default:
+          return baseProps;
+      }
+    }, [background, deviceInfo.size, imageSize, patternImage]);
+
+    const handleDragMove = useCallback(
+      (e) => {
+        const group = e.target;
+        const layer = group.getLayer();
+        const stage = layer.getStage();
+        const stageWidth = stage.width();
+        const stageHeight = stage.height();
+
+        const qrHalfSize = qrSize / 2;
+        const minX = qrHalfSize;
+        const maxX = stageWidth - qrHalfSize;
+        const minY = qrHalfSize;
+        const maxY = stageHeight - qrHalfSize;
+
+        const rawX = Math.max(minX, Math.min(maxX, group.x()));
+        const rawY = Math.max(minY, Math.min(maxY, group.y()));
+
+        let targetX, targetY;
+
+        const centerSnapX = stageWidth / 2;
+        const centerSnapY = stageHeight / 2;
+
+        if (Math.abs(rawX - centerSnapX) < SNAP_TOLERANCE) {
+          setIsCenterX(true);
+          targetX = centerSnapX;
+        } else {
+          setIsCenterX(false);
+          targetX = rawX;
+        }
+
+        if (Math.abs(rawY - centerSnapY) < SNAP_TOLERANCE) {
+          setIsCenterY(true);
+          targetY = centerSnapY;
+        } else {
+          setIsCenterY(false);
+          targetY = rawY;
+        }
+
+        group.x(targetX);
+        group.y(targetY);
+
+        const newQRPos = {
+          x: targetX,
+          y: targetY,
+        };
+        setQRPos(newQRPos);
+
+        const newPercentages = {
+          x: newQRPos.x / deviceInfo.size.x,
+          y: newQRPos.y / deviceInfo.size.y,
+        };
+        updateQRPositionPercentages(newPercentages);
+      },
+      [qrSize, SNAP_TOLERANCE, deviceInfo.size, updateQRPositionPercentages]
+    );
+
+    useEffect(() => {
+      if (PERFORMANCE_MONITORING) {
+        console.log("🔄 QR URL Generation Effect triggered by:", {
+          url: qrConfig.url,
+        });
+      }
+
+      const generateQRCode = () => {
+        const startTime =
+          PERFORMANCE_MONITORING && window.performance
+            ? window.performance.now()
+            : 0;
+
+        const svg = qrRef.current?.querySelector("svg");
+        if (!svg) {
+          console.log("QR SVG not found");
+          return;
+        }
+
+        if (qrConfig.url !== lastURL || !cachedSVGPaths) {
+          console.log("🔄 URL changed or initial load, extracting SVG paths");
+          const newPaths = extractSVGPaths(svg);
+          setCachedSVGPaths(newPaths);
+          setLastURL(qrConfig.url);
+
+          try {
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const dataUrl =
+              "data:image/svg+xml;base64," +
+              btoa(unescape(encodeURIComponent(svgData)));
+
+            const qrImage = new Image();
+            qrImage.onload = () => {
+              if (PERFORMANCE_MONITORING && window.performance) {
+                const endTime = window.performance.now();
+                console.log(
+                  `✅ QR image loaded successfully in ${(
+                    endTime - startTime
+                  ).toFixed(2)}ms`
+                );
+              }
+              setQRImg(qrImage);
+            };
+            qrImage.onerror = (error) => {
+              console.error("Failed to load QR code image:", error);
+            };
+            qrImage.src = dataUrl;
+          } catch (error) {
+            console.error("Error generating QR code:", error);
+          }
+        }
+      };
+
+      const timeoutId = setTimeout(generateQRCode, 100);
+      return () => clearTimeout(timeoutId);
+    }, [qrConfig.url, lastURL, extractSVGPaths]);
+
+    useEffect(() => {
+      if (!cachedSVGPaths) return;
+
+      console.log("🎨 Color update effect triggered");
+      updateSVGColors(primaryColor, secondaryColor);
+
+      const svg = qrRef.current?.querySelector("svg");
+      if (svg) {
+        try {
+          const svgData = new XMLSerializer().serializeToString(svg);
+          const dataUrl =
+            "data:image/svg+xml;base64," +
+            btoa(unescape(encodeURIComponent(svgData)));
+
+          const qrImage = new Image();
+          qrImage.onload = () => {
+            setQRImg(qrImage);
+          };
+          qrImage.onerror = (error) => {
+            console.error("Failed to load QR code image:", error);
+          };
+          qrImage.src = dataUrl;
+        } catch (error) {
+          console.error("Error updating QR code image:", error);
+        }
+      }
+    }, [primaryColor, secondaryColor, cachedSVGPaths, updateSVGColors]);
+
+    useEffect(() => {
+      const newQRSize =
+        Math.min(deviceInfo.size.x, deviceInfo.size.y) * QR_SIZE_RATIO;
+      const maxBorderSize = newQRSize * 0.1;
+
+      if (qrConfig.custom.borderSize > maxBorderSize) {
+        updateQRConfig({
+          custom: {
+            ...qrConfig.custom,
+            borderSize: Math.floor(maxBorderSize),
+            cornerRadius: Math.min(
+              qrConfig.custom.cornerRadius,
+              maxBorderSize * 0.5
+            ),
+          },
+        });
+      }
+    }, [deviceInfo.size.x, deviceInfo.size.y]);
+
+    useEffect(() => {
+      if (!grainLoadedRef.current) {
+        grainLoadedRef.current = true;
+
+        loadImage("/grain.jpeg", { crossOrigin: "anonymous" })
+          .then((img) => {
+            console.log("Grain image loaded successfully");
+            setGrainImage(img);
+            if (ref.current) {
+              ref.current.batchDraw();
+            }
+          })
+          .catch((error) => {
+            console.error(
+              "Failed to load grain texture from /grain.jpeg",
+              error
+            );
+            setGrainImage(null);
+          });
+      }
+    }, []);
 
     useEffect(() => {
       setIsDraggable(locked);
     }, [locked]);
 
     useEffect(() => {
-      setTimeout(() => {
-        const svg = document.getElementById("QRCode")?.querySelector("svg");
-        const svgData = new XMLSerializer().serializeToString(svg);
-        const blob = new Blob([svgData], {
-          type: "image/svg+xml;charset=utf-8",
-        });
-        const url = URL.createObjectURL(blob);
-        const qrImage = new Image();
-        qrImage.src = url;
-        qrImage.onload = () => {
-          console.log(qrImage);
-          setQRImg(qrImage);
-        };
-      }, 1);
-
       setQRPos({
-        x: device.size.x / 4,
-        y: device.size.y / 1.75,
+        x: deviceInfo.size.x * qrConfig.positionPercentages.x,
+        y: deviceInfo.size.y * qrConfig.positionPercentages.y,
       });
-      setQRSize(Math.min(device.size.x, device.size.y) / 2);
-    }, [device.qr, device.size]);
+    }, [deviceInfo.size, qrConfig.positionPercentages]);
 
     useEffect(() => {
-      if (device.style == "image" && device.bg) {
-        const img = new Image();
-        img.src = device.bg;
-        img.onload = () => {
-          setPatternImage(img);
-          setImageSize({
-            width: img.naturalWidth,
-            height: img.naturalHeight,
-          });
-          setIsImageLoaded(true);
-        };
-      }
-    }, [device.style, device.bg]);
+      if (!shapeRef.current || !transformerRef.current) return;
 
-    useEffect(() => {
-      setStageScale(getStageScale());
-    }, [
-      device.size.x,
-      device.size.y,
-      panelSize.width,
-      panelSize.height,
-      isOpen,
-      windowSize,
-    ]);
+      const qrGroup = shapeRef.current;
+      const transformer = transformerRef.current;
 
-    const getScaleFactors = () => {
-      if (!imageSize.width || !imageSize.height) return { x: 1, y: 1 };
-
-      const scaleX = device.size.x / imageSize.width;
-      const scaleY = device.size.y / imageSize.height;
-      const scale = Math.max(scaleX, scaleY);
-
-      return { x: scale, y: scale };
-    };
-
-    const getImageSize = () => {
-      return {
-        x: imageSize.width * getScaleFactors().x,
-        y: imageSize.height * getScaleFactors().y,
-      };
-    };
-
-    const [grain, setGrain] = useState(null);
-
-    useEffect(() => {
-      const img = new Image();
-      img.src = "/grain.jpeg";
-      img.onload = () => {
-        console.log(img);
-        setGrain(img);
-        ref.current.batchDraw();
-      };
-    }, []);
-
-    const handleDragMove = (e) => {
-      const shape = e.target;
-      const layer = shape.getLayer();
-      const stage = layer.getStage();
-      const stageWidth = stage.width();
-      const stageHeight = stage.height();
-      const shapeWidth = shape.width() * shape.scaleX();
-      const shapeHeight = shape.height() * shape.scaleY();
-      const middleX = (stageWidth - shapeWidth) / 2;
-      const middleY = (stageHeight - shapeHeight) / 2;
-      const snapTolerance = 25;
-
-      const rawX = Math.max(0, Math.min(shape.x(), stageWidth - shapeWidth));
-      const rawY = Math.max(0, Math.min(shape.y(), stageHeight - shapeHeight));
-      let targetX, targetY;
-
-      if (Math.abs(rawX - middleX) < snapTolerance) {
-        setIsCenterX(true);
-        targetX = middleX;
-      } else {
-        setIsCenterX(false);
-        targetX = rawX;
-      }
-
-      if (Math.abs(rawY - middleY) < snapTolerance) {
-        setIsCenterY(true);
-        targetY = middleY;
-      } else {
-        setIsCenterY(false);
-        targetY = rawY;
-      }
-      shape.x(targetX);
-      shape.y(targetY);
-      setQRPos({
-        x: targetX + (device.qr.custom.borderSize / 2) * stageScale,
-        y: targetY + (device.qr.custom.borderSize / 2) * stageScale,
-      });
-    };
-
-    const handleMouseDown = (e) => {
-      if (isDraggable) {
-        const shape = e.target.getParent();
-        const originalScaleX = shape.scaleX();
-        const originalScaleY = shape.scaleY();
-        const originalWidth = shape.width() * originalScaleX;
-        const originalHeight = shape.height() * originalScaleY;
-        const newScale = 0.985;
-        const newWidth = shape.width() * newScale * originalScaleX;
-        const newHeight = shape.height() * newScale * originalScaleY;
-
-        const newX = shape.x() + (originalWidth - newWidth) / 2;
-        const newY = shape.y() + (originalHeight - newHeight) / 2;
-
-        const tween = new Konva.Tween({
-          node: shape,
-          duration: 0.1,
-          easing: Konva.Easings.BounceEaseInOut,
-          scaleX: newScale * originalScaleX,
-          scaleY: newScale * originalScaleY,
-          x: newX,
-          y: newY,
-        }).play();
-
-        setTimeout(() => {
-          tween.reverse();
-        }, 110);
-      }
-    };
-
-    useEffect(() => {
-      shapeRef.current.on("click dragend", (e) => {
+      const handleQRSelect = (e) => {
         setTimeout(() => {
           setIsDragging(false);
-          transformerRef.current.nodes([shapeRef.current]);
-          transformerRef.current.getLayer().batchDraw();
+          transformer.nodes([qrGroup]);
+
+          transformer.getLayer().batchDraw();
         }, 5);
-      });
-      shapeRef.current.on("dragstart", (e) => {
+      };
+
+      const handleDragStart = (e) => {
+        takeSnapshot("Drag start");
         setTimeout(() => {
           setIsDragging(true);
-          transformerRef.current.nodes([]);
-          transformerRef.current.getLayer().batchDraw();
-        }, 5);
-      });
+          transformer.nodes([]);
 
-      transformerRef.current.on("transformend", (e) => {
+          transformer.getLayer().batchDraw();
+        }, 5);
+      };
+
+      const handleTransformEnd = (e) => {
         setTimeout(() => {
-          transformerRef.current.nodes([shapeRef.current]);
-          transformerRef.current.getLayer().batchDraw();
+          transformer.nodes([qrGroup]);
+
+          const group = qrGroup;
+          const newQRPos = {
+            x: group.x(),
+            y: group.y(),
+          };
+
+          const newPercentages = {
+            x: newQRPos.x / deviceInfo.size.x,
+            y: newQRPos.y / deviceInfo.size.y,
+          };
+          updateQRPositionPercentages(newPercentages);
+
+          const newRotation = group.rotation();
+          updateQRConfig({ rotation: newRotation });
+
+          transformer.getLayer().batchDraw();
         }, 5);
-      });
+      };
 
-      document.getElementById("Canvas").addEventListener("mouseup", (e) => {
-        if (transformerRef.current.nodes().length > 0) {
-          transformerRef.current.nodes([]);
-          transformerRef.current.getLayer().batchDraw();
-          cancelBubble();
+      qrGroup.on("click dragend", handleQRSelect);
+      qrGroup.on("dragstart", handleDragStart);
+      transformer.on("transformend", handleTransformEnd);
+
+      const handleOutsideClick = (e) => {
+        if (transformer.nodes().length > 0) {
+          transformer.nodes([]);
+          setIsZoomEnabled(false);
+          transformer.getLayer().batchDraw();
         }
-      });
-    }, []);
+      };
 
-    const handleStageMouseDown = (e) => {
-      if (e.target === e.target.getStage()) {
-        transformerRef.current.nodes([]);
-        transformerRef.current.getLayer().batchDraw();
-      }
-    };
+      document
+        .getElementById("Canvas")
+        ?.addEventListener("mouseup", handleOutsideClick);
 
-    const cancelBubble = (e) => {
-      setTimeout(() => {
-        setIsZoomEnabled(false);
-      }, 10);
-    };
+      return () => {
+        qrGroup.off("click dragend", handleQRSelect);
+        qrGroup.off("dragstart", handleDragStart);
+        transformer.off("transformend", handleTransformEnd);
+        document
+          .getElementById("Canvas")
+          ?.removeEventListener("mouseup", handleOutsideClick);
+      };
+    }, [qrSize, deviceInfo.size, updateQRPositionPercentages]);
 
     return (
-      <div
-        id="preview"
-        unselectable="on"
-        style={{
-          width: `${device.size.x * stageScale - 2}px`,
-          height: `${device.size.y * stageScale}px`,
-          position: "relative",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Stage
-          width={device.size.x}
-          height={device.size.y}
+      <>
+        <div
           style={{
-            pointerEvents: "auto",
-            transform: `scale(${stageScale})`,
-            transition: "ease-in-out",
+            position: "absolute",
+            left: "-9999px",
+            visibility: "hidden",
           }}
-          ref={ref}
-          onMouseDown={handleStageMouseDown}
         >
-          <Layer>
-            <Rect
-              width={
-                device.style === "image" ? getImageSize().x : device.size.x
-              }
-              height={
-                device.style === "image" ? getImageSize().y : device.size.y
-              }
-              x={
-                device.style === "image"
-                  ? (device.size.x - getImageSize().x) / 2
-                  : 0
-              }
-              y={
-                device.style === "image"
-                  ? (device.size.y - getImageSize().y) / 2
-                  : 0
-              }
-              fill={device.style === "solid" ? device.color : undefined}
-              fillLinearGradientColorStops={
-                device.style === "gradient" && device.gradient.type == "linear"
-                  ? device.gradient.stops
-                  : undefined
-              }
-              fillLinearGradientStartPoint={
-                device.style === "gradient" && device.gradient.type == "linear"
-                  ? {
-                      x: device.gradient.angle.start.x,
-                      y: device.gradient.angle.start.y,
-                    }
-                  : undefined
-              }
-              fillLinearGradientEndPoint={
-                device.style === "gradient" && device.gradient.type == "linear"
-                  ? {
-                      x: device.gradient.angle.end.x,
-                      y: device.gradient.angle.end.y,
-                    }
-                  : undefined
-              }
-              fillRadialGradientColorStops={
-                device.style === "gradient" && device.gradient.type === "radial"
-                  ? device.gradient.stops
-                  : undefined
-              }
-              fillRadialGradientStartPoint={
-                device.style === "gradient" && device.gradient.type === "radial"
-                  ? {
-                      x: device.size.x * device.gradient.pos.x,
-                      y: device.size.y * device.gradient.pos.y,
-                    }
-                  : undefined
-              }
-              fillRadialGradientEndPoint={
-                device.style === "gradient" && device.gradient.type === "radial"
-                  ? {
-                      x: device.size.x * device.gradient.pos.x,
-                      y: device.size.y * device.gradient.pos.y,
-                    }
-                  : undefined
-              }
-              fillRadialGradientStartRadius={
-                device.style === "gradient" && device.gradient.type === "radial"
-                  ? 0
-                  : undefined
-              }
-              fillRadialGradientEndRadius={
-                device.style === "gradient" && device.gradient.type === "radial"
-                  ? Math.max(device.size.x, device.size.y) / 1.5
-                  : undefined
-              }
-              fillPatternImage={
-                device.style === "image" ? patternImage : undefined
-              }
-              fillPatternScale={
-                device.style === "image" ? getScaleFactors() : undefined
-              }
-              fillPatternRepeat={
-                device.style === "image" ? "no-repeat" : undefined
-              }
-              fillPriority={device.style === "image" ? "pattern" : "color"}
-            />
-            <Rect
-              width={device.size.x}
-              height={device.size.y}
-              x={0}
-              y={0}
-              fillPatternImage={grain}
-              fillPatternRepeat="repeat"
-              fillPriority="pattern"
-              globalCompositeOperation="luminosity"
-              opacity={device.grain ? 0.065 : 0}
-            />
-          </Layer>
-          <Layer
+          <QRCode
+            ref={qrRef}
+            value={qrConfig.url || "www.qrki.xyz"}
+            type="svg"
+            bordered={false}
+            size={qrSize}
+            color={primaryColor}
+            bgColor={secondaryColor}
+          />
+        </div>
+        <div
+          id="preview"
+          style={{
+            width: `${deviceInfo.size.x * stageScale - 2}px`,
+            height: `${deviceInfo.size.y * stageScale}px`,
+            position: "relative",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Stage
+            width={deviceInfo.size.x}
+            height={deviceInfo.size.y}
             style={{
               pointerEvents: "auto",
+              transform: `scale(${stageScale})`,
+              transition: "ease-in-out",
             }}
-            onMouseUp={cancelBubble}
+            ref={ref}
+            perfectDrawEnabled={false}
+            onMouseDown={(e) => {
+              if (e.target === e.target.getStage()) {
+                transformerRef.current?.nodes([]);
+              }
+            }}
+            onMouseUp={(e) => {
+              if (transformerRef.current?.nodes().length > 0) {
+                transformerRef.current.nodes([]);
+                setIsZoomEnabled(false);
+              } else {
+                if (!locked) {
+                  setIsZoomEnabled(false);
+                } else {
+                  setIsZoomEnabled(true);
+                }
+              }
+
+              transformerRef.current?.getLayer()?.batchDraw();
+            }}
           >
-            <Group
-              draggable={isDraggable}
-              onDragMove={handleDragMove}
-              onMouseDown={handleMouseDown}
-              ref={shapeRef}
-              x={qrPos.x - (device.qr.custom.borderSize / 2) * stageScale}
-              y={qrPos.y - (device.qr.custom.borderSize / 2) * stageScale}
-              height={qrSize + device.qr.custom.borderSize * stageScale}
-              width={qrSize + device.qr.custom.borderSize * stageScale}
+            <Layer>
+              <Rect {...backgroundProps} listening={false} />
+
+              {background.grain && grainImage && (
+                <Rect
+                  width={deviceInfo.size.x}
+                  height={deviceInfo.size.y}
+                  x={0}
+                  y={0}
+                  fillPatternImage={grainImage}
+                  fillPatternRepeat="repeat"
+                  fillPriority="pattern"
+                  globalCompositeOperation="luminosity"
+                  opacity={0.065}
+                  listening={false}
+                />
+              )}
+            </Layer>
+
+            <Layer
+              onMouseUp={() => {
+                setTimeout(() => {
+                  setIsZoomEnabled(false);
+                }, 10);
+              }}
             >
-              <Rect
-                id="QRImage"
-                fill={device.qr.custom.borderColor}
-                fillPatternRepeat={"no-repeat"}
-                height={qrSize + device.qr.custom.borderSize * stageScale}
-                width={qrSize + device.qr.custom.borderSize * stageScale}
-                fillAfterStrokeEnabled={true}
-                cornerRadius={[
-                  device.qr.custom.cornerRadius,
-                  device.qr.custom.cornerRadius,
-                  device.qr.custom.cornerRadius,
-                  device.qr.custom.cornerRadius,
+              <Group
+                draggable={isDraggable}
+                onDragMove={handleDragMove}
+                ref={shapeRef}
+                x={qrPos.x}
+                y={qrPos.y}
+                rotation={qrConfig.rotation || 0}
+                offsetX={qrSize / 2}
+                offsetY={qrSize / 2}
+                height={qrSize + actualBorderSize}
+                width={qrSize + actualBorderSize}
+                onMouseDown={(e) => {
+                  e.cancelBubble = true;
+                  if (transformerRef.current?.nodes().length == 0) {
+                    setTimeout(() => {
+                      setIsZoomEnabled(false);
+                      if (transformerRef.current && shapeRef.current) {
+                        transformerRef.current.nodes([shapeRef.current]);
+                        transformerRef.current.getLayer().batchDraw();
+                      }
+                    }, 100);
+                  }
+                }}
+              >
+                <Rect
+                  fill={qrConfig.custom.borderColor}
+                  x={-actualBorderSize / 2}
+                  y={-actualBorderSize / 2}
+                  height={qrSize + actualBorderSize}
+                  width={qrSize + actualBorderSize}
+                  cornerRadius={[
+                    actualCornerRadius,
+                    actualCornerRadius,
+                    actualCornerRadius,
+                    actualCornerRadius,
+                  ]}
+                />
+
+                <Rect
+                  x={0}
+                  y={0}
+                  fillPatternImage={qrImg}
+                  fillPatternRepeat="no-repeat"
+                  fillPatternScale={
+                    qrImg
+                      ? {
+                          x: qrSize / qrImg.width,
+                          y: qrSize / qrImg.height,
+                        }
+                      : { x: 1, y: 1 }
+                  }
+                  height={qrSize}
+                  width={qrSize}
+                />
+              </Group>
+
+              <Transformer
+                borderStroke="red"
+                borderStrokeWidth={2 / stageScale}
+                enabledAnchors={[
+                  "top-left",
+                  "top-right",
+                  "bottom-left",
+                  "bottom-right",
                 ]}
+                keepRatio={true}
+                anchorSize={7.5 / stageScale}
+                anchorStroke="red"
+                anchorStrokeWidth={1 / stageScale}
+                anchorCornerRadius={7.5 / stageScale}
+                rotateEnabled={true}
+                rotationSnaps={[0, 45, 90, 135, 180, 225, 270, 315]}
+                rotationSnapTolerance={5}
+                flipEnabled={false}
+                ref={transformerRef}
+                onTransformEnd={() => {
+                  setTimeout(() => {
+                    setIsZoomEnabled(false);
+                  }, 10);
+                }}
               />
-              <Rect
-                id="QRImage"
-                x={(device.qr.custom.borderSize / 2) * stageScale}
-                y={(device.qr.custom.borderSize / 2) * stageScale}
-                fillPatternImage={qrImg}
-                fillPatternRepeat={"no-repeat"}
-                height={qrSize}
-                width={qrSize}
-                fillAfterStrokeEnabled={true}
-              />
-            </Group>
-            <Transformer
-              onTransformEnd={cancelBubble}
-              borderStroke={"red"}
-              borderStrokeWidth={2 / stageScale}
-              enabledAnchors={[
-                "top-left",
-                "top-right",
-                "bottom-left",
-                "bottom-right",
-              ]}
-              keepRatio={true}
-              anchorSize={7.5 / stageScale}
-              anchorStroke={"red"}
-              anchorStrokeWidth={1 / stageScale}
-              anchorCornerRadius={7.5 / stageScale}
-              rotateEnabled={false}
-              flipEnabled={false}
-              ref={transformerRef}
-            />
-            <Line
-              stroke={"red"}
-              strokeWidth={5}
-              dash={[25, 15]}
-              points={[
-                device.size.x / 2,
-                0,
-                device.size.x / 2,
-                device.size.y / 2,
-                device.size.x / 2,
-                device.size.y,
-              ]}
-              visible={isCenterX && isDragging}
-            />
-            <Line
-              stroke={"red"}
-              strokeWidth={5}
-              dash={[25, 15]}
-              points={[
-                0,
-                device.size.y / 2,
-                device.size.x / 2,
-                device.size.y / 2,
-                device.size.x,
-                device.size.y / 2,
-              ]}
-              visible={isCenterY & isDragging}
-            />
-          </Layer>
-        </Stage>
-      </div>
+
+              {isCenterX && isDragging && (
+                <Line
+                  stroke="red"
+                  strokeWidth={5}
+                  dash={[25, 15]}
+                  points={[
+                    deviceInfo.size.x / 2,
+                    0,
+                    deviceInfo.size.x / 2,
+                    deviceInfo.size.y,
+                  ]}
+                  listening={false}
+                />
+              )}
+
+              {isCenterY && isDragging && (
+                <Line
+                  stroke="red"
+                  strokeWidth={5}
+                  dash={[25, 15]}
+                  points={[
+                    0,
+                    deviceInfo.size.y / 2,
+                    deviceInfo.size.x,
+                    deviceInfo.size.y / 2,
+                  ]}
+                  listening={false}
+                />
+              )}
+            </Layer>
+
+            {showPhoneUI && (
+              <Layer
+                listening={false}
+                opacity={isHovered || isDragging ? 0.5 : 1}
+              >
+                <Rect
+                  x={deviceInfo.size.x / 2 - deviceInfo.size.x * 0.15}
+                  y={deviceInfo.size.y * 0.01}
+                  width={deviceInfo.size.x * 0.3}
+                  height={deviceInfo.size.x * 0.065}
+                  fill="black"
+                  cornerRadius={deviceInfo.size.x * 0.15}
+                />
+
+                <Text
+                  x={deviceInfo.size.x * 0.125}
+                  y={deviceInfo.size.y * 0.0175}
+                  text="QRKI"
+                  fontSize={deviceInfo.size.x * 0.05}
+                  fontFamily="Rubik, -apple-system, BlinkMacSystemFont, sans-serif"
+                  fill="white"
+                  opacity={1}
+                />
+
+                <Group
+                  x={deviceInfo.size.x * 0.725}
+                  y={deviceInfo.size.y * 0.0175}
+                  listening={false}
+                >
+                  <Rect
+                    x={deviceInfo.size.x * 0.045}
+                    y={deviceInfo.size.x * 0}
+                    width={deviceInfo.size.x * 0.01}
+                    height={deviceInfo.size.x * 0.0375}
+                    fill="white"
+                    opacity={0.5}
+                  />
+                  <Rect
+                    x={deviceInfo.size.x * 0.03}
+                    y={deviceInfo.size.x * 0.0095}
+                    width={deviceInfo.size.x * 0.01}
+                    height={deviceInfo.size.x * 0.028}
+                    fill="white"
+                    opacity={1}
+                  />
+                  <Rect
+                    x={deviceInfo.size.x * 0.015}
+                    y={deviceInfo.size.x * 0.0195}
+                    width={deviceInfo.size.x * 0.01}
+                    height={deviceInfo.size.x * 0.01825}
+                    fill="white"
+                    opacity={1}
+                  />
+                  <Rect
+                    x={0}
+                    y={deviceInfo.size.x * 0.0295}
+                    width={deviceInfo.size.x * 0.01}
+                    height={deviceInfo.size.x * 0.009}
+                    fill="white"
+                    opacity={1}
+                  />
+                </Group>
+
+                <Group
+                  x={deviceInfo.size.x * 0.805}
+                  y={deviceInfo.size.y * 0.0175}
+                  listening={false}
+                >
+                  <Rect
+                    x={0}
+                    y={0}
+                    width={deviceInfo.size.x * 0.075}
+                    height={deviceInfo.size.x * 0.035}
+                    stroke="white"
+                    strokeWidth={deviceInfo.size.x * 0.002}
+                    cornerRadius={deviceInfo.size.x * 0.01}
+                  />
+                  <Rect
+                    x={deviceInfo.size.x * 0.0075}
+                    y={deviceInfo.size.x * 0.005}
+                    width={deviceInfo.size.x * 0.06}
+                    height={deviceInfo.size.x * 0.025}
+                    fill="white"
+                    cornerRadius={deviceInfo.size.x * 0.005}
+                  />
+                  <Rect
+                    x={deviceInfo.size.x * 0.0775}
+                    y={deviceInfo.size.x * 0.012}
+                    width={deviceInfo.size.x * 0.005}
+                    height={deviceInfo.size.x * 0.01}
+                    fill="white"
+                    cornerRadius={deviceInfo.size.x * 0.00175}
+                  />
+                </Group>
+
+                <Text
+                  x={0}
+                  y={deviceInfo.size.y / 6}
+                  width={deviceInfo.size.x}
+                  text="4:44"
+                  stroke="white"
+                  strokeWidth={deviceInfo.size.x * 0.001}
+                  fontSize={deviceInfo.size.x * 0.3}
+                  fontWeight="bold"
+                  fontFamily="Rubik, -apple-system, BlinkMacSystemFont, sans-serif"
+                  fill="white"
+                  align="center"
+                  listening={false}
+                />
+
+                <Group x={0} y={deviceInfo.size.y * 0.75} listening={false}>
+                  <Rect
+                    x={deviceInfo.size.x * 0.05}
+                    y={0}
+                    width={deviceInfo.size.x * 0.9}
+                    height={
+                      deviceInfo.size.y * 0.095 + deviceInfo.size.x * 0.095
+                    }
+                    fillLinearGradientStartPoint={{ x: 0, y: 0 }}
+                    fillLinearGradientEndPoint={{
+                      x: deviceInfo.size.x,
+                      y: deviceInfo.size.y * 0.175,
+                    }}
+                    fillLinearGradientColorStops={[
+                      0,
+                      "rgba(255,255,255,0.95)",
+                      1,
+                      "rgba(225, 225, 225, 0.85)",
+                    ]}
+                    shadowBlur={8}
+                    shadowOpacity={0.1}
+                    shadowOffset={{ x: 0, y: 4 }}
+                    filters={[Konva.Filters.Blur]}
+                    blurRadius={10}
+                    cornerRadius={deviceInfo.size.x * 0.045}
+                    stroke="rgba(255, 255, 255, 0.3)"
+                    strokeWidth={deviceInfo.size.x * 0.001}
+                  />
+                  <Rect
+                    x={deviceInfo.size.x * 0.1}
+                    y={deviceInfo.size.x * 0.05}
+                    width={deviceInfo.size.y * 0.095}
+                    height={deviceInfo.size.y * 0.095}
+                    cornerRadius={deviceInfo.size.x * 0.025}
+                    fill="#F0F66E"
+                  />
+                  <Text
+                    x={deviceInfo.size.x * 0.125 + deviceInfo.size.y * 0.095}
+                    y={deviceInfo.size.x * 0.06}
+                    text="Quacki"
+                    fontSize={deviceInfo.size.x * 0.075}
+                    fontFamily="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif"
+                    listening={false}
+                    fill="rgba(0, 0, 0, 0.75)"
+                  />
+                  <Text
+                    x={deviceInfo.size.x * 0.125 + deviceInfo.size.y * 0.095}
+                    y={deviceInfo.size.x * 0.15}
+                    text="2 New Messages"
+                    fontSize={deviceInfo.size.x * 0.045}
+                    fontFamily="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif"
+                    fill="rgba(0, 0, 0, 0.75)"
+                  />
+                  <Text
+                    x={deviceInfo.size.x * 0.775}
+                    y={deviceInfo.size.x * 0.0575}
+                    text="3:33 AM"
+                    fontSize={deviceInfo.size.x * 0.035}
+                    fontFamily="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif"
+                    fill="rgba(0, 0, 0, 0.75)"
+                  />
+                </Group>
+                <Rect
+                  x={deviceInfo.size.x * 0.25}
+                  y={deviceInfo.size.y * 0.95}
+                  width={deviceInfo.size.x * 0.5}
+                  height={deviceInfo.size.y * 0.0125}
+                  fill="white"
+                  opacity={0.5}
+                  cornerRadius={deviceInfo.size.x * 0.5}
+                />
+              </Layer>
+            )}
+          </Stage>
+        </div>
+      </>
     );
   }
 );

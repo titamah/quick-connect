@@ -1,27 +1,20 @@
 import { forwardRef } from "react";
 import { Undo2, Redo2 } from "lucide-react";
 import { useDevice } from "../../contexts/DeviceContext";
-import chroma from "chroma-js";
 
-const UndoRedoButton = forwardRef(({}, ref) => {
-  const { canUndo, canRedo, undo, redo, uploadInfo, libraryInfo } = useDevice();
+const UndoRedoButton = forwardRef(({}) => {
+  const { canUndo, canRedo, undo, redo } = useDevice();
 
   const handleUndo = () => {
     if (canUndo) {
-    undo();
-    setTimeout(() => {
-      console.log("TEST: ", { uploadInfo, libraryInfo });
-    }, 2000);
-  }
+      undo();
+    }
   };
 
   const handleRedo = () => {
     if (canRedo) {
-    redo();
-  }
-  setTimeout(() => {
-    console.log("TEST: ", { uploadInfo, libraryInfo });
-  }, 2000);
+      redo();
+    }
   };
 
   return (
@@ -30,8 +23,8 @@ const UndoRedoButton = forwardRef(({}, ref) => {
         <button
           type="button"
           className={`py-2 px-2 h-fit inline-flex items-center gap-x-2 text-sm font-medium rounded-4xl text-white hover:opacity-75 ${
-            canUndo 
-              ? "bg-[var(--accent)] cursor-pointer" 
+            canUndo
+              ? "bg-[var(--accent)] cursor-pointer"
               : "bg-black/50 cursor-not-allowed"
           }`}
           onClick={handleUndo}
@@ -39,12 +32,12 @@ const UndoRedoButton = forwardRef(({}, ref) => {
         >
           <Undo2 size={18} />
         </button>
-        
+
         <button
           type="button"
           className={`py-2 px-2 h-fit inline-flex items-center gap-x-2 text-sm font-medium rounded-4xl text-white hover:opacity-75 ${
-            canRedo 
-              ? "bg-[var(--accent)] cursor-pointer" 
+            canRedo
+              ? "bg-[var(--accent)] cursor-pointer"
               : "bg-black/50 cursor-not-allowed"
           }`}
           onClick={handleRedo}
@@ -55,7 +48,6 @@ const UndoRedoButton = forwardRef(({}, ref) => {
       </div>
     </div>
   );
-
 });
 
 export default UndoRedoButton;

@@ -1,13 +1,13 @@
-
+@import "tailwindcss";
 :root {
-  /* New Brand Colors */
+  /* Brand Colors */
   --brand-yellow: #F0F66E;
   --brand-orange: #FC6524;
   --brand-light-green: #EEF5E9;
   --brand-green: #7ED03B;
   --brand-dark: #1E1C1C;
   
-  /* Theme Variables - Light Mode */
+  /* Light Mode */
   --bg-main: #ffffff;
   --bg-secondary: #EEF5E9;
   --contrast: #1E1C1C;
@@ -21,7 +21,7 @@
   --hover-bg: rgba(252, 101, 36, 0.1);
   --active-bg: rgba(252, 101, 36, 0.15);
 
-  /* Font Families */
+  /* Fonts */
   --font-slab: 'Roboto Slab', serif;
   --font-rubik: 'Rubik', sans-serif;
 
@@ -68,8 +68,7 @@ h5 {
     font-weight: 600;
     color: var(--text-secondary);
   }
-
-/* H2 – Secondary Heading (larger, bold, normal case) */
+  
 h2 {
   font-size: 21px;
   line-height: 100%;
@@ -77,7 +76,6 @@ h2 {
   color: var(--text-primary);
 }
 
-/* H1 – Primary Heading (largest, boldest, normal case) */
 h1 {
   font-family: var(--font-rubik);
 }
@@ -93,7 +91,6 @@ input[type="number"]::-webkit-inner-spin-button {
   margin: 0;
 }
 
-/* Remove the spinner in Firefox */
 input[type="number"] {
   -moz-appearance: textfield; 
 }
@@ -145,36 +142,3 @@ input[type="range"]::-moz-range-thumb:active {
 input[type="range"]::-webkit-slider-thumb:active {
   box-shadow: 0 0 0 1px var(--accent) !important;
 }
-
-/* Radio button styling */
-input[type="radio"] {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--border-color);
-  border-radius: 50%;
-  background-color: var(--bg-main);
-  cursor: pointer;
-  position: relative;
-  transition: all 0.2s ease;
-  }
-  input[type="radio"]:hover {
-  border-color: var(--accent);
-  }
-  input[type="radio"]:focus {
-  background-color: var(--accent);
-  border-color: var(--accent);
-  }
-  input[type="radio"]:focus::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: var(--bg-main);
-  }

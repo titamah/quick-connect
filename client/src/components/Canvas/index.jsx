@@ -2,24 +2,20 @@ import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import "preline/preline";
 import { zoom, select, zoomIdentity } from "d3";
-import OptimizedWallpaper from '../Wallpaper/OptimizedWallpaper';
+import Wallpaper from "../Wallpaper/index";
 import PreviewButton from "./PreviewButton";
 import UndoRedoButton from "./UndoRedoButton";
 
-function Canvas({ isOpen, panelSize, wallpaperRef, setPalette }) {
-  const { device, updateDeviceInfo } = useDevice();
+function Canvas({ isOpen, panelSize, wallpaperRef }) {
+  const { device } = useDevice();
   const previewRef = useRef(null);
   const canvasRef = useRef(null);
-  const [scale, setScale] = useState(1);
-  // const wallpaperRef = useRef(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isZoomEnabled, setIsZoomEnabled] = useState(false);
 
-  // Memoize function props to prevent unnecessary re-renders
   const memoizedSetIsZoomEnabled = useCallback(setIsZoomEnabled, []);
 
-  // Memoized preview size calculation
   const previewSize = useMemo(() => {
     const scaleX = isOpen
       ? (0.85 * window.innerWidth - panelSize.width) / device.size.x
@@ -34,7 +30,6 @@ function Canvas({ isOpen, panelSize, wallpaperRef, setPalette }) {
     };
   }, [isOpen, panelSize.width, panelSize.height, device.size.x, device.size.y]);
 
-  // Memoized panel size update function
   const updatePanelSize = useCallback(() => {
     const screenWidth = window.innerWidth;
     if (screenWidth >= 640) {
@@ -52,14 +47,12 @@ function Canvas({ isOpen, panelSize, wallpaperRef, setPalette }) {
     }
   }, [panelSize.width, panelSize.height]);
 
-  // Memoized zoom behavior setup
   const setupZoomBehavior = useCallback(() => {
     const canvasElement = select(canvasRef.current);
     const previewElement = select(previewRef.current);
     const zoomBehavior = zoom()
       .scaleExtent([0.25, 15])
       .on("zoom", (event) => {
-        setScale(event.transform.k);
         previewElement.style(
           "transform",
           `translate(${event.transform.x}px, ${event.transform.y}px) scale(${event.transform.k})`
@@ -69,7 +62,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef, setPalette }) {
     if (isZoomEnabled) {
       canvasElement.call(zoomBehavior);
     } else {
-      canvasElement.on(".zoom", null); // Disable zoom behavior
+      canvasElement.on(".zoom", null);
     }
 
     canvasElement.on("dblclick.zoom", null);
@@ -80,34 +73,38 @@ function Canvas({ isOpen, panelSize, wallpaperRef, setPalette }) {
         .call(zoomBehavior.transform, zoomIdentity);
     });
 
-    return { canvasElement, zoomBehavior };
+    return canvasElement;
   }, [isZoomEnabled]);
 
-  // Memoized resize handler
   const handleResize = useCallback(() => {
     updatePanelSize();
     const canvasElement = select(canvasRef.current);
-    const zoomBehavior = zoom()
-      .scaleExtent([0.25, 15]);
-    
+    const zoomBehavior = zoom().scaleExtent([0.25, 15]);
+
     canvasElement
       .transition()
       .duration(350)
       .call(zoomBehavior.transform, zoomIdentity);
   }, [updatePanelSize]);
 
-  // Memoized outside click handler
-  const handleOutsideClick = useCallback((event) => {
-    try {
-      if (isZoomEnabled && previewRef?.current && previewRef.current.contains && !previewRef.current.contains(event.target)) {
-        setIsZoomEnabled(false);
+  const handleOutsideClick = useCallback(
+    (event) => {
+      try {
+        if (
+          isZoomEnabled &&
+          previewRef?.current &&
+          previewRef.current.contains &&
+          !previewRef.current.contains(event.target)
+        ) {
+          setIsZoomEnabled(false);
+        }
+      } catch (error) {
+        console.warn("Error in handleOutsideClick:", error);
       }
-    } catch (error) {
-      console.warn('Error in handleOutsideClick:', error);
-    }
-  }, [isZoomEnabled]);
+    },
+    [isZoomEnabled]
+  );
 
-  // Initialize component
   useEffect(() => {
     import("preline/preline").then(({ HSStaticMethods }) => {
       HSStaticMethods.autoInit();
@@ -116,16 +113,13 @@ function Canvas({ isOpen, panelSize, wallpaperRef, setPalette }) {
     setIsLoading(false);
   }, [updatePanelSize]);
 
-  // Setup zoom behavior
   useEffect(() => {
-    const { canvasElement, zoomBehavior } = setupZoomBehavior();
+    const canvasElement = setupZoomBehavior();
 
-    // Add resize listener
     window.addEventListener("resize", handleResize);
 
     updatePanelSize();
 
-    // Cleanup
     return () => {
       window.removeEventListener("resize", handleResize);
       canvasElement.on(".zoom", null);
@@ -133,45 +127,46 @@ function Canvas({ isOpen, panelSize, wallpaperRef, setPalette }) {
     };
   }, [setupZoomBehavior, handleResize, updatePanelSize]);
 
-  // Add outside click listener after component is mounted
   useEffect(() => {
     if (previewRef.current) {
       document.addEventListener("click", handleOutsideClick);
-      
+
       return () => {
         document.removeEventListener("click", handleOutsideClick);
       };
     }
   }, [handleOutsideClick]);
 
-  // Memoized canvas styles
-  const canvasStyles = useMemo(() => ({
-    width: isOpen
-      ? "calc(100% - var(--panel-width))"
-      : "100%",
-    height: isOpen
-      ? "calc(100% - var(--panel-height))"
-      : "100%",
-  }), [isOpen]);
+  const canvasStyles = useMemo(
+    () => ({
+      width: isOpen ? "calc(100% - var(--panel-width))" : "100%",
+      height: isOpen ? "calc(100% - var(--panel-height))" : "100%",
+    }),
+    [isOpen]
+  );
 
-  // Memoized preview styles
-  const previewStyles = useMemo(() => ({
-    transition: "all duration-150 ease-linear",
-    outline: isZoomEnabled ? "2px solid #3b82f6" : "none",
-    outlineOffset: "15px",
-  }), [isZoomEnabled]);
+  const previewStyles = useMemo(
+    () => ({
+      transition: "all duration-150 ease-linear",
+      outline: isZoomEnabled ? "2px solid #3b82f6" : "none",
+      outlineOffset: "15px",
+    }),
+    [isZoomEnabled]
+  );
 
-  // Memoized figure styles
-  const figureStyles = useMemo(() => ({
-    position: "relative",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    outline: `${((previewSize.y + previewSize.x) *.0125)}px solid black`,
-    borderRadius: `${((previewSize.y + previewSize.x) *.0375)}px`,
-    backgroundColor: "rgba(0,0,0,0)",
-    overflow: "hidden",
-  }), [previewSize.x, previewSize.y]);
+  const figureStyles = useMemo(
+    () => ({
+      position: "relative",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      outline: `${(previewSize.y + previewSize.x) * 0.0125}px solid black`,
+      borderRadius: `${(previewSize.y + previewSize.x) * 0.0375}px`,
+      backgroundColor: "rgba(0,0,0,0)",
+      overflow: "hidden",
+    }),
+    [previewSize.x, previewSize.y]
+  );
 
   return (
     <div
@@ -229,7 +224,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef, setPalette }) {
                 ></div>
               </div>
             ) : (
-              <OptimizedWallpaper
+              <Wallpaper
                 ref={wallpaperRef}
                 panelSize={panelSize}
                 isOpen={isOpen}

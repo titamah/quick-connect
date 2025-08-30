@@ -1,4 +1,3 @@
-// App.jsx - Router setup
 import "./App.css";
 import "preline/preline";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
@@ -13,7 +12,7 @@ import GalleryPage from "./pages/GalleryPage";
 import React from "react";
 
 function App() {
-  // Theme detection
+  
   const [isDarkMode, setIsDarkMode] = React.useState(false);
   
   React.useEffect(() => {

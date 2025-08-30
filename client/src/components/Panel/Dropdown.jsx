@@ -17,7 +17,7 @@ function Dropdown({ options = [], value, onChange }) {
         onClick={() => setOpen(!open)}
       >
         <span>{value.charAt(0).toUpperCase() + value.slice(1)}</span>
-        <ChevronDown size={16}/>
+        <ChevronDown size={16} />
       </button>
 
       {open && (

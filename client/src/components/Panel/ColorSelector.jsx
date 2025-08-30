@@ -1,137 +1,195 @@
-import { useState, useContext, useEffect, useRef } from "react";
-import "preline/preline";
-import { DeviceContext } from "../../App";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { HexColorPicker } from "react-colorful";
 import "./styles.css";
 import { Grip } from "lucide-react";
 import chroma from "chroma-js";
+import { useDevice } from "../../contexts/DeviceContext";
 
-function ColorSelector(panelSize) {
-  const { device, setDevice } = useContext(DeviceContext);
+const ColorSelector = ({ panelSize }) => {
+  const { device, background, updateBackground, takeSnapshot } = useDevice();
   const pickerRef = useRef(null);
-  const [color, setColor] = useState("#ffad6c");
-  const [colorCircles, setColorCircles] = useState(null);
+  const inputRef = useRef(null);
 
+  const [inputText, setInputText] = useState(background.color);
+
+  const [needsSnapshot, setNeedsSnapshot] = useState(false);
+  const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    setInputText(background.color.toUpperCase());
+  }, [background.color]);
 
   useEffect(() => {
     const pickerElement = pickerRef.current;
-    if (pickerElement) {
-      const colorPicker = pickerElement.querySelector(
-        ".react-colorful__saturation"
-      );
-      if (colorPicker) {
-        const classesToAdd = [
-          "!border-radius-[4px]",
-          "!border-[5px]",
-          "!border-white",
-          "dark:!border-[rgba(38,38,38,1)]",
-          "!shadow-[0_0_0_.95px_rgb(215,215,215)]",
-          "dark:!shadow-[0_0_0_.95px_rgb(66,66,66)]",
-        ];
-        colorPicker.classList.add(...classesToAdd); // Add all classes
-      }
-    }
-  }, [pickerRef]);
+    if (!pickerElement) return;
 
-  const updateColors = (c) => {
-    const debounce = (func, delay) => {
-      let debounceTimer;
-      return function (...args) {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => func.apply(this, args), delay);
-      };
-    };
-    setInputText(c);
-    const debouncedUpdateColors = debounce((c) => {
-      console.log(c);
-      setDevice((prevDevice) => ({
-        ...prevDevice,
-        color: c,
-      }));
-    }, 350);
-    debouncedUpdateColors(c);
-  };
-
-  const setColorCombo = (c) => {
-    setColor(c);
-  };
-
-  useEffect(() => {
-    const num = Math.round((panelSize.panelSize.panelSize.width - 20) / 40);
-    const validColors = [device.palette.qr, device.palette.bg, device.palette.border]
-    const chromaTest = chroma.scale(validColors).mode("lch").colors(num);
-    console.log(chromaTest);
-    setColorCircles(
-      chromaTest.map((e) => (
-        e && 
-        <div
-          className="recent-color my-auto border-black/25 dark:border-black/75"
-          style={{ backgroundColor: e }}
-          onClick={() => setColorCombo(e)}
-        ></div>
-      ))
+    const colorPicker = pickerElement.querySelector(
+      ".react-colorful__saturation"
     );
-  }, [device.palette, panelSize.panelSize.panelSize.width]);
+    if (colorPicker && !colorPicker.classList.contains("styled")) {
+      const classesToAdd = [
+        "!border-radius-[4px]",
+        "!border-[5px]",
+        "!border-white",
+        "dark:!border-[rgba(38,38,38,1)]",
+        "!shadow-[0_0_0_.95px_rgb(215,215,215)]",
+        "dark:!shadow-[0_0_0_.95px_rgb(66,66,66)]",
+        "styled",
+      ];
+      colorPicker.classList.add(...classesToAdd);
+    }
 
-  useEffect(() => {
-    setDevice((prevDevice) => ({
-      ...prevDevice,
-      color: color ,
-      palette: {...prevDevice.palette, solid: color},
-    }));
-  }, [color]);
+    const handleMouseDown = () => {
+      setNeedsSnapshot(true);
+    };
 
-  const getColorString = (x) => {
-    return typeof x === "string" ? x.substring(0, 7) : "#ffffff";
-  };
+    const handleMouseUp = () => {
+      setNeedsSnapshot(false);
+      clearTimeout(timeoutRef.current);
+    };
 
-  const [inputText, setInputText] = useState(getColorString(color));
+    const handleMouseLeave = () => {
+      setNeedsSnapshot(false);
+      clearTimeout(timeoutRef.current);
+    };
 
-  useEffect(() => {
-    setInputText(getColorString(color));
-  }, [color]);
+    pickerElement.addEventListener("mousedown", handleMouseDown);
+    pickerElement.addEventListener("mouseup", handleMouseUp);
+    pickerElement.addEventListener("mouseleave", handleMouseLeave);
+
+    return () => {
+      pickerElement.removeEventListener("mousedown", handleMouseDown);
+      pickerElement.removeEventListener("mouseup", handleMouseUp);
+      pickerElement.removeEventListener("mouseleave", handleMouseLeave);
+      clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
+  const colorBoxes = useMemo(() => {
+    if (!panelSize?.width) return null;
+
+    const activeColors = device.palette.filter(
+      (color) => chroma.valid(color) && color !== background.color
+    );
+
+    if (activeColors.length === 0) return null;
+
+    return activeColors.map((color, index) => (
+      <button
+        key={`${color}-${index}`}
+        className="flex items-center border bg-black/5 dark:bg-black/15 px-1 text-[var(--text-secondary)] min-w-0 w-full h-[24px] rounded border-[var(--border-color)]/60 hover:opacity-75 transition-opacity cursor-pointer"
+        onClick={() => {
+          takeSnapshot("Select color");
+          setInputText(color.toUpperCase());
+          updateBackground({ color: color });
+        }}
+        aria-label={`Select color ${color}`}
+      >
+        <div
+          className="w-4 h-4 rounded-xs mr-2"
+          style={{ backgroundColor: color }}
+        />
+        <span className="text-xs truncate">{color}</span>
+      </button>
+    ));
+  }, [device.palette, background.color, panelSize?.width]);
+
+  const handleColorChange = useCallback(
+    (newColor) => {
+      if (!chroma.valid(newColor)) return;
+
+      if (needsSnapshot) {
+        takeSnapshot("Change solid color");
+        setNeedsSnapshot(false);
+      }
+
+      setInputText(newColor.toUpperCase());
+      updateBackground({ color: newColor });
+
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => {
+        setNeedsSnapshot(true);
+      }, 500);
+    },
+    [needsSnapshot, takeSnapshot]
+  );
+
+  const handleInputChange = useCallback((e) => {
+    let newValue = e.target.value.toUpperCase();
+
+    if (newValue && !newValue?.startsWith("#")) {
+      newValue = "#" + newValue;
+    }
+
+    newValue = newValue.replace(/[^#0-9A-F]/gi, "");
+    setInputText(newValue);
+  }, []);
+
+  const handleInputBlur = useCallback(() => {
+    takeSnapshot("Change color");
+
+    const input = inputText.slice(0, 7);
+    const newColor =
+      chroma.valid(input) && inputText.length == 7
+        ? inputText.toUpperCase()
+        : "#FFFFFF";
+
+    setInputText(newColor);
+    updateBackground({ color: newColor });
+  }, [inputText, background.color]);
+
+  const handleInputKeyDown = useCallback(
+    (e) => {
+      if (e.key === "Enter") {
+        inputRef.current.blur();
+      }
+    },
+    [inputText, background.color]
+  );
+
+  const toggleGrain = useCallback(() => {
+    takeSnapshot("Toggle grain");
+    updateBackground({ grain: !background.grain });
+  }, [background.grain, updateBackground]);
 
   return (
-    <>
-      <div
-        id="ColorSelectPanel"
-        ref={pickerRef}
-        className="w-full h-[290px] px-5 space-y-2.5"
-      >
-        <span className="flex flex-row items-center justify-between w-full mb-2 ">
-          <input
-            value={inputText}
-            onChange={(e) => {
-              const newValue = e.target.value.toUpperCase();
-              setInputText(newValue);
-              if (chroma.valid(newValue)) {
-                updateColors(newValue);
-              }
-            }}
-            className="p-1 border-1 border-black/10 dark:border-white/10 text-neutral-600 dark:text-neutral-200/75 text-sm align-center rounded-sm px-[15px] w-[95px]"
-          />
-          <Grip
-          className="opacity-75 hover:opacity-100 cursor-pointer"
-          size={20}
-          onClick={() => setDevice(d => ({ ...d, grain: !d.grain }))}
+    <div
+      id="ColorSelectPanel"
+      ref={pickerRef}
+      className="dark:text-white w-full h-[290px] space-y-2.5"
+    >
+      <div className="flex flex-row items-center justify-between w-full mb-2">
+        <input
+          ref={inputRef}
+          value={inputText}
+          onChange={handleInputChange}
+          onBlur={handleInputBlur}
+          onKeyDown={handleInputKeyDown}
+          className="p-1 border-1 border-black/10 dark:border-white/10 text-neutral-600 dark:text-neutral-200/75 text-sm rounded-sm px-[15px] w-[95px]"
+          placeholder="#ffffff"
+          maxLength={7}
         />
-        
-        </span>
-        <HexColorPicker
-          color={color}
-          onChange={(e) => updateColors(e)}
-          className="space-y-1 !w-full"
-        />
-        <div className="w-full mb-3">
-          <div
-            className="flex flex-row flex-nowrap overflow-show w-full my-3 gap-2.5 "
-          >
-            {colorCircles}
-          </div>
-        </div>
+        <button
+          onClick={toggleGrain}
+          className="opacity-75 hover:opacity-100 cursor-pointer transition-opacity"
+          aria-label={`${background.grain ? "Disable" : "Enable"} grain effect`}
+        >
+          <Grip size={20} />
+        </button>
       </div>
-    </>
+      <HexColorPicker
+        color={background.color}
+        onChange={handleColorChange}
+        className="space-y-1 !w-full"
+      />
+      {colorBoxes && (
+        <div className="w-full my-4 space-y-2">
+          <h4>Active Colors</h4>
+          <div className="space-y-1">{colorBoxes}</div>
+        </div>
+      )}
+    </div>
   );
-}
+};
 
 export default ColorSelector;

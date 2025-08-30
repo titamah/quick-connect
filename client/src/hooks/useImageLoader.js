@@ -1,6 +1,5 @@
-// hooks/useImageLoader.js
-import { useState, useEffect, useMemo } from 'react';
-import { useImageCache } from './useImageCache';
+import { useState, useEffect, useMemo } from "react";
+import { useImageCache } from "./useImageCache";
 
 export const useImageLoader = (background, deviceSize) => {
   const [patternImage, setPatternImage] = useState(null);
@@ -8,7 +7,6 @@ export const useImageLoader = (background, deviceSize) => {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const { loadImage } = useImageCache();
 
-  // Load image when background changes
   useEffect(() => {
     if (background.style !== "image" || !background.bg) {
       setPatternImage(null);
@@ -18,17 +16,20 @@ export const useImageLoader = (background, deviceSize) => {
 
     let isMounted = true;
 
-    loadImage(background.bg, { crossOrigin: 'anonymous' })
+    loadImage(background.bg, { crossOrigin: "anonymous" })
       .then((img) => {
         if (isMounted) {
           setPatternImage(img);
-          setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight });
+          setNaturalSize({
+            width: img.naturalWidth,
+            height: img.naturalHeight,
+          });
           setIsImageLoaded(true);
         }
       })
       .catch((error) => {
         if (isMounted) {
-          console.error('Failed to load image:', background.bg, error);
+          console.error("Failed to load image:", background.bg, error);
           setIsImageLoaded(false);
         }
       });
@@ -38,7 +39,6 @@ export const useImageLoader = (background, deviceSize) => {
     };
   }, [background.style, background.bg, loadImage]);
 
-  // Calculate image scaling and positioning
   const imageSize = useMemo(() => {
     if (!naturalSize.width || !naturalSize.height || !deviceSize) {
       return {
@@ -50,15 +50,13 @@ export const useImageLoader = (background, deviceSize) => {
       };
     }
 
-    // Calculate scale to cover the entire device area
     const scaleX = deviceSize.x / naturalSize.width;
     const scaleY = deviceSize.y / naturalSize.height;
     const scale = Math.max(scaleX, scaleY);
 
     const scaledWidth = naturalSize.width * scale;
     const scaledHeight = naturalSize.height * scale;
-    
-    // Center the image
+
     const offsetX = (deviceSize.x - scaledWidth) / 2;
     const offsetY = (deviceSize.y - scaledHeight) / 2;
 

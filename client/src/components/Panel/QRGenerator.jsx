@@ -12,17 +12,8 @@ function QRGenerator(panelSize) {
   const { device, updateQRConfig, qrConfig, takeSnapshot } = useDevice();
   const qrCodeRef = useRef(null);
 
-  // const [qrSize, setQRSize] = useState(
-  //   Math.min(device.size.x, device.size.y) / 2
-  // );
-  // useEffect(() => {
-  //   setQRSize(Math.min(device.size.x, device.size.y) / 2);
-  // }, [device.size]);
-
-  // Frozen preset state to prevent flickering during color picking
   const [frozenPreset, setFrozenPreset] = useState(null);
 
-  // Frozen preset logic
   const handleColorPickerOpen = (currentColor) => {
     if (currentColor) {
       let normalizedColor = currentColor;
@@ -87,7 +78,6 @@ function QRGenerator(panelSize) {
     }
   }, [panelSize]);
 
-  // Use ref to always get current qrConfig.custom
   const currentQRCustomRef = useRef(qrConfig.custom);
   currentQRCustomRef.current = qrConfig.custom;
 
@@ -110,7 +100,6 @@ function QRGenerator(panelSize) {
     return hex + alpha;
   }
 
-  // Throttled update functions for border size and radius (60 FPS)
   const throttledUpdateBorderSize = useThrottledCallback((size) => {
     updateQRConfig({
       custom: {
@@ -155,13 +144,12 @@ function QRGenerator(panelSize) {
               e.target.blur();
             }
           }}
-          onBlur={(e) =>{
+          onBlur={(e) => {
             takeSnapshot("Change URL");
             updateQRConfig({
               url: url,
-            })
-          }
-          }
+            });
+          }}
         />
       </div>
       <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5 mb-2.5">
