@@ -1,4 +1,15 @@
 import { useState, useEffect } from "react";
+import { useDebouncedCallback } from "./useDebounce";
+import {
+  findNextSlot,
+  getDesignCount,
+  saveDesign,
+  loadDesign,
+  getAllDesigns,
+  deleteDesign,
+  updateDesign,
+  MAX_DESIGNS
+} from "../utils/indexedDB";
 
 const deepMerge = (target, source) => {
   const result = { ...target };
@@ -82,6 +93,11 @@ export const useDeviceState = () => {
   const [past, setPast] = useState([]);
   const [present, setPresent] = useState(null);
   const [future, setFuture] = useState([]);
+
+  // IndexedDB state management
+  const [currentSlotId, setCurrentSlotId] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [savedDesigns, setSavedDesigns] = useState([]);
 
   const rgbToHex = (rgbString) => {
     if (typeof rgbString !== "string" || !rgbString.startsWith("rgb")) {
@@ -303,6 +319,162 @@ export const useDeviceState = () => {
     setLibraryInfo((prev) => deepMerge(prev, updates));
   };
 
+  // IndexedDB functions
+  const getCurrentStateForSave = () => ({
+    deviceInfo: structuredClone(deviceInfo),
+    background: structuredClone(background),
+    qrConfig: structuredClone(qrConfig),
+    imagePalette: structuredClone(imagePalette),
+    uploadInfo: structuredClone(uploadInfo),
+    libraryInfo: structuredClone(libraryInfo),
+  });
+
+  // Debounc
+  // ed save function
+  const debouncedSave = useDebouncedCallback(async () => {
+    if (!currentSlotId) return;
+    
+    try {
+      const state = getCurrentStateForSave();
+      await updateDesign(currentSlotId, state);
+      console.log("💾 Auto-saved to slot:", currentSlotId);
+    } catch (error) {
+      console.error("Failed to auto-save:", error);
+    }
+  }, 2000);
+
+  // Save whenever state changes
+  useEffect(() => {
+    if (currentSlotId) {
+      debouncedSave();
+    }
+  }, [deviceInfo, background, qrConfig, uploadInfo, libraryInfo, currentSlotId]);
+
+  // Find and assign a slot for new designs
+  const assignSlot = async () => {
+    try {
+      const count = await getDesignCount();
+      if (count >= MAX_DESIGNS) {
+        throw new Error("Maximum designs reached. Please delete one to continue.");
+      }
+      
+      const slotId = await findNextSlot();
+      if (!slotId) {
+        throw new Error("No available slots found.");
+      }
+      
+      // Create initial design in the slot
+      const state = getCurrentStateForSave();
+      await saveDesign(slotId, {
+        ...state,
+        name: "Untitled Design"
+      });
+      
+      setCurrentSlotId(slotId);
+      console.log("🎯 Created new design in slot:", slotId);
+      return slotId;
+    } catch (error) {
+      console.error("Failed to assign slot:", error);
+      throw error;
+    }
+  };
+
+  // Save current design to a new slot
+  const saveCurrentDesign = async (name = "Untitled Design") => {
+    try {
+      setIsLoading(true);
+      const slotId = await assignSlot();
+      const state = getCurrentStateForSave();
+      
+      await saveDesign(slotId, {
+        ...state,
+        name
+      });
+      
+      console.log("💾 Saved design to slot:", slotId);
+      return slotId;
+    } catch (error) {
+      console.error("Failed to save design:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load design from a slot
+  const loadDesignFromSlot = async (slotId) => {
+    try {
+      setIsLoading(true);
+      const design = await loadDesign(slotId);
+      
+      // Restore all state
+      setDeviceInfo(design.deviceInfo);
+      setBackground(design.background);
+      setQRConfig(design.qrConfig);
+      setImagePalette(design.imagePalette);
+      setUploadInfo(design.uploadInfo);
+      setLibraryInfo(design.libraryInfo);
+      
+      // Set as current slot for auto-save
+      setCurrentSlotId(slotId);
+      
+      // Clear history since we're loading a new state
+      setPast([]);
+      setFuture([]);
+      setPresent(null);
+      
+      console.log("📂 Loaded design from slot:", slotId);
+    } catch (error) {
+      console.error("Failed to load design:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Get all saved designs
+  const loadSavedDesigns = async () => {
+    try {
+      const designs = await getAllDesigns();
+      setSavedDesigns(designs);
+      return designs;
+    } catch (error) {
+      console.error("Failed to load saved designs:", error);
+      return [];
+    }
+  };
+
+  // Delete a design
+  const deleteDesignFromSlot = async (slotId) => {
+    try {
+      await deleteDesign(slotId);
+      
+      // If we're deleting the current slot, clear it
+      if (currentSlotId === slotId) {
+        setCurrentSlotId(null);
+      }
+      
+      // Refresh saved designs list
+      await loadSavedDesigns();
+      
+      console.log("🗑️ Deleted design from slot:", slotId);
+    } catch (error) {
+      console.error("Failed to delete design:", error);
+      throw error;
+    }
+  };
+
+  // Check if we can save more designs
+  const canSaveMore = async () => {
+    try {
+      const count = await getDesignCount();
+      return count < MAX_DESIGNS;
+    } catch (error) {
+      console.error("Failed to check design count:", error);
+      return false;
+    }
+  };
+
   const device = {
     ...deviceInfo,
     ...background,
@@ -332,5 +504,15 @@ export const useDeviceState = () => {
     canUndo,
     canRedo,
     historyDebug,
+    // IndexedDB functions
+    currentSlotId,
+    isLoading,
+    savedDesigns,
+    assignSlot,
+    saveCurrentDesign,
+    loadDesignFromSlot,
+    loadSavedDesigns,
+    deleteDesignFromSlot,
+    canSaveMore,
   };
 };

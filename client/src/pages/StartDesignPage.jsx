@@ -1,22 +1,53 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDevice } from "../contexts/DeviceContext";
+import { Trash2 } from "lucide-react";
 
 function StartDesignPage() {
-  const { device } = useDevice();
-  const [wallpapers, setWallpapers] = useState([]);
+  const navigate = useNavigate();
+  const { 
+    savedDesigns, 
+    loadSavedDesigns, 
+    loadDesignFromSlot, 
+    deleteDesignFromSlot,
+    canSaveMore,
+    isLoading 
+  } = useDevice();
+  const [showDeleteMessage, setShowDeleteMessage] = useState(false);
 
   useEffect(() => {
-    // Load saved wallpapers from localStorage
-    const savedWallpapers = localStorage.getItem("qrki-wallpapers");
-    if (savedWallpapers) {
-      try {
-        setWallpapers(JSON.parse(savedWallpapers));
-      } catch (error) {
-        console.error("Error loading wallpapers:", error);
-      }
+    // Load saved designs from IndexedDB
+    loadSavedDesigns();
+  }, [loadSavedDesigns]);
+
+  const handleLoadDesign = async (slotId) => {
+    try {
+      await loadDesignFromSlot(slotId);
+      navigate("/studio");
+    } catch (error) {
+      console.error("Failed to load design:", error);
+      // You could add a toast notification here
     }
-  }, []);
+  };
+
+  const handleDeleteDesign = async (slotId, event) => {
+    event.stopPropagation(); // Prevent triggering the load function
+    try {
+      await deleteDesignFromSlot(slotId);
+      setShowDeleteMessage(false);
+    } catch (error) {
+      console.error("Failed to delete design:", error);
+    }
+  };
+
+  const handleStartNewDesign = async () => {
+    const canSave = await canSaveMore();
+    if (!canSave) {
+      setShowDeleteMessage(true);
+      return;
+    }
+    navigate("/studio");
+  };
 
   const sampleWallpapers = [
     {
@@ -76,44 +107,87 @@ function StartDesignPage() {
           </div>
         </div>
 
-        {/* Last Design Section */}
-        {wallpapers.length > 0 && (
+        {/* Recent Designs Section */}
+        {isLoading ? (
           <div className="mb-12">
             <h2 className="text-2xl font-semibold text-[var(--text-primary)] mb-6">
-              Your Last Design
+              Recent Designs
+            </h2>
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent)] mx-auto"></div>
+              <p className="text-[var(--text-secondary)] mt-2">Loading designs...</p>
+            </div>
+          </div>
+        ) : savedDesigns.length > 0 ? (
+          <div className="mb-12">
+            <h2 className="text-2xl font-semibold text-[var(--text-primary)] mb-6">
+              Recent Designs
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {wallpapers.slice(0, 3).map((wallpaper, index) => (
+              {savedDesigns.map((design) => (
                 <div
-                  key={index}
-                  className="bg-[var(--bg-secondary)] rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer"
-                  onClick={() => {
-                    // Navigate to studio with last design data
-                    window.location.href = "/studio";
-                  }}
+                  key={design.id}
+                  className="bg-[var(--bg-secondary)] rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer relative group"
+                  onClick={() => handleLoadDesign(design.id)}
                 >
-                  <img
-                    src={wallpaper.image}
-                    alt={`Wallpaper ${index + 1}`}
-                    className="w-full h-48 object-cover rounded-md mb-3"
-                  />
-                  <p className="text-sm text-[var(--text-secondary)]">
-                    Wallpaper {index + 1}
-                  </p>
+                  {/* Delete button */}
+                  <button
+                    onClick={(e) => handleDeleteDesign(design.id, e)}
+                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                    title="Delete design"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  
+                  {/* Design preview - we'll generate a simple preview based on background */}
+                  <div 
+                    className="w-full h-48 rounded-md mb-3 flex items-center justify-center"
+                    style={{
+                      backgroundColor: design.background?.style === 'solid' 
+                        ? design.background?.color 
+                        : design.background?.style === 'gradient'
+                        ? 'linear-gradient(45deg, #ff6b6b, #4ecdc4)'
+                        : '#f0f0f0'
+                    }}
+                  >
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-black rounded-lg mx-auto mb-2 flex items-center justify-center">
+                        <span className="text-white text-xs">QR</span>
+                      </div>
+                      <p className="text-xs text-gray-600">{design.qrConfig?.url || 'QR Code'}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <p className="text-sm text-[var(--text-secondary)] font-medium">
+                      {design.name || 'Untitled Design'}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {new Date(design.lastModified).toLocaleDateString()}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
+          </div>
+        ) : null}
+        {showDeleteMessage && (
+          <div className="mb-8 p-4 bg-yellow-100 border border-yellow-400 rounded-lg">
+            <p className="text-yellow-800">
+              You have reached the maximum of 5 saved designs. Please delete one to continue.
+            </p>
           </div>
         )}
 
         {/* Start from Scratch Button */}
         <div className="text-center">
-          <Link
-            to="/studio"
-            className="inline-block bg-[var(--accent)] text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
+          <button
+            onClick={handleStartNewDesign}
+            disabled={isLoading}
+            className="inline-block bg-[var(--accent)] text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Start from Scratch
-          </Link>
+            {isLoading ? "Loading..." : "Start from Scratch"}
+          </button>
         </div>
       </div>
     </div>
