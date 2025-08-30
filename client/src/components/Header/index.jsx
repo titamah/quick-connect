@@ -20,9 +20,9 @@ function Header() {
         
         <div className="flex items-center px-2 space-x-6">
           <Link
-            to="/studio"
+            to="/start-design"
             className={`font-medium focus:outline-none transition-colors ${
-              location.pathname === '/studio' 
+              location.pathname === '/start-design' 
                 ? 'text-[var(--accent)]' 
                 : 'text-[var(--text-secondary)] hover:opacity-50'
             }`}
@@ -30,14 +30,14 @@ function Header() {
             Studio
           </Link>
           <Link
-            to="/gallery"
+            to="/about"
             className={`font-medium focus:outline-none transition-colors ${
-              location.pathname === '/gallery' 
+              location.pathname === '/about' 
                 ? 'text-[var(--accent)]' 
                 : 'text-[var(--text-secondary)] hover:opacity-50'
             }`}
           >
-            Gallery
+            About
           </Link>
         </div>
       </nav>

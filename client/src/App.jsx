@@ -1,16 +1,20 @@
 import "./App.css";
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import { ToastContainer } from "react-toastify";
 import ConfigProvider from "antd/es/config-provider/index.js";
 import theme from "antd/es/theme/index.js";
 import { DeviceProvider } from "./contexts/DeviceContext";
 import { PreviewProvider } from "./contexts/PreviewContext";
 import Header from "./components/Header/index";
-import LandingPage from "./pages/LandingPage";
-import StudioPage from "./pages/StudioPage";
-import GalleryPage from "./pages/GalleryPage";
 import React from "react";
+
+// Lazy load pages
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const StartDesignPage = lazy(() => import("./pages/StartDesignPage"));
+const StudioPage = lazy(() => import("./pages/StudioPage"));
+const AboutPage = lazy(() => import("./pages/AboutPage"));
 
 function App() {
   
@@ -39,6 +43,16 @@ function App() {
     algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
   }), [isDarkMode]);
 
+  // Loading component for lazy-loaded pages
+  const LoadingSpinner = () => (
+    <div className="min-h-screen bg-[var(--bg-main)] dark:bg-neutral-900 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[var(--accent)] mx-auto mb-4"></div>
+        <p className="text-[var(--text-secondary)]">Loading...</p>
+      </div>
+    </div>
+  );
+
   return (
     <ConfigProvider theme={antdConfig}>
       <DeviceProvider>
@@ -46,11 +60,14 @@ function App() {
           <Router>
             <ToastContainer />
             <Header />
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/studio" element={<StudioPage />} />
-              <Route path="/gallery" element={<GalleryPage />} />
-            </Routes>
+            <Suspense fallback={<LoadingSpinner />}>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/start-design" element={<StartDesignPage />} />
+                <Route path="/studio" element={<StudioPage />} />
+                <Route path="/about" element={<AboutPage />} />
+              </Routes>
+            </Suspense>
           </Router>
         </PreviewProvider>
       </DeviceProvider>

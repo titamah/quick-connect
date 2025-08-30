@@ -19,16 +19,10 @@ const LandingPage = () => {
         
         <div className="flex space-x-4">
           <Link 
-            to="/studio" 
+            to="/start-design" 
             className="bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
           >
-            Start Creating
-          </Link>
-          <Link 
-            to="/gallery" 
-            className="bg-[var(--contrast-sheer)] hover:bg-[var(--hover-bg)] text-[var(--text-primary)] px-8 py-3 rounded-lg font-semibold transition-colors"
-          >
-            Browse Gallery
+            Start a Design
           </Link>
         </div>
       </div>
