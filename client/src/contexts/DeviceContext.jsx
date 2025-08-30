@@ -1,4 +1,3 @@
-// contexts/DeviceContext.js
 import { createContext, useContext } from 'react';
 import { useDeviceState } from '../hooks/useDeviceState';
 
