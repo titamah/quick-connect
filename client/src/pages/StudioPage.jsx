@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDevice } from "../contexts/DeviceContext";
 import Panel from "../components/Panel/index";
 import Canvas from "../components/Canvas/index.jsx";
 
 const StudioPage = () => {
+  const navigate = useNavigate();
   const { assignSlot, currentSlotId } = useDevice();
   const [isOpen, setIsOpen] = React.useState(true);
   const [panelSize, setPanelSize] = React.useState({
@@ -17,7 +19,11 @@ const StudioPage = () => {
     if (!currentSlotId) {
       assignSlot().catch(error => {
         console.error("Failed to assign slot:", error);
-        // You could show a toast notification here
+        // If we can't assign a slot (storage full), redirect back to start page
+        if (error.message.includes("Maximum designs reached")) {
+          alert("Storage is full. Please delete a design to continue.");
+          navigate("/start-design");
+        }
       });
     }
   }, [currentSlotId, assignSlot]);

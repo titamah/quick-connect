@@ -475,6 +475,27 @@ export const useDeviceState = () => {
     }
   };
 
+  // Load template data (for starting with templates)
+  const loadTemplateData = (templateData) => {
+    // Clear current slot since we're loading template data
+    setCurrentSlotId(null);
+    
+    // Load template data into state
+    setDeviceInfo(templateData.deviceInfo);
+    setBackground(templateData.background);
+    setQRConfig(templateData.qrConfig);
+    setImagePalette(templateData.imagePalette);
+    setUploadInfo(templateData.uploadInfo);
+    setLibraryInfo(templateData.libraryInfo);
+    
+    // Clear history since we're loading new data
+    setPast([]);
+    setFuture([]);
+    setPresent(null);
+    
+    console.log("📋 Loaded template data:", templateData.name);
+  };
+
   const device = {
     ...deviceInfo,
     ...background,
@@ -514,5 +535,6 @@ export const useDeviceState = () => {
     loadSavedDesigns,
     deleteDesignFromSlot,
     canSaveMore,
+    loadTemplateData,
   };
 };

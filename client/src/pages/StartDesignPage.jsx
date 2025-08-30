@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDevice } from "../contexts/DeviceContext";
 import { Trash2 } from "lucide-react";
+import { getAllTemplates } from "../utils/templates";
+import DeleteConfirmModal from "../components/DeleteConfirmModal";
 
 function StartDesignPage() {
   const navigate = useNavigate();
@@ -11,9 +13,11 @@ function StartDesignPage() {
     loadDesignFromSlot, 
     deleteDesignFromSlot,
     canSaveMore,
-    isLoading 
+    isLoading,
+    loadTemplateData
   } = useDevice();
-  const [showDeleteMessage, setShowDeleteMessage] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
 
   useEffect(() => {
     // Load saved designs from IndexedDB
@@ -34,7 +38,15 @@ function StartDesignPage() {
     event.stopPropagation(); // Prevent triggering the load function
     try {
       await deleteDesignFromSlot(slotId);
-      setShowDeleteMessage(false);
+      // If we're in the modal, close it after deletion
+      if (showDeleteModal) {
+        setShowDeleteModal(false);
+        // Execute the pending action if there was one
+        if (pendingAction) {
+          pendingAction();
+          setPendingAction(null);
+        }
+      }
     } catch (error) {
       console.error("Failed to delete design:", error);
     }
@@ -43,29 +55,32 @@ function StartDesignPage() {
   const handleStartNewDesign = async () => {
     const canSave = await canSaveMore();
     if (!canSave) {
-      setShowDeleteMessage(true);
+      setPendingAction(() => () => navigate("/studio"));
+      setShowDeleteModal(true);
       return;
     }
     navigate("/studio");
   };
 
-  const sampleWallpapers = [
-    {
-      id: 1,
-      name: "Sample Wallpaper 1",
-      image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjRkY2QjIzIi8+Cjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPlFSS0k8L3RleHQ+Cjwvc3ZnPgo=",
-    },
-    {
-      id: 2,
-      name: "Sample Wallpaper 2",
-      image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjM0I4MkY2Ii8+Cjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPlFSS0k8L3RleHQ+Cjwvc3ZnPgo=",
-    },
-    {
-      id: 3,
-      name: "Sample Wallpaper 3",
-      image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSIjMTA5ODY2Ii8+Cjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPlFSS0k8L3RleHQ+Cjwvc3ZnPgo=",
-    },
-  ];
+  const handleLoadTemplate = (template) => {
+    const checkAndLoadTemplate = async () => {
+      const canSave = await canSaveMore();
+      if (!canSave) {
+        setPendingAction(() => () => {
+          loadTemplateData(template);
+          navigate("/studio");
+        });
+        setShowDeleteModal(true);
+        return;
+      }
+      loadTemplateData(template);
+      navigate("/studio");
+    };
+    
+    checkAndLoadTemplate();
+  };
+
+    const templates = getAllTemplates();
 
   return (
     <div className="min-h-screen bg-[var(--bg-main)] dark:bg-neutral-900">
@@ -85,23 +100,53 @@ function StartDesignPage() {
             Templates
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sampleWallpapers.map((wallpaper) => (
+            {templates.map((template) => (
               <div
-                key={wallpaper.id}
+                key={template.id}
                 className="bg-[var(--bg-secondary)] rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => {
-                  // Navigate to studio with template data
-                  window.location.href = "/studio";
-                }}
+                onClick={() => handleLoadTemplate(template)}
               >
-                <img
-                  src={wallpaper.image}
-                  alt={wallpaper.name}
-                  className="w-full h-48 object-cover rounded-md mb-3"
-                />
-                <p className="text-sm text-[var(--text-secondary)]">
-                  {wallpaper.name}
-                </p>
+                {/* Template preview based on background */}
+                <div 
+                  className="w-full h-48 rounded-md mb-3 flex items-center justify-center relative overflow-hidden"
+                  style={{
+                    backgroundColor: template.background?.style === 'solid' 
+                      ? template.background?.color 
+                      : template.background?.style === 'gradient'
+                      ? 'linear-gradient(45deg, #ff6b6b, #4ecdc4)'
+                      : '#f0f0f0'
+                  }}
+                >
+                  {/* QR Code preview */}
+                  <div className="text-center">
+                    <div 
+                      className="w-16 h-16 mx-auto mb-2 flex items-center justify-center rounded-lg"
+                      style={{
+                        backgroundColor: template.qrConfig?.custom?.primaryColor || '#000000',
+                        color: template.qrConfig?.custom?.secondaryColor || '#FFFFFF'
+                      }}
+                    >
+                      <span className="text-xs font-bold">QR</span>
+                    </div>
+                    <p className="text-xs text-gray-600 bg-white/80 px-2 py-1 rounded">
+                      {template.qrConfig?.url || 'QR Code'}
+                    </p>
+                  </div>
+                  
+                  {/* Template badge */}
+                  <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                    Template
+                  </div>
+                </div>
+                
+                <div>
+                  <p className="text-sm text-[var(--text-secondary)] font-medium mb-1">
+                    {template.name}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {template.description}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
@@ -171,13 +216,14 @@ function StartDesignPage() {
             </div>
           </div>
         ) : null}
-        {showDeleteMessage && (
-          <div className="mb-8 p-4 bg-yellow-100 border border-yellow-400 rounded-lg">
-            <p className="text-yellow-800">
-              You have reached the maximum of 5 saved designs. Please delete one to continue.
-            </p>
-          </div>
-        )}
+        {/* Delete Confirmation Modal */}
+        <DeleteConfirmModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={() => setShowDeleteModal(false)}
+          savedDesigns={savedDesigns}
+          onDeleteDesign={handleDeleteDesign}
+        />
 
         {/* Start from Scratch Button */}
         <div className="text-center">
@@ -195,3 +241,4 @@ function StartDesignPage() {
 }
 
 export default StartDesignPage;
+
