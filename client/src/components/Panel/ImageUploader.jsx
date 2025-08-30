@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
-import { Modal } from "antd";
+import Modal from "antd/es/modal/index.js";
 import { ReactCrop, makeAspectCrop, centerCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { Grip, Trash2, Upload, Pencil } from "lucide-react";

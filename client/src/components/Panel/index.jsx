@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import "preline/preline";
-import { Tabs } from "antd";
+
+import Tabs from "antd/es/tabs/index.js";
 import { QrCode, Proportions, Image, Download } from "lucide-react";
 import { Resizable } from "react-resizable";
 import QRGenerator from "./QRGenerator";
@@ -35,9 +35,6 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
   }, [activeTab]);
 
   useEffect(() => {
-    import("preline/preline").then((module) => {
-      module.HSStaticMethods.autoInit();
-    });
     const canvas = document.getElementById("Canvas");
     setMaxHeight(canvas.clientHeight);
     console.log(maxHeight);

@@ -1,4 +1,4 @@
-import { ColorPicker } from "antd";
+import ColorPicker from "antd/es/color-picker/ColorPicker.js";
 import { useState, useRef, useEffect } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import chroma from "chroma-js";

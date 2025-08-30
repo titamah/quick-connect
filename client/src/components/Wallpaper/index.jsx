@@ -7,7 +7,7 @@ import {
   Group,
   Text,
 } from "react-konva";
-import { QRCode } from "antd";
+import QRCode from "antd/es/qrcode/index.js";
 import React, {
   forwardRef,
   useEffect,

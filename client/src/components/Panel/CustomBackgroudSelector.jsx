@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import ImageUploader from "./ImageUploader";
 import ColorSelector from "./ColorSelector";

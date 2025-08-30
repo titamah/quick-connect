@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
-import "preline/preline";
-import { zoom, select, zoomIdentity } from "d3";
+import { zoom, zoomIdentity } from "d3-zoom";
+import { select } from "d3-selection";
 import Wallpaper from "../Wallpaper/index";
 import PreviewButton from "./PreviewButton";
 import UndoRedoButton from "./UndoRedoButton";
@@ -106,9 +106,6 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   );
 
   useEffect(() => {
-    import("preline/preline").then(({ HSStaticMethods }) => {
-      HSStaticMethods.autoInit();
-    });
     updatePanelSize();
     setIsLoading(false);
   }, [updatePanelSize]);

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import "preline/preline";
+
 import { useDevice } from "../../contexts/DeviceContext";
 import CustomColorInput from "./CustomColorInput";
 import PositionInput from "./PositionInput";
