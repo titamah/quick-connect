@@ -45,6 +45,7 @@ const OptimizedWallpaper = forwardRef(
       qrConfig,
       updateQRConfig,
       updateQRPositionPercentages,
+      takeSnapshot,
     } = useDevice();
     const { isPreviewVisible, isHovered } = usePreview();
 
@@ -279,6 +280,7 @@ const OptimizedWallpaper = forwardRef(
 
     const handleDragMove = useCallback(
       (e) => {
+        
         const group = e.target;
         const layer = group.getLayer();
         const stage = layer.getStage();
@@ -507,6 +509,7 @@ const OptimizedWallpaper = forwardRef(
 
       // Handle drag start to hide transformer and show snap lines
       const handleDragStart = (e) => {
+        takeSnapshot("Drag start");
         setTimeout(() => {
           setIsDragging(true);
           transformer.nodes([]);
