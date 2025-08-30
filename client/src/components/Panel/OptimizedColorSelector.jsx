@@ -8,27 +8,29 @@ import { useDevice } from "../../contexts/DeviceContext";
 
 
 const OptimizedColorSelector = ({ panelSize }) => {
-  const { device, background, updateBackground, palette } = useDevice();
+  const { device, background, updateBackground, palette, takeSnapshot } = useDevice();
   const pickerRef = useRef(null);
+  const inputRef = useRef(null);
   
-  // Local state for immediate UI updates
-  const [localColor, setLocalColor] = useState(background.color);
   const [inputText, setInputText] = useState(background.color);
   
+  // Drag tracking for snapshots
+  const [needsSnapshot, setNeedsSnapshot] = useState(false);
+  const timeoutRef = useRef(null);
+  
   // Update the global state immediately for real-time feedback
-  useEffect(() => {
-    if (localColor !== background.color) {
-      updateBackground({ color: localColor });
-    }
-  }, [localColor, background.color, updateBackground]);
+  // useEffect(() => {
+  //   if (chroma(inputText) !== chroma(background.color)) {
+  //     updateBackground({ color: localColor });
+  //   }
+  // }, [localColor, background.color, updateBackground]);
 
   // Sync local state when background color changes externally
   useEffect(() => {
-    setLocalColor(background.color);
-    setInputText(background.color);
+    setInputText(background.color.toUpperCase());
   }, [background.color]);
 
-  // Optimize color picker styling
+  // Optimize color picker styling and add drag tracking
   useEffect(() => {
     const pickerElement = pickerRef.current;
     if (!pickerElement) return;
@@ -46,6 +48,34 @@ const OptimizedColorSelector = ({ panelSize }) => {
       ];
       colorPicker.classList.add(...classesToAdd);
     }
+
+    // Add mouse event listeners for drag tracking
+    const handleMouseDown = () => {
+      setNeedsSnapshot(true);
+    };
+
+    const handleMouseUp = () => {
+      setNeedsSnapshot(false);
+      clearTimeout(timeoutRef.current);
+    };
+
+    const handleMouseLeave = () => {
+      setNeedsSnapshot(false);
+      clearTimeout(timeoutRef.current);
+    };
+
+    // Add listeners to the picker element
+    pickerElement.addEventListener('mousedown', handleMouseDown);
+    pickerElement.addEventListener('mouseup', handleMouseUp);
+    pickerElement.addEventListener('mouseleave', handleMouseLeave);
+
+    // Cleanup
+    return () => {
+      pickerElement.removeEventListener('mousedown', handleMouseDown);
+      pickerElement.removeEventListener('mouseup', handleMouseUp);
+      pickerElement.removeEventListener('mouseleave', handleMouseLeave);
+      clearTimeout(timeoutRef.current);
+    };
   }, []);
 
   // Generate active colors palette
@@ -63,7 +93,12 @@ const OptimizedColorSelector = ({ panelSize }) => {
       <button
         key={`${color}-${index}`}
         className="flex items-center border bg-black/5 dark:bg-black/15 px-1 text-[var(--text-secondary)] min-w-0 w-full h-[24px] rounded border-[var(--border-color)]/60 hover:opacity-75 transition-opacity cursor-pointer"
-        onClick={() => handleColorChange(color)}
+        onClick={() => {
+          takeSnapshot("Select color");    
+          setInputText(color.toUpperCase());
+          updateBackground({ color: color });
+          
+        }}
         aria-label={`Select color ${color}`}
       >
         <div
@@ -79,16 +114,28 @@ const OptimizedColorSelector = ({ panelSize }) => {
   const handleColorChange = useCallback((newColor) => {
     if (!chroma.valid(newColor)) return;
     
-    setLocalColor(newColor.toUpperCase());
+    // Take snapshot if needed (first change in drag)
+    if (needsSnapshot) {
+      takeSnapshot("Change solid color");
+      setNeedsSnapshot(false);
+    }
+    
     setInputText(newColor.toUpperCase());
-  }, []);
+    updateBackground({ color: newColor });
+    // Set up timeout to mark next change as needing snapshot
+    // (indicates start of new interaction after pause)
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      setNeedsSnapshot(true);
+    }, 500); // 500ms pause = new interaction
+  }, [needsSnapshot, takeSnapshot]);
 
   // Input change handler - just update the input text
   const handleInputChange = useCallback((e) => {
     let newValue = e.target.value.toUpperCase();
     
     // Add # prefix if missing
-    if (newValue && !newValue.startsWith('#')) {
+    if (newValue && !newValue?.startsWith('#')) {
       newValue = '#' + newValue;
     }
     
@@ -96,35 +143,35 @@ const OptimizedColorSelector = ({ panelSize }) => {
     newValue = newValue.replace(/[^#0-9A-F]/gi, '');
     
     // Limit to 7 characters (including #)
-    if (newValue.length > 7) {
-      newValue = newValue.slice(0, 7);
-    }
+    // if (newValue.length > 7) {
+    //   newValue = newValue.slice(0, 7);
+    // }
     
     setInputText(newValue);
   }, []);
 
   // Handle blur - validate and update color if valid
   const handleInputBlur = useCallback(() => {
-    if (chroma.valid(inputText)) {
-      setLocalColor(inputText.toUpperCase());
-    } else {
-      // Reset to original value if invalid
-      setInputText(background.color.toUpperCase());
-    }
+      takeSnapshot("Change color");
+
+    const input = inputText.slice(0, 7);
+    const newColor = (chroma.valid(input) && inputText.length == 7) ? inputText.toUpperCase() : "#FFFFFF";
+    
+    setInputText(newColor);
+    updateBackground({ color: newColor });
+    
   }, [inputText, background.color]);
 
   // Handle Enter key - validate and update color if valid
   const handleInputKeyDown = useCallback((e) => {
-    if (e.key === 'Enter' && chroma.valid(inputText)) {
-      setLocalColor(inputText.toUpperCase());
-    } else if (e.key === 'Enter') {
-      // Reset to original value if invalid
-      setInputText(background.color.toUpperCase());
+    if (e.key === 'Enter') {
+      inputRef.current.blur();
     }
   }, [inputText, background.color]);
 
   // Toggle grain effect
   const toggleGrain = useCallback(() => {
+    takeSnapshot("Toggle grain");
     updateBackground({ grain: !background.grain });
   }, [background.grain, updateBackground]);
 
@@ -137,6 +184,7 @@ const OptimizedColorSelector = ({ panelSize }) => {
       {/* Color input and grain toggle */}
       <div className="flex flex-row items-center justify-between w-full mb-2">
         <input
+          ref={inputRef}
           value={inputText}
           onChange={handleInputChange}
           onBlur={handleInputBlur}
@@ -156,7 +204,7 @@ const OptimizedColorSelector = ({ panelSize }) => {
 
       {/* Color picker */}
       <HexColorPicker
-        color={localColor}
+        color={background.color}
         onChange={handleColorChange}
         className="space-y-1 !w-full"
       />
