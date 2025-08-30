@@ -6,9 +6,7 @@ import PositionInput from "./PositionInput";
 import AngleInput from "./AngleInput";
 import Slider from "../Slider";
 import chroma from "chroma-js";
-import {
-  useThrottledCallback,
-} from "../../hooks/useDebounce";
+import { useThrottledCallback } from "../../hooks/useDebounce";
 
 function QRGenerator(panelSize) {
   const { device, updateQRConfig, qrConfig, takeSnapshot } = useDevice();
@@ -89,7 +87,6 @@ function QRGenerator(panelSize) {
     }
   }, [panelSize]);
 
-
   // Use ref to always get current qrConfig.custom
   const currentQRCustomRef = useRef(qrConfig.custom);
   currentQRCustomRef.current = qrConfig.custom;
@@ -132,6 +129,12 @@ function QRGenerator(panelSize) {
     });
   }, 16);
 
+  const [url, setUrl] = useState(qrConfig.url);
+
+  useEffect(() => {
+    setUrl(qrConfig.url);
+  }, [qrConfig.url]);
+
   return (
     <div id="qr-input-box">
       <h2 className=" p-3.5">Customize QR Code</h2>
@@ -143,11 +146,21 @@ function QRGenerator(panelSize) {
           id="qr-input"
           type="text"
           className="w-full px-2 py-1 text-xs bg-black/5 dark:bg-black/15 border border-[var(--border-color)]/50 focus:outline-none focus:border-[var(--accent)]/50 rounded-xl"
-          value={qrConfig.url}
-          onChange={(e) =>
+          value={url}
+          onChange={(e) => {
+            setUrl(e.target.value);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.target.blur();
+            }
+          }}
+          onBlur={(e) =>{
+            takeSnapshot("Change URL");
             updateQRConfig({
-              url: e.target.value,
+              url: url,
             })
+          }
           }
         />
       </div>
@@ -185,7 +198,9 @@ function QRGenerator(panelSize) {
           value={qrConfig.custom.primaryColor}
           hasOpacity
           preset={getPaletteForColor(qrConfig.custom.primaryColor)}
-          onColorPickerOpen={() => handleColorPickerOpen(qrConfig.custom.primaryColor)}
+          onColorPickerOpen={() =>
+            handleColorPickerOpen(qrConfig.custom.primaryColor)
+          }
           onColorPickerClose={handleColorPickerClose}
           onChange={(c) => {
             let color = chroma(c.toHexString());
@@ -198,31 +213,35 @@ function QRGenerator(panelSize) {
               },
             });
           }}
-          submitColor={(hex, alpha, snap = true) =>{
+          submitColor={(hex, alpha, snap = true) => {
             snap && takeSnapshot();
             updateQRConfig({
               custom: {
                 ...currentQRCustomRef.current,
                 primaryColor: combineHexWithOpacity(hex, alpha),
               },
-            });}}
+            });
+          }}
         />
       </div>
       <div className="flex items-center pb-5 px-3.5">
         <h4> Secondary </h4>
         <CustomColorInput
-          submitColor={(hex, alpha, snap = true) =>{
+          submitColor={(hex, alpha, snap = true) => {
             snap && takeSnapshot();
             updateQRConfig({
               custom: {
                 ...currentQRCustomRef.current,
                 secondaryColor: combineHexWithOpacity(hex, alpha),
               },
-            });}}
+            });
+          }}
           value={qrConfig.custom.secondaryColor}
           hasOpacity
           preset={getPaletteForColor(qrConfig.custom.secondaryColor)}
-          onColorPickerOpen={() => handleColorPickerOpen(qrConfig.custom.secondaryColor)}
+          onColorPickerOpen={() =>
+            handleColorPickerOpen(qrConfig.custom.secondaryColor)
+          }
           onColorPickerClose={handleColorPickerClose}
           onChange={(c) => {
             let color = chroma(c.toHexString());
@@ -243,18 +262,21 @@ function QRGenerator(panelSize) {
       <div className="flex items-center pb-2.5 px-3.5">
         <h4> Color</h4>
         <CustomColorInput
-          submitColor={(hex, alpha, snap = true) =>{
+          submitColor={(hex, alpha, snap = true) => {
             snap && takeSnapshot();
             updateQRConfig({
               custom: {
                 ...currentQRCustomRef.current,
                 borderColor: combineHexWithOpacity(hex, alpha),
               },
-            });}}
+            });
+          }}
           value={qrConfig.custom.borderColor}
           hasOpacity
           preset={getPaletteForColor(qrConfig.custom.borderColor)}
-          onColorPickerOpen={() => handleColorPickerOpen(qrConfig.custom.borderColor)}
+          onColorPickerOpen={() =>
+            handleColorPickerOpen(qrConfig.custom.borderColor)
+          }
           onColorPickerClose={handleColorPickerClose}
           onChange={(c) => {
             let color = chroma(c.toHexString());
