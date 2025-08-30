@@ -210,12 +210,22 @@ function GradientSelector() {
             onClick={() => {
               takeSnapshot("Reverse gradient");
 
-              const newStops = [];
+              // Convert 1D array to pairs for easier manipulation
+              const pairs = [];
               for (let i = 0; i < device.gradient.stops.length; i += 2) {
                 const percent = device.gradient.stops[i];
                 const color = device.gradient.stops[i + 1];
-                newStops.push(1 - percent, color);
+                pairs.push([percent, color]);
               }
+
+              // Reverse the order of pairs and flip the percentages
+              const reversedPairs = pairs.reverse().map(([percent, color]) => [1 - percent, color]);
+
+              // Convert back to 1D array
+              const newStops = [];
+              reversedPairs.forEach(([percent, color]) => {
+                newStops.push(percent, color);
+              });
 
               updateBackground({
                 gradient: {

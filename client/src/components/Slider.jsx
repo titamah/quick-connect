@@ -143,9 +143,16 @@ const Slider = ({
               onChange={onChange}
               onBlur={onBlur}
               onTouchStart={() => {
-                console.log("📱 Touch start detected on slider");
+                console.log("📱 Touch start detected on stacked slider", { stacked, openPicker });
                 takeSnapshot();
                 setDrag(false);
+                // For stacked sliders, we need to manually trigger the color picker
+                if (stacked) {
+                  console.log("🎨 Attempting to open color picker for stacked slider");
+                  setOpenPicker(true);
+                  setNeedsSnapshot(true);
+                  onColorPickerOpen?.();
+                }
               }}
               className={`appearance-none w-full absolute -translate-y-[2px] ${
                 stacked
