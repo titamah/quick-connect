@@ -1,11 +1,11 @@
-import { useState, forwardRef } from "react";
+import { useState, forwardRef, useEffect } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import { usePreview } from "../../contexts/PreviewContext";
 import { toast } from "react-toastify";
 import Slider from "../Slider.jsx";
 
 const Exporter = forwardRef(({}, ref) => {
-  const { device, updateDeviceInfo } = useDevice();
+  const { device, updateDeviceInfo, takeSnapshot } = useDevice();
   const { isPreviewVisible, setIsPreviewVisible } = usePreview();
   const [downloadSettings, setDownloadSettings] = useState({
     isPng: true,
@@ -95,6 +95,10 @@ const Exporter = forwardRef(({}, ref) => {
 
   const [name, setName] = useState(device.name);
 
+  useEffect(() => {
+    setName(device.name);
+  }, [device.name]);
+
   return (
     <div className="flex flex-col gap-y-3.5 p-3.5">
       <h2> Save Wallpaper</h2>
@@ -111,15 +115,13 @@ const Exporter = forwardRef(({}, ref) => {
             setName(e.target.value);
           }}
           onBlur={(e) => {
+            takeSnapshot("Change file name");
             updateDeviceInfo({
               name: e.target.value,
             });
           }}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
-              updateDeviceInfo({
-                name: e.target.value,
-              });
               e.target.blur();
             }
           }}
