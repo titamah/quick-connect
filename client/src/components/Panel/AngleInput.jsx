@@ -73,6 +73,12 @@ const AngleInput = ({ type = "qr", angle: currentAngle, onUpdate }) => {
             handleMouseUp();
           }}
           onMouseLeave={handleMouseUp}
+          onTouchStart={() => {
+            handleMouseDown(-1, -180);
+          }}
+          onTouchEnd={() => {
+            handleMouseUp();
+          }}
         />
         <Slider
           id={`${type}-angle-slide`}
@@ -93,6 +99,12 @@ const AngleInput = ({ type = "qr", angle: currentAngle, onUpdate }) => {
             handleMouseUp();
           }}
           onMouseLeave={handleMouseUp}
+          onTouchStart={() => {
+            handleMouseDown(1, 180);
+          }}
+          onTouchEnd={() => {
+            handleMouseUp();
+          }}
         />
       </div>
     </div>

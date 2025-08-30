@@ -56,7 +56,7 @@ function GradientSelector() {
 
   const handleClick = (e) => {
     const rect = gradientBar.current.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
+    const clickX = (e.clientX || e.touches?.[0]?.clientX || 0) - rect.left;
     const percent = clickX / rect.width;
     let currentStops = [...device.gradient.stops];
 
@@ -237,6 +237,7 @@ function GradientSelector() {
             ref={gradientBar}
             className="w-full h-3 rounded-full cursor-pointer relative react-colorful__hue"
             onClick={handleClick}
+            onTouchStart={handleClick}
             style={{
               background: `linear-gradient(90deg, ${(() => {
                 const stopsCSS = [];

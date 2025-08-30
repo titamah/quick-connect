@@ -56,11 +56,17 @@ const ColorSelector = ({ panelSize }) => {
     pickerElement.addEventListener("mousedown", handleMouseDown);
     pickerElement.addEventListener("mouseup", handleMouseUp);
     pickerElement.addEventListener("mouseleave", handleMouseLeave);
+    
+    // Add touch event listeners for mobile support
+    pickerElement.addEventListener("touchstart", handleTouchStart, { passive: true });
+    pickerElement.addEventListener("touchend", handleTouchEnd, { passive: true });
 
     return () => {
       pickerElement.removeEventListener("mousedown", handleMouseDown);
       pickerElement.removeEventListener("mouseup", handleMouseUp);
       pickerElement.removeEventListener("mouseleave", handleMouseLeave);
+      pickerElement.removeEventListener("touchstart", handleTouchStart);
+      pickerElement.removeEventListener("touchend", handleTouchEnd);
       clearTimeout(timeoutRef.current);
     };
   }, []);
@@ -151,6 +157,18 @@ const ColorSelector = ({ panelSize }) => {
     takeSnapshot("Toggle grain");
     updateBackground({ grain: !background.grain });
   }, [background.grain, updateBackground]);
+
+  // Touch event handlers for mobile support
+  const handleTouchStart = () => {
+    console.log("📱 Touch start detected on color picker");
+    setNeedsSnapshot(true);
+  };
+
+  const handleTouchEnd = () => {
+    console.log("📱 Touch end detected on color picker");
+    setNeedsSnapshot(false);
+    clearTimeout(timeoutRef.current);
+  };
 
   return (
     <div

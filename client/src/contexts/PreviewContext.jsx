@@ -11,8 +11,13 @@ export const usePreview = () => {
 };
 
 export const PreviewProvider = ({ children }) => {
+  const [isExporting, setIsExporting] = useState(false);
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+
+  const setExportState = (exporting) => {
+    setIsExporting(exporting);
+  };
 
   const togglePreview = () => {
     setIsPreviewVisible(!isPreviewVisible);
@@ -23,6 +28,8 @@ export const PreviewProvider = ({ children }) => {
   };
 
   const value = {
+    isExporting,
+    setExportState,
     isPreviewVisible,
     isHovered,
     togglePreview,

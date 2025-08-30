@@ -84,6 +84,23 @@ body {
   overflow: hidden; 
 }
 
+/* Ensure touch events work properly on mobile devices */
+* {
+  touch-action: manipulation;
+}
+
+/* Prevent text selection on interactive elements */
+input[type="range"],
+.react-colorful__saturation,
+.react-colorful__hue,
+.react-colorful__pointer {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
 
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {

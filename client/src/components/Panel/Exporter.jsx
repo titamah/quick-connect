@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 
 const Exporter = forwardRef(({}, ref) => {
   const { device, updateDeviceInfo, takeSnapshot } = useDevice();
-  const { isPreviewVisible, setIsPreviewVisible } = usePreview();
+  const { setExportState } = usePreview();
   const [downloadSettings, setDownloadSettings] = useState({
     isPng: true,
     size: 0.5,
@@ -44,10 +44,7 @@ const Exporter = forwardRef(({}, ref) => {
   }
 
   const exportImage = () => {
-    const wasPreviewVisible = isPreviewVisible;
-    if (isPreviewVisible) {
-      setIsPreviewVisible(false);
-    }
+    setExportState(true);
 
     setTimeout(() => {
       try {
@@ -78,9 +75,7 @@ const Exporter = forwardRef(({}, ref) => {
           autoClose: 3000,
         });
       } finally {
-        if (wasPreviewVisible) {
-          setIsPreviewVisible(true);
-        }
+        setExportState(false);
       }
     }, 0);
   };

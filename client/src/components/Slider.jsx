@@ -87,6 +87,10 @@ const Slider = ({
       onMouseUp={(e) => {
         setShowTooltip(false);
       }}
+      onTouchStart={() => setShowTooltip(true && !openPicker)}
+      onTouchEnd={(e) => {
+        setShowTooltip(false);
+      }}
       onKeyDownCapture={(e) => {
         if (openPicker && e.key === "Backspace") {
           deleteStop();
@@ -138,6 +142,11 @@ const Slider = ({
               }}
               onChange={onChange}
               onBlur={onBlur}
+              onTouchStart={() => {
+                console.log("📱 Touch start detected on slider");
+                takeSnapshot();
+                setDrag(false);
+              }}
               className={`appearance-none w-full absolute -translate-y-[2px] ${
                 stacked
                   ? ""
@@ -162,6 +171,11 @@ const Slider = ({
             }}
             onChange={onChange}
             onBlur={onBlur}
+            onTouchStart={() => {
+              console.log("📱 Touch start detected on slider");
+              takeSnapshot();
+              setDrag(false);
+            }}
             className={`appearance-none w-full absolute -translate-y-[2px] ${
               stacked
                 ? ""

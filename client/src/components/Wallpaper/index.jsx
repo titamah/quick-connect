@@ -37,7 +37,7 @@ const Wallpaper = forwardRef(
       updateQRPositionPercentages,
       takeSnapshot,
     } = useDevice();
-    const { isPreviewVisible, isHovered } = usePreview();
+    const { isExporting, isPreviewVisible, isHovered } = usePreview();
 
     const showPhoneUI = isPreviewVisible || isHovered;
 
@@ -502,6 +502,33 @@ const Wallpaper = forwardRef(
       };
     }, [qrSize, deviceInfo.size, updateQRPositionPercentages]);
 
+    const phoneUIRef = useRef(null);
+
+    useEffect(() => {
+      if (!phoneUIRef.current) return;
+
+      // Only animate if the Layer is mounted
+      const layer = phoneUIRef.current;
+      const targetOpacity = showPhoneUI ? (isHovered || isDragging ? 0.5 : 1) : 0;
+
+      // If already at target, skip
+      if (layer.opacity() === targetOpacity) return;
+
+      const tween = new window.Konva.Tween({
+        node: layer,
+        duration: .1,
+        opacity: targetOpacity,
+        easing: window.Konva.Easings.EaseInOut,
+      });
+
+      tween.play();
+
+      // Clean up tween on unmount or change
+      return () => {
+        tween.destroy();
+      };
+    }, [showPhoneUI, isHovered, isDragging]);
+
     return (
       <>
         <div
@@ -701,189 +728,187 @@ const Wallpaper = forwardRef(
               )}
             </Layer>
 
-            {showPhoneUI && (
+            {!isExporting && (
               <Layer
+              ref={phoneUIRef}
+              listening={false}
+              // opacity={showPhoneUI ? (isHovered || isDragging ? 0.5 : 1) : 0}
+            >
+              <Rect
+                x={deviceInfo.size.x / 2 - deviceInfo.size.x * 0.15}
+                y={deviceInfo.size.y * 0.01}
+                width={deviceInfo.size.x * 0.3}
+                height={deviceInfo.size.x * 0.065}
+                fill="black"
+                cornerRadius={deviceInfo.size.x * 0.15}
+              />
+
+              <Text
+                x={deviceInfo.size.x * 0.125}
+                y={deviceInfo.size.y * 0.0175}
+                text="QRKI"
+                fontSize={deviceInfo.size.x * 0.05}
+                fontFamily="Rubik, -apple-system, BlinkMacSystemFont, sans-serif"
+                fill="white"
+                opacity={1}
+              />
+
+              <Group
+                x={deviceInfo.size.x * 0.725}
+                y={deviceInfo.size.y * 0.0175}
                 listening={false}
-                opacity={isHovered || isDragging ? 0.5 : 1}
               >
                 <Rect
-                  x={deviceInfo.size.x / 2 - deviceInfo.size.x * 0.15}
-                  y={deviceInfo.size.y * 0.01}
-                  width={deviceInfo.size.x * 0.3}
-                  height={deviceInfo.size.x * 0.065}
-                  fill="black"
-                  cornerRadius={deviceInfo.size.x * 0.15}
+                  x={deviceInfo.size.x * 0.045}
+                  y={deviceInfo.size.x * 0}
+                  width={deviceInfo.size.x * 0.01}
+                  height={deviceInfo.size.x * 0.0375}
+                  fill="white"
+                  opacity={0.5}
                 />
-
-                <Text
-                  x={deviceInfo.size.x * 0.125}
-                  y={deviceInfo.size.y * 0.0175}
-                  text="QRKI"
-                  fontSize={deviceInfo.size.x * 0.05}
-                  fontFamily="Rubik, -apple-system, BlinkMacSystemFont, sans-serif"
+                <Rect
+                  x={deviceInfo.size.x * 0.03}
+                  y={deviceInfo.size.x * 0.0095}
+                  width={deviceInfo.size.x * 0.01}
+                  height={deviceInfo.size.x * 0.028}
                   fill="white"
                   opacity={1}
                 />
-
-                <Group
-                  x={deviceInfo.size.x * 0.725}
-                  y={deviceInfo.size.y * 0.0175}
-                  listening={false}
-                >
-                  <Rect
-                    x={deviceInfo.size.x * 0.045}
-                    y={deviceInfo.size.x * 0}
-                    width={deviceInfo.size.x * 0.01}
-                    height={deviceInfo.size.x * 0.0375}
-                    fill="white"
-                    opacity={0.5}
-                  />
-                  <Rect
-                    x={deviceInfo.size.x * 0.03}
-                    y={deviceInfo.size.x * 0.0095}
-                    width={deviceInfo.size.x * 0.01}
-                    height={deviceInfo.size.x * 0.028}
-                    fill="white"
-                    opacity={1}
-                  />
-                  <Rect
-                    x={deviceInfo.size.x * 0.015}
-                    y={deviceInfo.size.x * 0.0195}
-                    width={deviceInfo.size.x * 0.01}
-                    height={deviceInfo.size.x * 0.01825}
-                    fill="white"
-                    opacity={1}
-                  />
-                  <Rect
-                    x={0}
-                    y={deviceInfo.size.x * 0.0295}
-                    width={deviceInfo.size.x * 0.01}
-                    height={deviceInfo.size.x * 0.009}
-                    fill="white"
-                    opacity={1}
-                  />
-                </Group>
-
-                <Group
-                  x={deviceInfo.size.x * 0.805}
-                  y={deviceInfo.size.y * 0.0175}
-                  listening={false}
-                >
-                  <Rect
-                    x={0}
-                    y={0}
-                    width={deviceInfo.size.x * 0.075}
-                    height={deviceInfo.size.x * 0.035}
-                    stroke="white"
-                    strokeWidth={deviceInfo.size.x * 0.002}
-                    cornerRadius={deviceInfo.size.x * 0.01}
-                  />
-                  <Rect
-                    x={deviceInfo.size.x * 0.0075}
-                    y={deviceInfo.size.x * 0.005}
-                    width={deviceInfo.size.x * 0.06}
-                    height={deviceInfo.size.x * 0.025}
-                    fill="white"
-                    cornerRadius={deviceInfo.size.x * 0.005}
-                  />
-                  <Rect
-                    x={deviceInfo.size.x * 0.0775}
-                    y={deviceInfo.size.x * 0.012}
-                    width={deviceInfo.size.x * 0.005}
-                    height={deviceInfo.size.x * 0.01}
-                    fill="white"
-                    cornerRadius={deviceInfo.size.x * 0.00175}
-                  />
-                </Group>
-
-                <Text
-                  x={0}
-                  y={deviceInfo.size.y / 6}
-                  width={deviceInfo.size.x}
-                  text="4:44"
-                  stroke="white"
-                  strokeWidth={deviceInfo.size.x * 0.001}
-                  fontSize={deviceInfo.size.x * 0.3}
-                  fontWeight="bold"
-                  fontFamily="Rubik, -apple-system, BlinkMacSystemFont, sans-serif"
-                  fill="white"
-                  align="center"
-                  listening={false}
-                />
-
-                <Group x={0} y={deviceInfo.size.y * 0.75} listening={false}>
-                  <Rect
-                    x={deviceInfo.size.x * 0.05}
-                    y={0}
-                    width={deviceInfo.size.x * 0.9}
-                    height={
-                      deviceInfo.size.y * 0.095 + deviceInfo.size.x * 0.095
-                    }
-                    fillLinearGradientStartPoint={{ x: 0, y: 0 }}
-                    fillLinearGradientEndPoint={{
-                      x: deviceInfo.size.x,
-                      y: deviceInfo.size.y * 0.175,
-                    }}
-                    fillLinearGradientColorStops={[
-                      0,
-                      "rgba(255,255,255,0.95)",
-                      1,
-                      "rgba(225, 225, 225, 0.85)",
-                    ]}
-                    shadowBlur={8}
-                    shadowOpacity={0.1}
-                    shadowOffset={{ x: 0, y: 4 }}
-                    filters={[Konva.Filters.Blur]}
-                    blurRadius={10}
-                    cornerRadius={deviceInfo.size.x * 0.045}
-                    stroke="rgba(255, 255, 255, 0.3)"
-                    strokeWidth={deviceInfo.size.x * 0.001}
-                  />
-                  <Rect
-                    x={deviceInfo.size.x * 0.1}
-                    y={deviceInfo.size.x * 0.05}
-                    width={deviceInfo.size.y * 0.095}
-                    height={deviceInfo.size.y * 0.095}
-                    cornerRadius={deviceInfo.size.x * 0.025}
-                    fill="#F0F66E"
-                  />
-                  <Text
-                    x={deviceInfo.size.x * 0.125 + deviceInfo.size.y * 0.095}
-                    y={deviceInfo.size.x * 0.06}
-                    text="Quacki"
-                    fontSize={deviceInfo.size.x * 0.075}
-                    fontFamily="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif"
-                    listening={false}
-                    fill="rgba(0, 0, 0, 0.75)"
-                  />
-                  <Text
-                    x={deviceInfo.size.x * 0.125 + deviceInfo.size.y * 0.095}
-                    y={deviceInfo.size.x * 0.15}
-                    text="2 New Messages"
-                    fontSize={deviceInfo.size.x * 0.045}
-                    fontFamily="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif"
-                    fill="rgba(0, 0, 0, 0.75)"
-                  />
-                  <Text
-                    x={deviceInfo.size.x * 0.775}
-                    y={deviceInfo.size.x * 0.0575}
-                    text="3:33 AM"
-                    fontSize={deviceInfo.size.x * 0.035}
-                    fontFamily="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif"
-                    fill="rgba(0, 0, 0, 0.75)"
-                  />
-                </Group>
                 <Rect
-                  x={deviceInfo.size.x * 0.25}
-                  y={deviceInfo.size.y * 0.95}
-                  width={deviceInfo.size.x * 0.5}
-                  height={deviceInfo.size.y * 0.0125}
+                  x={deviceInfo.size.x * 0.015}
+                  y={deviceInfo.size.x * 0.0195}
+                  width={deviceInfo.size.x * 0.01}
+                  height={deviceInfo.size.x * 0.01825}
                   fill="white"
-                  opacity={0.5}
-                  cornerRadius={deviceInfo.size.x * 0.5}
+                  opacity={1}
                 />
-              </Layer>
-            )}
+                <Rect
+                  x={0}
+                  y={deviceInfo.size.x * 0.0295}
+                  width={deviceInfo.size.x * 0.01}
+                  height={deviceInfo.size.x * 0.009}
+                  fill="white"
+                  opacity={1}
+                />
+              </Group>
+
+              <Group
+                x={deviceInfo.size.x * 0.805}
+                y={deviceInfo.size.y * 0.0175}
+                listening={false}
+              >
+                <Rect
+                  x={0}
+                  y={0}
+                  width={deviceInfo.size.x * 0.075}
+                  height={deviceInfo.size.x * 0.035}
+                  stroke="white"
+                  strokeWidth={deviceInfo.size.x * 0.002}
+                  cornerRadius={deviceInfo.size.x * 0.01}
+                />
+                <Rect
+                  x={deviceInfo.size.x * 0.0075}
+                  y={deviceInfo.size.x * 0.005}
+                  width={deviceInfo.size.x * 0.06}
+                  height={deviceInfo.size.x * 0.025}
+                  fill="white"
+                  cornerRadius={deviceInfo.size.x * 0.005}
+                />
+                <Rect
+                  x={deviceInfo.size.x * 0.0775}
+                  y={deviceInfo.size.x * 0.012}
+                  width={deviceInfo.size.x * 0.005}
+                  height={deviceInfo.size.x * 0.01}
+                  fill="white"
+                  cornerRadius={deviceInfo.size.x * 0.00175}
+                />
+              </Group>
+
+              <Text
+                x={0}
+                y={deviceInfo.size.y / 6}
+                width={deviceInfo.size.x}
+                text="4:44"
+                stroke="white"
+                strokeWidth={deviceInfo.size.x * 0.001}
+                fontSize={deviceInfo.size.x * 0.3}
+                fontWeight="bold"
+                fontFamily="Rubik, -apple-system, BlinkMacSystemFont, sans-serif"
+                fill="white"
+                align="center"
+                listening={false}
+              />
+
+              <Group x={0} y={deviceInfo.size.y * 0.75} listening={false}>
+                <Rect
+                  x={deviceInfo.size.x * 0.05}
+                  y={0}
+                  width={deviceInfo.size.x * 0.9}
+                  height={deviceInfo.size.y * 0.095 + deviceInfo.size.x * 0.095}
+                  fillLinearGradientStartPoint={{ x: 0, y: 0 }}
+                  fillLinearGradientEndPoint={{
+                    x: deviceInfo.size.x,
+                    y: deviceInfo.size.y * 0.175,
+                  }}
+                  fillLinearGradientColorStops={[
+                    0,
+                    "rgba(255,255,255,0.95)",
+                    1,
+                    "rgba(225, 225, 225, 0.85)",
+                  ]}
+                  shadowBlur={8}
+                  shadowOpacity={0.1}
+                  shadowOffset={{ x: 0, y: 4 }}
+                  filters={[Konva.Filters.Blur]}
+                  blurRadius={10}
+                  cornerRadius={deviceInfo.size.x * 0.045}
+                  stroke="rgba(255, 255, 255, 0.3)"
+                  strokeWidth={deviceInfo.size.x * 0.001}
+                />
+                <Rect
+                  x={deviceInfo.size.x * 0.1}
+                  y={deviceInfo.size.x * 0.05}
+                  width={deviceInfo.size.y * 0.095}
+                  height={deviceInfo.size.y * 0.095}
+                  cornerRadius={deviceInfo.size.x * 0.025}
+                  fill="#F0F66E"
+                />
+                <Text
+                  x={deviceInfo.size.x * 0.125 + deviceInfo.size.y * 0.095}
+                  y={deviceInfo.size.x * 0.06}
+                  text="Quacki"
+                  fontSize={deviceInfo.size.x * 0.075}
+                  fontFamily="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif"
+                  listening={false}
+                  fill="rgba(0, 0, 0, 0.75)"
+                />
+                <Text
+                  x={deviceInfo.size.x * 0.125 + deviceInfo.size.y * 0.095}
+                  y={deviceInfo.size.x * 0.15}
+                  text="2 New Messages"
+                  fontSize={deviceInfo.size.x * 0.045}
+                  fontFamily="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif"
+                  fill="rgba(0, 0, 0, 0.75)"
+                />
+                <Text
+                  x={deviceInfo.size.x * 0.775}
+                  y={deviceInfo.size.x * 0.0575}
+                  text="3:33 AM"
+                  fontSize={deviceInfo.size.x * 0.035}
+                  fontFamily="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif"
+                  fill="rgba(0, 0, 0, 0.75)"
+                />
+              </Group>
+              <Rect
+                x={deviceInfo.size.x * 0.25}
+                y={deviceInfo.size.y * 0.95}
+                width={deviceInfo.size.x * 0.5}
+                height={deviceInfo.size.y * 0.0125}
+                fill="white"
+                opacity={0.5}
+                cornerRadius={deviceInfo.size.x * 0.5}
+              />
+            </Layer>)}
           </Stage>
         </div>
       </>

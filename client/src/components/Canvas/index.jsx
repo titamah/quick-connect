@@ -5,6 +5,7 @@ import { select } from "d3-selection";
 import Wallpaper from "../Wallpaper/index";
 import PreviewButton from "./PreviewButton";
 import UndoRedoButton from "./UndoRedoButton";
+import ShareButton from "./ShareButton";
 
 function Canvas({ isOpen, panelSize, wallpaperRef }) {
   const { device } = useDevice();
@@ -197,6 +198,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
       >
         <PreviewButton />
         <UndoRedoButton />
+        <ShareButton />
         <span
           ref={previewRef}
           className="transition-all duration-150 ease-linear"
