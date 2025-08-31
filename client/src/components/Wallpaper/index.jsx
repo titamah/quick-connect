@@ -64,6 +64,9 @@ const Wallpaper = forwardRef(
     const [grainImage, setGrainImage] = useState(null);
     const grainLoadedRef = useRef(false);
 
+    const [transparentImage, setTransparentImage] = useState(null);
+    const transparentLoadedRef = useRef(false);
+
     const qrSize = useMemo(
       () => Math.min(deviceInfo.size.x, deviceInfo.size.y) * QR_SIZE_RATIO,
       [deviceInfo.size.x, deviceInfo.size.y]
@@ -222,6 +225,7 @@ const Wallpaper = forwardRef(
           }
 
         case "image":
+          if (background.bg) {
           return {
             ...baseProps,
             fillPatternImage: patternImage,
@@ -229,11 +233,20 @@ const Wallpaper = forwardRef(
             fillPatternRepeat: "no-repeat",
             fillPriority: "pattern",
           };
+        } else if (transparentImage && !isExporting) {
+          return {
+            ...baseProps,
+            fillPatternImage: transparentImage,
+            // fillPatternScale: imageSize.scaleFactors,
+            fillPatternRepeat: "repeat",
+            fillPriority: "pattern",
+          };
+        }
 
         default:
           return baseProps;
       }
-    }, [background, deviceInfo.size, imageSize, patternImage]);
+    }, [background, deviceInfo.size, imageSize, patternImage, isExporting, transparentImage]);
 
     const handleDragMove = useCallback(
       (e) => {
@@ -418,6 +431,28 @@ const Wallpaper = forwardRef(
     }, []);
 
     useEffect(() => {
+      if (!transparentLoadedRef.current) {
+        transparentLoadedRef.current = true;
+
+        loadImage("/transparent.png", { crossOrigin: "anonymous" })
+          .then((img) => {
+            console.log("Transparent image loaded successfully");
+            setTransparentImage(img);
+            if (ref.current) {
+              ref.current.batchDraw();
+            }
+          })
+          .catch((error) => {
+            console.error(
+              "Failed to load transparent texture from /transparent.png",
+              error
+            );
+            setTransparentImage(null);
+          });
+      }
+    }, []);
+
+    useEffect(() => {
       setIsDraggable(locked);
     }, [locked]);
 
@@ -478,6 +513,7 @@ const Wallpaper = forwardRef(
 
       qrGroup.on("click dragend", handleQRSelect);
       qrGroup.on("dragstart", handleDragStart);
+      qrGroup.on("tap", handleQRSelect); // Add tap event for mobile
       transformer.on("transformend", handleTransformEnd);
 
       const handleOutsideClick = (e) => {
@@ -491,15 +527,24 @@ const Wallpaper = forwardRef(
       document
         .getElementById("Canvas")
         ?.addEventListener("mouseup", handleOutsideClick);
+      
+      // Add touch event handler for mobile
+      document
+        .getElementById("Canvas")
+        ?.addEventListener("touchend", handleOutsideClick);
 
-      return () => {
-        qrGroup.off("click dragend", handleQRSelect);
-        qrGroup.off("dragstart", handleDragStart);
-        transformer.off("transformend", handleTransformEnd);
-        document
-          .getElementById("Canvas")
-          ?.removeEventListener("mouseup", handleOutsideClick);
-      };
+              return () => {
+          qrGroup.off("click dragend", handleQRSelect);
+          qrGroup.off("dragstart", handleDragStart);
+          qrGroup.off("tap", handleQRSelect);
+          transformer.off("transformend", handleTransformEnd);
+          document
+            .getElementById("Canvas")
+            ?.removeEventListener("mouseup", handleOutsideClick);
+          document
+            .getElementById("Canvas")
+            ?.removeEventListener("touchend", handleOutsideClick);
+        };
     }, [qrSize, deviceInfo.size, updateQRPositionPercentages]);
 
     const phoneUIRef = useRef(null);
@@ -588,6 +633,25 @@ const Wallpaper = forwardRef(
 
               transformerRef.current?.getLayer()?.batchDraw();
             }}
+            onTouchStart={(e) => {
+              if (e.target === e.target.getStage()) {
+                transformerRef.current?.nodes([]);
+              }
+            }}
+            onTouchEnd={(e) => {
+              if (transformerRef.current?.nodes().length > 0) {
+                transformerRef.current.nodes([]);
+                setIsZoomEnabled(false);
+              } else {
+                if (!locked) {
+                  setIsZoomEnabled(false);
+                } else {
+                  setIsZoomEnabled(true);
+                }
+              }
+
+              transformerRef.current?.getLayer()?.batchDraw();
+            }}
           >
             <Layer>
               <Rect {...backgroundProps} listening={false} />
@@ -614,6 +678,11 @@ const Wallpaper = forwardRef(
                   setIsZoomEnabled(false);
                 }, 10);
               }}
+              onTouchEnd={() => {
+                setTimeout(() => {
+                  setIsZoomEnabled(false);
+                }, 10);
+              }}
             >
               <Group
                 draggable={isDraggable}
@@ -628,6 +697,19 @@ const Wallpaper = forwardRef(
                 width={qrSize + actualBorderSize}
                 onMouseDown={(e) => {
                   e.cancelBubble = true;
+                  if (transformerRef.current?.nodes().length == 0) {
+                    setTimeout(() => {
+                      setIsZoomEnabled(false);
+                      if (transformerRef.current && shapeRef.current) {
+                        transformerRef.current.nodes([shapeRef.current]);
+                        transformerRef.current.getLayer().batchDraw();
+                      }
+                    }, 100);
+                  }
+                }}
+                onTouchStart={(e) => {
+                  e.cancelBubble = true;
+                  console.log("📱 Touch start on QR code");
                   if (transformerRef.current?.nodes().length == 0) {
                     setTimeout(() => {
                       setIsZoomEnabled(false);

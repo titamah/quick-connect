@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDebouncedCallback } from "./useDebounce";
+import { toast } from "react-toastify";
 import {
   findNextSlot,
   getDesignCount,
@@ -40,7 +41,7 @@ export const useDeviceState = () => {
 
   const [background, setBackground] = useState({
     style: "solid",
-    color: "#7ED03B",
+    color: "#FFFFFF",
     bg: null,
     gradient: {
       type: "linear",
@@ -98,6 +99,32 @@ export const useDeviceState = () => {
   const [currentSlotId, setCurrentSlotId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [savedDesigns, setSavedDesigns] = useState([]);
+  const [isIndexedDBAvailable, setIsIndexedDBAvailable] = useState(true);
+
+  // Check IndexedDB availability on mount
+  useEffect(() => {
+    const checkIndexedDB = async () => {
+      try {
+        // Try to open a test database
+        const testDB = indexedDB.open('test', 1);
+        testDB.onerror = () => {
+          setIsIndexedDBAvailable(false);
+          console.warn("IndexedDB not available - auto-save disabled");
+        };
+        testDB.onsuccess = () => {
+          setIsIndexedDBAvailable(true);
+          // Clean up test database
+          testDB.result.close();
+          indexedDB.deleteDatabase('test');
+        };
+      } catch (error) {
+        setIsIndexedDBAvailable(false);
+        console.warn("IndexedDB not available - auto-save disabled");
+      }
+    };
+    
+    checkIndexedDB();
+  }, []);
 
   const rgbToHex = (rgbString) => {
     if (typeof rgbString !== "string" || !rgbString.startsWith("rgb")) {
@@ -340,15 +367,33 @@ export const useDeviceState = () => {
       console.log("💾 Auto-saved to slot:", currentSlotId);
     } catch (error) {
       console.error("Failed to auto-save:", error);
+      
+      // Check if this is an IndexedDB error (private mode, quota exceeded, etc.)
+      if (error.name === 'QuotaExceededError' || 
+          error.name === 'InvalidStateError' || 
+          error.name === 'UnknownError' ||
+          error.message.includes('IndexedDB') ||
+          error.message.includes('quota')) {
+        
+        // Disable auto-save for this session
+        setIsIndexedDBAvailable(false);
+        
+        // Show toast notification (you can style this later)
+        toast("🛡️ Private mode detected - Auto-save disabled", {
+          type: "info",
+          autoClose: 4000,
+          position: "top-center"
+        });
+      }
     }
   }, 2000);
 
   // Save whenever state changes
   useEffect(() => {
-    if (currentSlotId) {
+    if (currentSlotId && isIndexedDBAvailable) {
       debouncedSave();
     }
-  }, [deviceInfo, background, qrConfig, uploadInfo, libraryInfo, currentSlotId]);
+  }, [deviceInfo, background, qrConfig, uploadInfo, libraryInfo, currentSlotId, isIndexedDBAvailable]);
 
   // Find and assign a slot for new designs
   const assignSlot = async () => {
@@ -536,5 +581,6 @@ export const useDeviceState = () => {
     deleteDesignFromSlot,
     canSaveMore,
     loadTemplateData,
+    isIndexedDBAvailable,
   };
 };

@@ -6,11 +6,13 @@ import Wallpaper from "../Wallpaper/index";
 import PreviewButton from "./PreviewButton";
 import UndoRedoButton from "./UndoRedoButton";
 import ShareButton from "./ShareButton";
+import useWindowSize from "../../hooks/useWindowSize";
 
 function Canvas({ isOpen, panelSize, wallpaperRef }) {
   const { device } = useDevice();
   const previewRef = useRef(null);
   const canvasRef = useRef(null);
+  const windowSize = useWindowSize();
 
   const [isLoading, setIsLoading] = useState(true);
   const [isZoomEnabled, setIsZoomEnabled] = useState(false);
@@ -19,17 +21,17 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
 
   const previewSize = useMemo(() => {
     const scaleX = isOpen
-      ? (0.85 * window.innerWidth - panelSize.width) / device.size.x
-      : (0.85 * window.innerWidth) / device.size.x;
+      ? (0.85 * windowSize.width - panelSize.width) / device.size.x
+      : (0.85 * windowSize.width) / device.size.x;
     const scaleY = isOpen
-      ? (0.85 * (window.innerHeight - panelSize.height - 52)) / device.size.y
-      : (0.85 * (window.innerHeight - 52)) / device.size.y;
+      ? (0.85 * (windowSize.height - panelSize.height - 52)) / device.size.y
+      : (0.85 * (windowSize.height - 52)) / device.size.y;
     const scale = Math.min(scaleX, scaleY);
     return {
       x: device.size.x * scale,
       y: device.size.y * scale,
     };
-  }, [isOpen, panelSize.width, panelSize.height, device.size.x, device.size.y]);
+  }, [isOpen, panelSize.width, panelSize.height, device.size.x, device.size.y, windowSize.width, windowSize.height]);
 
   const updatePanelSize = useCallback(() => {
     const screenWidth = window.innerWidth;
@@ -158,8 +160,8 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
-      outline: `${(previewSize.y + previewSize.x) * 0.0125}px solid black`,
-      borderRadius: `${(previewSize.y + previewSize.x) * 0.0375}px`,
+      outline: `${Math.max(1, previewSize.x * 0.025)}px solid black`,
+      borderRadius: `${Math.max(20, previewSize.x * 0.1)}px`,
       backgroundColor: "rgba(0,0,0,0)",
       overflow: "hidden",
     }),
