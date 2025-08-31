@@ -188,11 +188,12 @@ function ImageUploader() {
     <>
       <Modal
         open={modalOpen}
+        maskClosable={false}
         onOk={cropImage}
         onCancel={closeModal}
         okText="Crop"
         cancelText="Cancel"
-        width={400}
+        width={'50vw'}
         style={{
           display: "flex",
           alignItems: "center",
@@ -305,7 +306,7 @@ function ImageUploader() {
                         });
                       };
                       reader.readAsDataURL(selectedFile);
-                      setModalOpen(true);
+                      openModal();
                     }
                   };
                   input.click();

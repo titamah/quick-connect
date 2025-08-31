@@ -10,7 +10,7 @@ const StudioPage = () => {
   const [isOpen, setIsOpen] = React.useState(true);
   const [panelSize, setPanelSize] = React.useState({
     width: 450,
-    height: window.innerHeight / 3,
+    height: 450,
   });
   const wallpaperRef = React.useRef(null);
 
@@ -27,6 +27,26 @@ const StudioPage = () => {
       });
     }
   }, [currentSlotId, assignSlot]);
+
+  // Request fullscreen when Studio page loads on mobile
+  useEffect(() => {
+    const requestFullscreen = () => {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
+      } else if (document.documentElement.webkitRequestFullscreen) {
+        document.documentElement.webkitRequestFullscreen();
+      } else if (document.documentElement.msRequestFullscreen) {
+        document.documentElement.msRequestFullscreen();
+      }
+    };
+
+    // Auto-request fullscreen on mobile
+    if (window.innerWidth <= 768) {
+      // Small delay to let page load
+      const timer = setTimeout(requestFullscreen, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   return (
     <div className="">

@@ -13,7 +13,7 @@ function Header() {
 
   return (
     <header className="relative flex w-full h-15 max-md:h-10">
-      <nav className={`w-full ${isMobile? "px-3.5" : "px-5"} flex items-center justify-between !h-full bg-[var(--bg-main)] opacity-100 z-100 border-b border-[var(--border-color)]/50`}>
+      <nav className={`w-full px-5 flex items-center justify-between !h-full bg-[var(--bg-main)] opacity-100 z-100 border-b border-[var(--border-color)]/50`}>
         <div className="flex items-center">
           <Link
             to="/"

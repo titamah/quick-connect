@@ -4,7 +4,7 @@ import { usePreview } from "../../contexts/PreviewContext";
 import { toast } from "react-toastify";
 
 const Exporter = forwardRef(({}, ref) => {
-  const { device, updateDeviceInfo, takeSnapshot } = useDevice();
+  const { device, updateDeviceInfo, takeSnapshot, isMobile } = useDevice();
   const { setExportState } = usePreview();
   const [downloadSettings, setDownloadSettings] = useState({
     isPng: true,
@@ -88,7 +88,7 @@ const Exporter = forwardRef(({}, ref) => {
 
   return (
     <div className="flex flex-col gap-y-3.5 p-3.5">
-      <h2> Save Wallpaper</h2>
+      <h2 className={`${isMobile ? "hidden" : ""}`}> Save Wallpaper</h2>
       <div>
         <h4 className="py-1.5">File Name</h4>
         <input

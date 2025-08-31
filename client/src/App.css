@@ -80,24 +80,29 @@ h1 {
 }
 
 @media screen and (max-width: 768px) {
-  h1{
-    font-size: 24px;
+  .ant-tabs-nav-list {
+    gap: 20px;
   }
 
-  h2{
-    font-size: 16px;
+  h1 {
+    font-size: 28px;
   }
 
-  h3{
+  h2 {
+    font-size: 21px;
+  }
+
+  h3 {
+    font-size: 13px;
+    letter-spacing: 1.5px;
+  }
+
+  h4 {
     font-size: 11px;
-    letter-spacing: 1.125px;
-  }
-
-  h4{
-    font-size: 9.5px;
     letter-spacing: 0.5px;
   }
-  h5{
+
+  h5 {
     font-size: 13px;
   }
 }

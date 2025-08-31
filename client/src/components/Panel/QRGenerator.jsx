@@ -125,10 +125,10 @@ function QRGenerator(panelSize) {
   }, [qrConfig.url]);
 
   return (
-    <div id="qr-input-box">
-      <h2 className=" p-3.5">Customize QR Code</h2>
-      <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5">
-        URL
+    <div id={`qr-input-box`}>
+      <h2 className={`${isMobile ? "hidden" : ""} p-3.5`}>Customize QR Code</h2>
+      <h3 className={`block border-b border-[var(--border-color)]/50 pb-1 px-3.5 ${isMobile ? "mt-5" : ""}`}>
+        QR URL
       </h3>
       <div className={`p-2 ${isMobile ? "pb-2.5" : "pb-5"}`}>
         <input

@@ -133,9 +133,9 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   const canvasStyles = useMemo(
     () => ({
       width: isMobile ? "100%" : isOpen ? "calc(100% - var(--panel-width))" : "100%",
-      // height: isOpen ? "calc(100% - var(--panel-height))" : "100%",
+      height: "100%",
     }),
-    [isOpen]
+    [isOpen, isMobile]
   );
 
   const previewStyles = useMemo(
