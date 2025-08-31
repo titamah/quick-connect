@@ -12,7 +12,7 @@ export default function CustomColorInput({
   onColorPickerClose,
   submitColor,
 }) {
-  const { takeSnapshot } = useDevice();
+  const { takeSnapshot, isMobile } = useDevice();
   const hexInputRef = useRef(null);
   const alphaInputRef = useRef(null);
 
@@ -136,7 +136,7 @@ export default function CustomColorInput({
         }}
         onBlur={handleHexBlur}
         onKeyDown={handleHexEnter}
-        className="flex-1 min-w-0 px-2 py-2 bg-transparent outline-none text-xs"
+        className={`flex-1 min-w-0 ${isMobile ? "px-1 py-1" : "px-2 py-2"} bg-transparent outline-none text-xs`}
       />
       {hasOpacity && (
         <>

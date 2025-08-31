@@ -7,9 +7,10 @@ import PreviewButton from "./PreviewButton";
 import UndoRedoButton from "./UndoRedoButton";
 import ShareButton from "./ShareButton";
 import useWindowSize from "../../hooks/useWindowSize";
+import { useStageCalculations } from "../../hooks/useStageCalculations";
 
 function Canvas({ isOpen, panelSize, wallpaperRef }) {
-  const { device } = useDevice();
+  const { device, isMobile } = useDevice();
   const previewRef = useRef(null);
   const canvasRef = useRef(null);
   const windowSize = useWindowSize();
@@ -19,23 +20,15 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
 
   const memoizedSetIsZoomEnabled = useCallback(setIsZoomEnabled, []);
 
-  const previewSize = useMemo(() => {
-    const scaleX = isOpen
-      ? (0.85 * windowSize.width - panelSize.width) / device.size.x
-      : (0.85 * windowSize.width) / device.size.x;
-    const scaleY = isOpen
-      ? (0.85 * (windowSize.height - panelSize.height - 52)) / device.size.y
-      : (0.85 * (windowSize.height - 52)) / device.size.y;
-    const scale = Math.min(scaleX, scaleY);
-    return {
-      x: device.size.x * scale,
-      y: device.size.y * scale,
-    };
-  }, [isOpen, panelSize.width, panelSize.height, device.size.x, device.size.y, windowSize.width, windowSize.height]);
+  const scale = useStageCalculations(device.size, panelSize, isOpen);
+  
+  const previewSize = useMemo(() => ({
+    x: device.size.x * scale,
+    y: device.size.y * scale,
+  }), [device.size.x, device.size.y, scale]);
 
   const updatePanelSize = useCallback(() => {
-    const screenWidth = window.innerWidth;
-    if (screenWidth >= 640) {
+    if (!isMobile) {
       document.documentElement.style.setProperty("--panel-height", "0px");
       document.documentElement.style.setProperty(
         "--panel-width",
@@ -139,8 +132,8 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
 
   const canvasStyles = useMemo(
     () => ({
-      width: isOpen ? "calc(100% - var(--panel-width))" : "100%",
-      height: isOpen ? "calc(100% - var(--panel-height))" : "100%",
+      width: isMobile ? "100%" : isOpen ? "calc(100% - var(--panel-width))" : "100%",
+      // height: isOpen ? "calc(100% - var(--panel-height))" : "100%",
     }),
     [isOpen]
   );
@@ -160,7 +153,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
-      outline: `${Math.max(1, previewSize.x * 0.025)}px solid black`,
+      outline: `${Math.max(1, previewSize.x * 0.05)}px solid black`,
       borderRadius: `${Math.max(20, previewSize.x * 0.1)}px`,
       backgroundColor: "rgba(0,0,0,0)",
       overflow: "hidden",
@@ -170,7 +163,8 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
 
   return (
     <div
-      className="w-screen h-[calc(100.5%-52px)] top-[51px] absolute
+      className="w-screen h-[calc(100.5%-40px)] top-[39px] right-0 absolute
+      overflow-hidden
           bg-bg-main dark:bg-neutral-900 
           bg-[image:repeating-linear-gradient(315deg,var(--pattern-fg)_0,var(--pattern-fg)_1px,transparent_0,transparent_50%)] 
           bg-[size:10px_10px] 
@@ -190,6 +184,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
           relative
           min-md:h-full
           max-sm:w-full
+          h-full
           duration-300 ease-in-ease-out
           ml-auto
           items-center 

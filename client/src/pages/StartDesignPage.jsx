@@ -172,7 +172,7 @@ function StartDesignPage() {
               {savedDesigns.map((design) => (
                 <div
                   key={design.id}
-                  className="bg-[var(--bg-secondary)] rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer relative group"
+                  className="cursor-pointer bg-[var(--bg-secondary)] rounded-lg p-4 hover:shadow-lg transition-shadow relative group"
                   onClick={() => handleLoadDesign(design.id)}
                 >
                   {/* Delete button */}

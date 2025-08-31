@@ -1,42 +1,41 @@
 @import "tailwindcss";
 :root {
   /* Brand Colors */
-  --brand-yellow: #F0F66E;
-  --brand-orange: #FC6524;
-  --brand-light-green: #EEF5E9;
-  --brand-green: #7ED03B;
-  --brand-dark: #1E1C1C;
-  
+  --brand-yellow: #f0f66e;
+  --brand-orange: #fc6524;
+  --brand-light-green: #eef5e9;
+  --brand-green: #7ed03b;
+  --brand-dark: #1e1c1c;
+
   /* Light Mode */
   --bg-main: #ffffff;
-  --bg-secondary: #EEF5E9;
-  --contrast: #1E1C1C;
+  --bg-secondary: #eef5e9;
+  --contrast: #1e1c1c;
   --contrast-sheer: rgba(30, 28, 28, 0.1);
-  --accent: #FC6524;
-  --accent-secondary: #7ED03B;
-  --accent-highlight: #F0F66E;
-  --text-primary: #1E1C1C;
+  --accent: #fc6524;
+  --accent-secondary: #7ed03b;
+  --accent-highlight: #f0f66e;
+  --text-primary: #1e1c1c;
   --text-secondary: rgba(30, 28, 28, 0.75);
   --border-color: rgba(30, 28, 28, 0.15);
   --hover-bg: rgba(252, 101, 36, 0.1);
   --active-bg: rgba(252, 101, 36, 0.15);
 
   /* Fonts */
-  --font-slab: 'Roboto Slab', serif;
-  --font-rubik: 'Rubik', sans-serif;
-
+  --font-slab: "Roboto Slab", serif;
+  --font-rubik: "Rubik", sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-main: #1E1C1C;
-    --bg-secondary: #2A2828;
-    --contrast: #EEF5E9;
+    --bg-main: #1e1c1c;
+    --bg-secondary: #2a2828;
+    --contrast: #eef5e9;
     --contrast-sheer: rgba(238, 245, 233, 0.15);
-    --accent: #FC6524;
-    --accent-secondary: #7ED03B;
-    --accent-highlight: #F0F66E;
-    --text-primary: #EEF5E9;
+    --accent: #fc6524;
+    --accent-secondary: #7ed03b;
+    --accent-highlight: #f0f66e;
+    --text-primary: #eef5e9;
     --text-secondary: rgba(238, 245, 233, 0.75);
     --border-color: rgba(238, 245, 233, 0.15);
     --hover-bg: rgba(252, 101, 36, 0.15);
@@ -51,24 +50,24 @@ h5 {
   color: var(--text-secondary);
 }
 
-  h4 {
-    min-width: 85px;
-    text-transform: uppercase;
-    line-height: 100%;
-    letter-spacing:.75px;
-    font-size: 11px;
-    font-weight: 300;
-    color: var(--text-secondary);
-  }
-    h3 {
-    text-transform: uppercase;
-    letter-spacing:1.5px;
-    line-height: 100%;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-secondary);
-  }
-  
+h4 {
+  min-width: 85px;
+  text-transform: uppercase;
+  line-height: 100%;
+  letter-spacing: 0.75px;
+  font-size: 11px;
+  font-weight: 300;
+  color: var(--text-secondary);
+}
+h3 {
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  line-height: 100%;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
 h2 {
   font-size: 21px;
   line-height: 100%;
@@ -80,16 +79,33 @@ h1 {
   font-family: var(--font-rubik);
 }
 
-body {
-  overflow: hidden; 
+@media screen and (max-width: 768px) {
+  h1{
+    font-size: 24px;
+  }
+
+  h2{
+    font-size: 16px;
+  }
+
+  h3{
+    font-size: 11px;
+    letter-spacing: 1.125px;
+  }
+
+  h4{
+    font-size: 9.5px;
+    letter-spacing: 0.5px;
+  }
+  h5{
+    font-size: 13px;
+  }
 }
 
-/* Ensure touch events work properly on mobile devices */
 * {
   touch-action: manipulation;
 }
 
-/* Prevent text selection on interactive elements */
 input[type="range"],
 .react-colorful__saturation,
 .react-colorful__hue,
@@ -109,7 +125,7 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 input[type="number"] {
-  -moz-appearance: textfield; 
+  -moz-appearance: textfield;
 }
 
 input[type="range"]::-moz-range-thumb {

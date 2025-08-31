@@ -6,7 +6,7 @@ import chroma from "chroma-js";
 import { useDevice } from "../../contexts/DeviceContext";
 
 const ColorSelector = ({ panelSize }) => {
-  const { device, background, updateBackground, takeSnapshot } = useDevice();
+  const { device, background, updateBackground, takeSnapshot, isMobile } = useDevice();
   const pickerRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -183,7 +183,7 @@ const ColorSelector = ({ panelSize }) => {
           onChange={handleInputChange}
           onBlur={handleInputBlur}
           onKeyDown={handleInputKeyDown}
-          className="p-1 border-1 border-black/10 dark:border-white/10 text-neutral-600 dark:text-neutral-200/75 text-sm rounded-sm px-[15px] w-[95px]"
+          className={`p-1 border-1 border-black/10 dark:border-white/10 text-neutral-600 dark:text-neutral-200/75 text-sm rounded-sm px-[15px] w-[95px] px-[15px] py-1 w-[95px]`}
           placeholder="#ffffff"
           maxLength={7}
         />
@@ -192,13 +192,13 @@ const ColorSelector = ({ panelSize }) => {
           className="opacity-75 hover:opacity-100 cursor-pointer transition-opacity"
           aria-label={`${background.grain ? "Disable" : "Enable"} grain effect`}
         >
-          <Grip size={20} />
+          <Grip size={20} color={device.grain ? "var(--accent)" : "var(--text-secondary)"}/>
         </button>
       </div>
       <HexColorPicker
         color={background.color}
         onChange={handleColorChange}
-        className="space-y-1 !w-full"
+        className={`space-y-1 !w-full`}
       />
       {colorBoxes && (
         <div className="w-full my-4 space-y-2">

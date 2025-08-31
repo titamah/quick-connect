@@ -29,14 +29,14 @@ const StudioPage = () => {
   }, [currentSlotId, assignSlot]);
 
   return (
-    <>
+    <div className="">
       {/* Debug panel - remove this in production */}
-      {process.env.NODE_ENV === 'development' && (
+      {/* {process.env.NODE_ENV === 'development' && (
         <div className="fixed top-20 left-4 z-50 bg-black/80 text-white p-3 rounded-lg text-xs">
           <div>Slot: {currentSlotId || 'None'}</div>
           <div>Auto-save: {currentSlotId ? 'Active' : 'Inactive'}</div>
         </div>
-      )}
+      )} */}
       
       <Panel
         setIsOpen={setIsOpen}
@@ -50,7 +50,7 @@ const StudioPage = () => {
         panelSize={panelSize}
         wallpaperRef={wallpaperRef}
       />
-    </>
+    </div>
   );
 };
 

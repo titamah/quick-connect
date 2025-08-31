@@ -9,7 +9,7 @@ import chroma from "chroma-js";
 import { useThrottledCallback } from "../../hooks/useDebounce";
 
 function QRGenerator(panelSize) {
-  const { device, updateQRConfig, qrConfig, takeSnapshot } = useDevice();
+  const { device, updateQRConfig, qrConfig, takeSnapshot, isMobile } = useDevice();
   const qrCodeRef = useRef(null);
 
   const [frozenPreset, setFrozenPreset] = useState(null);
@@ -130,7 +130,7 @@ function QRGenerator(panelSize) {
       <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5">
         URL
       </h3>
-      <div className="p-2 pb-5">
+      <div className={`p-2 ${isMobile ? "pb-2.5" : "pb-5"}`}>
         <input
           id="qr-input"
           type="text"
@@ -152,7 +152,7 @@ function QRGenerator(panelSize) {
           }}
         />
       </div>
-      <h3 className="block border-b border-[var(--border-color)]/50 pb-1 px-3.5 mb-2.5">
+      <h3 className={`block border-b border-[var(--border-color)]/50 pb-1 px-3.5 mb-2.5`}>
         Position
       </h3>
       <div className="px-3.5">
@@ -168,7 +168,7 @@ function QRGenerator(panelSize) {
             units="px"
           />
         </div>
-        <div className="flex items-center pb-5">
+        <div className={`flex items-center ${isMobile ? "pb-2.5" : "pb-5"}`}>
           <h4 className="w-[85px]"> Angle </h4>
           <AngleInput
             type="qr"
@@ -212,7 +212,7 @@ function QRGenerator(panelSize) {
           }}
         />
       </div>
-      <div className="flex items-center pb-5 px-3.5">
+      <div className={`flex items-center ${isMobile ? "pb-2.5" : "pb-5"} px-3.5`}>
         <h4> Secondary </h4>
         <CustomColorInput
           submitColor={(hex, alpha, snap = true) => {

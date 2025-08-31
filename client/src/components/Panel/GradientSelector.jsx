@@ -176,6 +176,7 @@ function GradientSelector() {
           <Grip
             className="opacity-75 hover:opacity-100 cursor-pointer"
             size={20}
+            color={device.grain ? "var(--accent)" : "var(--text-secondary)"}
             onClick={() => {
               takeSnapshot("Toggle grain");
               updateGrain(!device.grain);

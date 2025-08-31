@@ -11,7 +11,7 @@ const BACKGROUND_TYPES = [
 ];
 
 function CustomBackgroundSelector({ panelSize }) {
-  const { background, updateBackground, takeSnapshot } = useDevice();
+  const { background, updateBackground, takeSnapshot, isMobile } = useDevice();
 
   const activeTab = useMemo(() => {
     return (
@@ -66,7 +66,7 @@ function CustomBackgroundSelector({ panelSize }) {
       className="w-full"
     >
       <div className="border-b border-[var(--border-color)]/25 p-3.5">
-        <h2 className="mb-5">Set Background</h2>
+        <h2 className={`${isMobile ? "mb-2.5" : "mb-5"}`}>Set Background</h2>
         <nav
           className="flex gap-2 bg-[var(--border-color)]/50 rounded-xl justify-center "
           aria-label="Background type tabs"

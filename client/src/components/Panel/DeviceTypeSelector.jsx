@@ -4,219 +4,88 @@ import { Plus } from "lucide-react";
 import "./styles.css";
 
 function DeviceTypeSelector() {
-  const { device, updateDeviceInfo, takeSnapshot } = useDevice();
+  const { device, updateDeviceInfo, takeSnapshot, isMobile } = useDevice();
   const [showCustomSizeInput, setShowCustomSizeInput] = useState(false);
   const [customWidth, setCustomWidth] = useState("");
   const [customHeight, setCustomHeight] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
   const devicesSizes = [
-    // === IPHONE ===
-    {
-      name: "iPhone 16 Pro Max",
-      size: { x: 1320, y: 2868 },
-      category: "iPhone",
-    },
-    {
-      name: "iPhone 15 Pro Max",
-      size: { x: 1290, y: 2796 },
-      category: "iPhone",
-    },
-    {
-      name: "iPhone 14 Pro Max / 13 Pro Max / 12 Pro Max",
-      size: { x: 1284, y: 2778 },
-      category: "iPhone",
-    },
-    {
-      name: "iPhone 16 Pro / 15 Pro",
-      size: { x: 1206, y: 2622 },
-      category: "iPhone",
-    },
-    {
-      name: "iPhone 14 Pro / 13 Pro / 12 Pro",
-      size: { x: 1170, y: 2532 },
-      category: "iPhone",
-    },
-    {
-      name: "iPhone 16 / 15 / 14 / 13 / 12",
-      size: { x: 1179, y: 2556 },
-      category: "iPhone",
-    },
-    {
-      name: "iPhone SE (3rd gen)",
-      size: { x: 750, y: 1334 },
-      category: "iPhone",
-    },
-    {
-      name: "iPhone 13 Mini / 12 Mini",
-      size: { x: 1080, y: 2340 },
-      category: "iPhone",
-    },
-
-    // === SAMSUNG ===
-    {
-      name: "Samsung Galaxy S25 Ultra",
-      size: { x: 1440, y: 3120 },
-      category: "Samsung",
-    },
-    {
-      name: "Samsung Galaxy S24 Ultra / S23 Ultra / S22 Ultra / Note 20 Ultra",
-      size: { x: 1440, y: 3088 },
-      category: "Samsung",
-    },
-    {
-      name: "Samsung Galaxy S25 / S24 / S23",
-      size: { x: 1080, y: 2340 },
-      category: "Samsung",
-    },
-    {
-      name: "Samsung Galaxy S22 / S21",
-      size: { x: 1080, y: 2400 },
-      category: "Samsung",
-    },
-    {
-      name: "Samsung Galaxy S20",
-      size: { x: 1440, y: 3200 },
-      category: "Samsung",
-    },
-    {
-      name: "Samsung Galaxy A55 / A54 / A53",
-      size: { x: 1080, y: 2340 },
-      category: "Samsung",
-    },
-
+    // === IPHONE (Current Gen) ===
+    { name: "iPhone 16 Pro Max", size: { x: 1320, y: 2868 }, category: "iPhone" },
+    { name: "iPhone 16 Pro", size: { x: 1206, y: 2622 }, category: "iPhone" },
+    { name: "iPhone 16 Plus / 15 Plus / 14 Plus", size: { x: 1284, y: 2778 }, category: "iPhone" },
+    { name: "iPhone 16 / 15 / 14", size: { x: 1179, y: 2556 }, category: "iPhone" },
+    
+    // === IPHONE (Previous Gen - Still Relevant) ===
+    { name: "iPhone 15 Pro Max", size: { x: 1290, y: 2796 }, category: "iPhone" },
+    { name: "iPhone 15 Pro / 14 Pro / 13 Pro", size: { x: 1170, y: 2532 }, category: "iPhone" },
+    { name: "iPhone 14 Pro Max / 13 Pro Max", size: { x: 1284, y: 2778 }, category: "iPhone" },
+    { name: "iPhone 13 / 12", size: { x: 1170, y: 2532 }, category: "iPhone" },
+    { name: "iPhone 13 Mini / 12 Mini", size: { x: 1080, y: 2340 }, category: "iPhone" },
+    
+    // === SAMSUNG GALAXY S ===
+    { name: "Samsung Galaxy S25 Ultra", size: { x: 1440, y: 3120 }, category: "Samsung" },
+    { name: "Samsung Galaxy S24 Ultra / S23 Ultra", size: { x: 1440, y: 3088 }, category: "Samsung" },
+    { name: "Samsung Galaxy S25+ / S24+ / S23+", size: { x: 1440, y: 3120 }, category: "Samsung" },
+    { name: "Samsung Galaxy S25 / S24 / S23", size: { x: 1080, y: 2340 }, category: "Samsung" },
+    { name: "Samsung Galaxy A55 / A54", size: { x: 1080, y: 2340 }, category: "Samsung" },
+    
+    // === SAMSUNG FOLDABLES ===
+    { name: "Samsung Galaxy Z Fold 6 / 5 (Inner)", size: { x: 1856, y: 2160 }, category: "Samsung" },
+    { name: "Samsung Galaxy Z Fold 6 / 5 (Cover)", size: { x: 904, y: 2316 }, category: "Samsung" },
+    { name: "Samsung Galaxy Z Flip 6 / 5 (Main)", size: { x: 1080, y: 2640 }, category: "Samsung" },
+    
     // === GOOGLE PIXEL ===
-    {
-      name: "Google Pixel 9 Pro XL / 8 Pro / 7 Pro",
-      size: { x: 1344, y: 2992 },
-      category: "Google Pixel",
-    },
-    {
-      name: "Google Pixel 9 Pro",
-      size: { x: 1280, y: 2856 },
-      category: "Google Pixel",
-    },
-    {
-      name: "Google Pixel 9 / 8 / 7",
-      size: { x: 1080, y: 2424 },
-      category: "Google Pixel",
-    },
-    {
-      name: "Google Pixel 6 Pro",
-      size: { x: 1440, y: 3120 },
-      category: "Google Pixel",
-    },
-    {
-      name: "Google Pixel 8a / 7a / 6a / 6",
-      size: { x: 1080, y: 2400 },
-      category: "Google Pixel",
-    },
-
-    // === OTHER PHONES ===
-    { name: "OnePlus 12 / 11", size: { x: 1440, y: 3216 }, category: "Other" },
-    {
-      name: "OnePlus Nord 4 / Nord 3",
-      size: { x: 1080, y: 2412 },
-      category: "Other",
-    },
-    { name: "Nothing Phone", size: { x: 1080, y: 2412 }, category: "Other" },
-
-    // === FOLDABLES ===
-    {
-      name: "Samsung Galaxy Z Fold 6 (Unfolded)",
-      size: { x: 1856, y: 2160 },
-      category: "Foldable",
-    },
-    {
-      name: "Samsung Galaxy Z Fold 6 (Folded)",
-      size: { x: 904, y: 2316 },
-      category: "Foldable",
-    },
-    {
-      name: "Samsung Galaxy Z Fold 5 / 4 (Unfolded)",
-      size: { x: 1812, y: 2176 },
-      category: "Foldable",
-    },
-    {
-      name: "Samsung Galaxy Z Fold 3 (Unfolded)",
-      size: { x: 1768, y: 2208 },
-      category: "Foldable",
-    },
-    {
-      name: "Samsung Galaxy Z Fold 5 / 4 / 3 (Folded)",
-      size: { x: 832, y: 2268 },
-      category: "Foldable",
-    },
-
-    {
-      name: "Samsung Galaxy Z Flip 6 / 5 (Unfolded)",
-      size: { x: 1080, y: 2640 },
-      category: "Foldable",
-    },
-    {
-      name: "Samsung Galaxy Z Flip 6 / 5 (Folded)",
-      size: { x: 720, y: 748 },
-      category: "Foldable",
-    },
-    {
-      name: "Samsung Galaxy Z Flip 4 / 3 (Unfolded)",
-      size: { x: 1080, y: 2636 },
-      category: "Foldable",
-    },
-    {
-      name: "Samsung Galaxy Z Flip 4 / 3 (Folded)",
-      size: { x: 720, y: 512 },
-      category: "Foldable",
-    },
-
-    {
-      name: "Google Pixel Fold (Unfolded)",
-      size: { x: 1840, y: 2208 },
-      category: "Foldable",
-    },
-    {
-      name: "OnePlus Open (Unfolded)",
-      size: { x: 1916, y: 2156 },
-      category: "Foldable",
-    },
-
-    // === TABLETS - IPAD ===
-    { name: 'iPad Air 13"', size: { x: 2048, y: 2732 }, category: "Tablet" },
-    { name: 'iPad Air 11"', size: { x: 1668, y: 2388 }, category: "Tablet" },
-    { name: "iPad", size: { x: 1620, y: 2160 }, category: "Tablet" },
-    { name: "iPad Mini", size: { x: 1488, y: 2266 }, category: "Tablet" },
-
-    // === TABLETS - ANDROID & WINDOWS ===
-    {
-      name: "Samsung Galaxy Tab S9 Ultra / S8 Ultra",
-      size: { x: 1848, y: 2960 },
-      category: "Tablet",
-    },
-    {
-      name: "Samsung Galaxy Tab S9+ / S8+",
-      size: { x: 1752, y: 2800 },
-      category: "Tablet",
-    },
-    {
-      name: "Samsung Galaxy Tab S9 / S8 / S7",
-      size: { x: 1600, y: 2560 },
-      category: "Tablet",
-    },
-    {
-      name: "Surface Pro 11 / 10 / 9",
-      size: { x: 1920, y: 2880 },
-      category: "Tablet",
-    },
-    {
-      name: "Surface Pro 8 / 7",
-      size: { x: 2880, y: 1920 },
-      category: "Tablet",
-    },
-    {
-      name: "Surface Laptop Studio",
-      size: { x: 2400, y: 1600 },
-      category: "Tablet",
-    },
+    { name: "Google Pixel 9 Pro XL / 8 Pro / 7 Pro", size: { x: 1344, y: 2992 }, category: "Google Pixel" },
+    { name: "Google Pixel 9 Pro", size: { x: 1280, y: 2856 }, category: "Google Pixel" },
+    { name: "Google Pixel 9", size: { x: 1080, y: 2424 }, category: "Google Pixel" },
+    { name: "Google Pixel 8 / 7", size: { x: 1080, y: 2400 }, category: "Google Pixel" },
+    { name: "Google Pixel 8a / 7a", size: { x: 1080, y: 2400 }, category: "Google Pixel" },
+    { name: "Google Pixel Fold / 9 Pro Fold (Inner)", size: { x: 1840, y: 2208 }, category: "Google Pixel" },
+    { name: "Google Pixel Fold / 9 Pro Fold (Cover)", size: { x: 1080, y: 2092 }, category: "Google Pixel" },
+    
+    // === ANDROID PHONES ===
+    { name: "OnePlus 13 / 12", size: { x: 1440, y: 3216 }, category: "Android" },
+    { name: "OnePlus Open (Inner)", size: { x: 1916, y: 2156 }, category: "Android" },
+    { name: "Xiaomi 15 Pro / 14 Pro", size: { x: 1440, y: 3200 }, category: "Android" },
+    { name: "Nothing Phone 2 / 2a", size: { x: 1080, y: 2412 }, category: "Android" },
+    { name: "OnePlus Nord 4 / 3", size: { x: 1080, y: 2412 }, category: "Android" },
+    { name: "ASUS ROG Phone 9 / 8", size: { x: 1080, y: 2448 }, category: "Android" },
+    { name: "Motorola Edge 50 / 40", size: { x: 1080, y: 2400 }, category: "Android" },
+    
+    // === IPADS ===
+    { name: "iPad Pro 13\" (M4)", size: { x: 2064, y: 2752 }, category: "iPad" },
+    { name: "iPad Pro 12.9\"", size: { x: 2048, y: 2732 }, category: "iPad" },
+    { name: "iPad Air 13\"", size: { x: 2048, y: 2732 }, category: "iPad" },
+    { name: "iPad Pro 11\" (M4)", size: { x: 1668, y: 2420 }, category: "iPad" },
+    { name: "iPad Pro 11\"", size: { x: 1668, y: 2388 }, category: "iPad" },
+    { name: "iPad Air 11\"", size: { x: 1668, y: 2388 }, category: "iPad" },
+    { name: "iPad 10.9\"", size: { x: 1640, y: 2360 }, category: "iPad" },
+    { name: "iPad 10.2\"", size: { x: 1620, y: 2160 }, category: "iPad" },
+    { name: "iPad Mini 8.3\"", size: { x: 1488, y: 2266 }, category: "iPad" },
+    
+    // === ANDROID TABLETS ===
+    { name: "Samsung Galaxy Tab S10 Ultra / S9 Ultra", size: { x: 1848, y: 2960 }, category: "Tablet" },
+    { name: "Samsung Galaxy Tab S10+ / S9+", size: { x: 1752, y: 2800 }, category: "Tablet" },
+    { name: "Samsung Galaxy Tab S9 / S8", size: { x: 1600, y: 2560 }, category: "Tablet" },
+    { name: "Google Pixel Tablet", size: { x: 1600, y: 2560 }, category: "Tablet" },
+    { name: "OnePlus Pad", size: { x: 1600, y: 2560 }, category: "Tablet" },
+    
+    // === DESKTOP MONITORS ===
+    { name: "Desktop 4K", size: { x: 3840, y: 2160 }, category: "Desktop" },
+    { name: "Desktop QHD", size: { x: 2560, y: 1440 }, category: "Desktop" },
+    { name: "Desktop Full HD", size: { x: 1920, y: 1080 }, category: "Desktop" },
+    { name: "Desktop HD", size: { x: 1366, y: 768 }, category: "Desktop" },
+    
+    // === LAPTOPS ===
+    { name: "MacBook Pro 16\"", size: { x: 3456, y: 2234 }, category: "Laptop" },
+    { name: "MacBook Pro 14\"", size: { x: 3024, y: 1964 }, category: "Laptop" },
+    { name: "MacBook Air 15\"", size: { x: 2880, y: 1864 }, category: "Laptop" },
+    { name: "MacBook Air 13\"", size: { x: 2560, y: 1664 }, category: "Laptop" },
+    { name: "Dell XPS 15 / 16", size: { x: 3456, y: 2160 }, category: "Laptop" },
+    { name: "ThinkPad X1 Carbon", size: { x: 2560, y: 1600 }, category: "Laptop" },
+    { name: "Surface Laptop Studio", size: { x: 2400, y: 1600 }, category: "Laptop" },
   ];
 
   const updateDevice = (deviceInfo) => {
@@ -282,10 +151,10 @@ function DeviceTypeSelector() {
   ];
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      <div className="flex-shrink-0 mb-3 p-3.5 bg-black/5 dark:bg-black/15">
-        <h3 className="mb-2">Current Device</h3>
-        <div className="flex text-[var(--text-secondary)] justify-between w-full h-fit gap-x-3 whitespace-nowrap">
+    <div className={`h-full flex flex-col overflow-hidden ${isMobile ? "text-xs" : "text-sm"}`}>
+      <div className={`flex-shrink-0 bg-black/5 dark:bg-black/15 ${isMobile ? "pb-2 pt-3.5 px-3 mb-1" : "p-3.5 mb-3"}`}>
+        <h3 className={`${isMobile ? "mb-1" : "mb-2"}`}>Current Device</h3>
+        <div className={`flex text-[var(--text-secondary)] justify-between w-full h-fit gap-x-3 whitespace-nowrap `}>
           <span className="truncate">{device.type}</span>
           <span className="font-thin italic">
             ({device.size.x} × {device.size.y})
@@ -293,7 +162,7 @@ function DeviceTypeSelector() {
         </div>
       </div>
 
-      <div className="flex-shrink-0 flex justify-between items-center pb-3 px-3.5">
+      <div className={`flex-shrink-0 flex justify-between items-center ${isMobile ? "py-0.5 px-3 mb-1" : "p-3.5 mb-3"}`}>
         <h2>Select Device</h2>
         {!showCustomSizeInput && (
           <Plus
@@ -304,7 +173,7 @@ function DeviceTypeSelector() {
         )}
       </div>
 
-      <div className="flex-shrink-0 pb-5 px-2">
+      <div className={`flex-shrink-0 ${isMobile ? "pb-2.5 px-2" : "pb-5 px-2"}`}>
         <div className="relative">
           <svg
             className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--text-secondary)]/50"
@@ -345,7 +214,7 @@ function DeviceTypeSelector() {
       </div>
 
       {showCustomSizeInput && (
-        <div className="flex-shrink-0 mb-5 p-2 mx-2.5 border border-[var(--border-color)]/50 rounded-lg  bg-black/5 dark:bg-black/15">
+        <div className={`flex-shrink-0 border border-[var(--border-color)]/50 rounded-lg  bg-black/5 dark:bg-black/15 ${isMobile ? "mx-2.5 p-2 mb-3" :"p-2 mx-2.5 mb-5"}`}>
           <div className="flex flex-col gap-1">
             <h3 className="text-[var(--text-primary)]/75 px-0.5 !mb-1">
               Custom Dimensions
@@ -356,7 +225,7 @@ function DeviceTypeSelector() {
                 placeholder="Width"
                 value={customWidth}
                 onChange={(e) => setCustomWidth(e.target.value)}
-                className="flex-1 min-w-0 px-2 py-1 text-xs border border-[var(--border-color)]/25 rounded bg-[var(--bg-main)]"
+                className={`flex-1 min-w-0 ${isMobile ? "px-1 py-0.5" : "px-2 py-1"} text-xs border border-[var(--border-color)]/25 rounded bg-[var(--bg-main)]`}
               />
               <span className="text-xs text- flex items-center">×</span>
               <input
@@ -364,19 +233,19 @@ function DeviceTypeSelector() {
                 placeholder="Height"
                 value={customHeight}
                 onChange={(e) => setCustomHeight(e.target.value)}
-                className="flex-1 min-w-0 px-2 py-1 text-xs border border-[var(--border-color)]/25 rounded bg-[var(--bg-main)]"
+                className={`flex-1 min-w-0 ${isMobile ? "px-1 py-0.5" : "px-2 py-1"} text-xs border border-[var(--border-color)]/25 rounded bg-[var(--bg-main)]`}
               />
             </div>
             <div className="flex gap-2 text-xs ">
               <button
                 onClick={handleCustomSizeSubmit}
-                className="flex-1 px-2 py-1 bg-[var(--accent)] text-white rounded  hover:cursor-pointer hover:bg-[var(--accent)]/75"
+                className={`flex-1 ${isMobile ? "px-1 py-0.5" : "px-2 py-1"} bg-[var(--accent)] text-white rounded  hover:cursor-pointer hover:bg-[var(--accent)]/75`}
               >
                 Apply
               </button>
               <button
                 onClick={handleCustomSizeCancel}
-                className="flex-1 px-2 py-1 bg-[var(--border-color)] hover:bg-[var(--border-color)]/75 hover:cursor-pointer text-[var(--text-primary)] rounded hover:bg-gray-300 dark:bg-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-600"
+                className={`flex-1 ${isMobile ? "px-1 py-0.5" : "px-2 py-1"} bg-[var(--border-color)] hover:bg-[var(--border-color)]/75 hover:cursor-pointer text-[var(--text-primary)] rounded hover:bg-gray-300 dark:bg-neutral-700 dark:text-neutral-200 dark:hover:bg-neutral-600`}
               >
                 Cancel
               </button>
@@ -385,7 +254,7 @@ function DeviceTypeSelector() {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto min-h-0">
+      <div className="flex-1 overflow-y-scroll min-h-0">
         <div className="space-y-4 h-full">
           {categoryOrder.map((category) => {
             const devices = devicesByCategory[category];
