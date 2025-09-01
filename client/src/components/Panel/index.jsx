@@ -180,7 +180,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
         id="bottom-panel"
         className={`fixed bottom-0 rounded-t-2xl w-full ${
           !isMobile ? "hidden" : ""
-        } transition-[bottom] duration-350 transform z-100 bg-[var(--bg-main)] shadow-[0_0_10px_0_rgba(0,0,0,0.075)]`}
+        } transition-[bottom] duration-350 transform z-100 bg-[var(--bg-main)] shadow-[0_0_10px_0_rgba(0,0,0,0.225)]`}
         style={{
           bottom: isOpen ? 0 : `-${panelSize.height}px`,
           height: `450px`,

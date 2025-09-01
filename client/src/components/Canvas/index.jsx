@@ -205,16 +205,16 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
             className="flex items-center justify-center pointer-events-auto z-1"
             style={figureStyles}
           >
-            {isLoading ? (
+            {!isLoading ? (
               <div
-                className="bg-gray-300 rounded-[1.25rem] flex"
+                className="bg-[var(--bg-secondary)] rounded-[1.25rem] flex"
                 style={{
                   height: `${previewSize.y}px`,
                   width: `${previewSize.x}px`,
                 }}
               >
                 <div
-                  className="animate-spin m-auto size-12 border-[4px] border-current border-t-transparent text-blue-600 rounded-full dark:text-blue-500"
+                  className="animate-spin m-auto size-12 border-[4px] border-current border-t-transparent text-[var(--accent)] rounded-full "
                   role="status"
                   aria-label="loading"
                 ></div>

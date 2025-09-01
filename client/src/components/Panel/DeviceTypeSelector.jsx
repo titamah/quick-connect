@@ -300,12 +300,12 @@ function DeviceTypeSelector() {
   return (
     <div
       className={`h-full flex flex-col overflow-hidden ${
-        isMobile ? "text-xs" : "text-sm"
+        isMobile ? "text-sm" : "text-sm"
       }`}
     >
       <div
         className={`flex-shrink-0 bg-black/5 dark:bg-black/15 ${
-          isMobile ? "pb-2.5 pt-5 px-3 mb-1" : "p-3.5 mb-3"
+          isMobile ? "pb-2.5 pt-5 px-3 mb-1 rounded-t-2xl" : "p-3.5 mb-3"
         }`}
       >
         <h3 className={`${isMobile ? "mb-1" : "mb-2"}`}>Current Device</h3>

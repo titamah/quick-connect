@@ -8,23 +8,14 @@ export const useStageCalculations = (deviceSize, panelSize, isOpen) => {
   const windowSize = useWindowSize();
 
   return useMemo(() => {
-    let panelX, panelY;
-
-    if (window.innerHeight > 640) {
-      panelX = panelSize.width;
-      panelY = 0;
-    } else {
-      panelX = 0;
-      panelY = panelSize.height;
-    }
+    let panelX = windowSize.width > 768 ? panelSize.width : 0;
+    let panelY = 0;
 
     const availableWidth = isOpen
-      ? STAGE_PADDING * window.innerWidth - panelX
-      : STAGE_PADDING * window.innerWidth;
+      ? STAGE_PADDING * windowSize.width - panelX
+      : STAGE_PADDING * windowSize.width;
 
-    const availableHeight = isOpen
-      ? STAGE_PADDING * (window.innerHeight - panelY - HEADER_HEIGHT)
-      : STAGE_PADDING * (window.innerHeight - HEADER_HEIGHT);
+    const availableHeight = STAGE_PADDING * (windowSize.height - panelY - HEADER_HEIGHT)
 
     const scaleX = availableWidth / deviceSize.x;
     const scaleY = availableHeight / deviceSize.y;

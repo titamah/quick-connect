@@ -28,8 +28,6 @@ export const DeviceProvider = ({ children }) => {
   };
 
   return (
-    <DeviceContext.Provider value={value}>
-      {children}
-    </DeviceContext.Provider>
+    <DeviceContext.Provider value={value}>{children}</DeviceContext.Provider>
   );
 };

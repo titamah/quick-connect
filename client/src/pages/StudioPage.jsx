@@ -6,10 +6,10 @@ import Canvas from "../components/Canvas/index.jsx";
 
 const StudioPage = () => {
   const navigate = useNavigate();
-  const { assignSlot, currentSlotId } = useDevice();
+  const { assignSlot, currentSlotId, isMobile } = useDevice();
   const [isOpen, setIsOpen] = React.useState(true);
   const [panelSize, setPanelSize] = React.useState({
-    width: 450,
+    width: isMobile ? 0 : 450,
     height: 450,
   });
   const wallpaperRef = React.useRef(null);
