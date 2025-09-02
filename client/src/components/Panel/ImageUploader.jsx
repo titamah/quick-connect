@@ -20,6 +20,7 @@ function ImageUploader() {
     libraryInfo,
     updateUploadInfo,
     updateLibraryInfo,
+    isMobile,
   } = useDevice();
 
   const [activeSource, setActiveSource] = useState("Upload");
@@ -240,22 +241,10 @@ function ImageUploader() {
             />
           </span>
         </div>
-        <Resizable
-          height={height}
-          width={Infinity}
-          minConstraints={[0, minMax[0]]}
-          maxConstraints={[Infinity, minMax[1]]}
-          resizeHandles={["s"]}
-          onResize={(e, { size }) => setHeight(size.height)}
-          handle={
-            <div className="absolute h-3 bottom-0 w-full cursor-row-resize translate-y-1 z-1500"></div>
-          }
-        >
           <div
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => e.preventDefault()}
-            style={{ height }}
-            className="w-fill mb-[1.5px] rounded-sm border border-[5px] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)]"
+            className={`${isMobile ? "h-[125px]" : "h-[170.5px]"} w-fill mb-[1.5px] rounded-sm border border-[5px] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)]`}
           >
             {activeSource === "Library" ? (
               <ImageLibrary />
@@ -311,17 +300,16 @@ function ImageUploader() {
                   };
                   input.click();
                 }}
-                className=" rounded-sm h-[170.5px] hover:bg-[var(--border-color)]/50 w-full flex flex-col items-center justify-center text-center text-md p-5 gap-1 relative cursor-pointer"
+                className={`h-full px-1 rounded-sm hover:bg-[var(--border-color)]/50 w-full flex flex-col justify-center items-center text-center text-md gap-1 relative cursor-pointer`}
               >
                 <Upload size={48} />
-                Drop your image here or browse to select a file
+                Drop image here or browse to select a file
                 <span className="text-xs italic text-black/65 dark:text-white/65">
                   Supported formats: JPEG, PNG, GIF, SVG, JPG, WEBP
                 </span>
               </div>
             )}
           </div>
-        </Resizable>
         {(activeSource == "Upload" || background.bg) && (
           <>
             <h4 className="p-1 pt-2"> File Name </h4>

@@ -12,7 +12,7 @@ function Header() {
   };
 
   return (
-    <header className="relative flex w-full h-15 max-md:h-10">
+    <header className="sticky top-0 z-5000 flex w-full h-15 max-md:h-10">
       <nav className={`w-full px-5 flex items-center justify-between !h-full bg-[var(--bg-main)] opacity-100 z-100 border-b border-[var(--border-color)]/50`}>
         <div className="flex items-center">
           <Link
@@ -20,7 +20,7 @@ function Header() {
             className="text-4xl font-black text-[var(--accent)] hover:opacity-80 transition-opacity"
             aria-label="Brand"
           >
-            <h1>
+            <h1 className="!font-[var(--font-rubik-mono)]">
             QRKI
             </h1>
           </Link>

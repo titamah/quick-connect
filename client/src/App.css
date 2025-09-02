@@ -24,6 +24,7 @@
   /* Fonts */
   --font-slab: "Roboto Slab", serif;
   --font-rubik: "Rubik", sans-serif;
+  --font-rubik-mono: "Rubik Mono One", sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -41,6 +42,15 @@
     --hover-bg: rgba(252, 101, 36, 0.15);
     --active-bg: rgba(252, 101, 36, 0.2);
   }
+}
+.rubik{
+  font-family: var(--font-rubik);
+}
+.slab{
+  font-family: var(--font-slab);
+}
+.rubik-mono{
+  font-family: var(--font-rubik-mono);
 }
 
 h5 {
@@ -78,6 +88,7 @@ h2 {
 h1 {
   font-family: var(--font-rubik);
 }
+
 
 @media screen and (max-width: 768px) {
   .ant-tabs-nav-list {

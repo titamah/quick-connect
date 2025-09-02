@@ -205,7 +205,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
             className="flex items-center justify-center pointer-events-auto z-1"
             style={figureStyles}
           >
-            {!isLoading ? (
+            {isLoading ? (
               <div
                 className="bg-[var(--bg-secondary)] rounded-[1.25rem] flex"
                 style={{

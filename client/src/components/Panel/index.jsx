@@ -46,9 +46,13 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
     setIsOpen(!isOpen);
   };
 
-  useEffect(() => {
-    console.log("IS OPEN?", isOpen, panelSize);
-  }, [isOpen]);
+  const handleTabClick = (key) => {
+    if (key === 1 || key === 2) {
+      setPanelSize({ ...panelSize, height: 450 });
+    } else if (key === 3) {
+      setPanelSize({ ...panelSize, height: 375 });
+    }
+  };
 
   const items = [
     {
@@ -58,7 +62,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
     },
     {
       key: "2",
-      label: <QrCode className="size-7.5" />,
+      label: <QrCode   className="size-7.5" />,
       children: <QRGenerator panelSize={panelSize} />,
     },
     {
@@ -182,8 +186,8 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
           !isMobile ? "hidden" : ""
         } transition-[bottom] duration-350 transform z-100 bg-[var(--bg-main)] shadow-[0_0_10px_0_rgba(0,0,0,0.225)]`}
         style={{
-          bottom: isOpen ? 0 : `-${panelSize.height}px`,
-          height: `450px`,
+          bottom: isOpen ? 0 : `${panelSize.height * -1}px`,
+          height: `${panelSize.height}px`,
         }}
         role="dialog"
         aria-labelledby="hs-offcanvas-example-label"
@@ -218,6 +222,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
               onTabClick={(key) => {
                 setActiveTab(key);
               }}
+              tabBarStyle={{backgroundColor: "var(--bg-main)"}}
               centered
               size="small"
               tabPosition="bottom"
