@@ -8,7 +8,7 @@ import Canvas from "../components/Canvas/index.jsx";
 const StudioPage = () => {
   const navigate = useNavigate();
 
-  const { assignSlot, currentSlotId, isMobile } = useDevice();
+  const { isMobile } = useDevice();
 
   const wallpaperRef = React.useRef(null);
 
@@ -36,20 +36,6 @@ const StudioPage = () => {
     }
   }, [windowSize.width, breakpoint, panelSize.width]);
 
-  // Assign a slot when the studio loads (if not already assigned)
-  useEffect(() => {
-    if (!currentSlotId) {
-      assignSlot().catch((error) => {
-        console.error("Failed to assign slot:", error);
-        // If we can't assign a slot (storage full), redirect back to start page
-        if (error.message.includes("Maximum designs reached")) {
-          alert("Storage is full. Please delete a design to continue.");
-          navigate("/start-design");
-        }
-      });
-    }
-  }, [currentSlotId, assignSlot]);
-
   // Request fullscreen when Studio page loads on mobile
   useEffect(() => {
     const requestFullscreen = () => {
@@ -75,8 +61,6 @@ const StudioPage = () => {
       {/* Debug panel - remove this in production */}
       {process.env.NODE_ENV === 'development' && (
         <div className="fixed top-20 left-4 z-50 bg-black/80 text-white p-3 rounded-lg text-xs">
-          <div>Slot: {currentSlotId || 'None'}</div>
-          <div>Auto-save: {currentSlotId ? 'Active' : 'Inactive'}</div>
           <div>Breakpoint: {breakpoint || 'Initializing...'}</div>
           <div>Window: {windowSize.width}px</div>
           <div>Panel: {panelSize.width}px</div>
