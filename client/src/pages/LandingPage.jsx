@@ -48,17 +48,17 @@ const LandingPage = () => {
         </div>
 
         <div className="flex flex-col h-full w-fit max-w-[515px] items-start justify-center gap-[25px] relative">
-          <text className="relative self-stretch w-full slab font-black text-[#001d28] text-5xl">
+          <text className="relative self-stretch w-full slab font-black text-[#001d28] sm:text-6xl text-5xl">
             Make Custom Qr Code Wallpapers
           </text>
 
-          <p className="relative w-full rubik font-medium text-neutral-900 text-2xl tracking-[0] leading-[normal]">
+          <p className="relative w-full rubik font-medium text-neutral-900 text-xl sm:text-2xl tracking-[0] leading-[normal]">
             Turn your lock screen into your superpower. Custom wallpapers with
             QR codes that are actually you - no unlock needed, just connection.
           </p>
 
           <button className="inline-flex items-center justify-center gap-2.5 p-[12px] relative flex-[0_0_auto] bg-[var(--brand-green)] rounded-[75px] border-[0.5px] border-solid border-neutral-900 hover:opacity-90 transition-opacity">
-            <span className="relative w-fit font-normal text-neutral-900 text-lg tracking-[0] leading-[normal] whitespace-nowrap">
+            <span className="relative w-fit font-normal text-neutral-900 text-md sm:text-lg tracking-[0] leading-[normal] whitespace-nowrap">
               START QREATING
             </span>
           </button>
@@ -112,7 +112,7 @@ const LandingPage = () => {
           </p>
 
           <button className="inline-flex items-center justify-center gap-2.5 p-[12px] relative flex-[0_0_auto] bg-[var(--brand-green)] rounded-[75px] border-[0.5px] border-solid border-neutral-900 hover:opacity-90 transition-opacity">
-            <span className="relative w-fit font-normal text-neutral-900 text-lg tracking-[0] leading-[normal] whitespace-nowrap">
+            <span className="relative w-fit font-normal text-neutral-900 text-md sm:text-lg tracking-[0] leading-[normal] whitespace-nowrap">
               START QREATING
             </span>
           </button>
