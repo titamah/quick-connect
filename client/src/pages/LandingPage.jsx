@@ -36,12 +36,12 @@ const LandingPage = () => {
   ];
 
   return (
-    <main className="flex flex-col h-fit w-[100vw] overflow-x-hidden items-start relative bg-[#f5f3e9]">
+    <main className="flex flex-col h-fit w-[100vw] overflow-x-hidden overflow-y-auto items-start relative bg-[var(--bg-main)]">
       
 
       <section className="flex z-2 flex-row flex-wrap-reverse h-fit min-h-[80vh] w-full items-center justify-center space-y-[15px] gap-[25px] px-[50px] pb-[50px] pt-[50px] relative self-stretch bg-[var(--brand-orange)] rounded-[0px_0px_50px_50px] sm:rounded-[0px_0px_90px_90px]">
         <div
-          className={` ${isMobile ? "hidden" : ""} relative max-w-[450px] w-full aspect-[1] !bg-pink-500"`}
+          className={` ${isMobile ? "hidden" : ""} relative max-w-[450px] w-full aspect-[1] !bg-pink-500`}
           alt="Custom QR code wallpaper example showing a phone with a personalized QR code design"
           // src={image3}
         >
@@ -73,7 +73,7 @@ const LandingPage = () => {
       
       <section className="flex flex-col mt-[50px] h-fit min-h-[90vh] items-center justify-center w-full gap-[35px] p-[25px] sm:p-[50px] relative !space-y-[50px]">
         {/* <div className="h-full"> */}
-           <p className=" flex-shrink-0 relative w-full max-w-[1200px] mx-auto slab font-black text-[#001d28] self-start sm:text-6xl text-5xl tracking-[0] leading-[normal] whitespace-nowrap">
+           <p className=" flex-shrink-0 relative w-full max-w-[1200px] mx-auto slab font-black text-[var(--text-secondary)] self-start sm:text-6xl text-5xl tracking-[0] leading-[normal] whitespace-nowrap">
             How It Works
           </p>
           <span className="flex-wrap gap-[15px] max-w-[1200px] h-full mx-auto w-full flex relative grow">
@@ -104,7 +104,7 @@ const LandingPage = () => {
         {/* </div> */}
       </section>
       
-      <section className="flex flex-wrap mt-[150px] justify-center gap-[102px_102px] px-5 py-[150px] self-stretch w-full h-fit min-h-[90vh] flex-[0_0_auto] bg-[#001d28] rounded-[50px_50px_0px_0px] sm:rounded-[0px_90px_0px_0px] items-center relative">
+      <section className="flex flex-wrap mt-[150px] justify-center gap-[102px_102px] px-5 py-[150px] self-stretch w-full h-fit min-h-[90vh] flex-[0_0_auto] bg-[#001d28] rounded-[50px_50px_0px_0px] sm:rounded-[90px_90px_0px_0px] items-center relative">
         <div className="inline-flex flex-col items-center justify-center gap-[75px] px-[33px] py-0 relative flex-[0_0_auto]">
           <p className={`relative w-full tracking-tighter max-w-[385px] sm:max-w-[555px] md:max-w-[653px] rubik-mono font-normal text-white text-3xl sm:text-4xl md:text-5xl text-justify tracking-[0] leading-[normal]`}>
             Because business cards get lost and you're way more interesting than

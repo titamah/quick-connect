@@ -161,6 +161,106 @@ export const templates = [
       crop: null,
     },
   },
+  {
+    id: "template_4",
+    name: "Dark Mode QR", 
+    description: "Dark theme with accent colors",
+    deviceInfo: {
+      name: "Dark Mode QR Design",
+      type: "iPhone 15 Pro Max",
+      size: { x: 1290, y: 2796 },
+    },
+    background: {
+      style: "solid",
+      color: "#1A1A1A",
+      bg: null,
+      gradient: {
+        type: "linear",
+        stops: [0, "rgb(26, 26, 26)", 1, "rgb(26, 26, 26)"],
+        angle: 0,
+        pos: { x: 0.5, y: 0.5 },
+      },
+      grain: true,
+    },
+    qrConfig: {
+      url: "https://darkmode.com",
+      custom: {
+        primaryColor: "#00FF88",
+        secondaryColor: "#1A1A1A",
+        borderSizeRatio: 0.05,
+        borderColor: "#00FF88",
+        cornerRadiusRatio: 0.15,
+      },
+      positionPercentages: {
+        x: 0.5,
+        y: 0.6,
+      },
+      rotation: -10,
+    },
+    imagePalette: [],
+    uploadInfo: {
+      filename: null,
+      originalImageData: null,
+      croppedImageData: null,
+      crop: null,
+    },
+    libraryInfo: {
+      selectedImageId: null,
+      originalImageData: null,
+      croppedImageData: null,
+      crop: null,
+    },
+  },
+  {
+    id: "template_5",
+    name: "Dark Mode QR", 
+    description: "Dark theme with accent colors",
+    deviceInfo: {
+      name: "Dark Mode QR Design",
+      type: "iPhone 15 Pro Max",
+      size: { x: 1290, y: 2796 },
+    },
+    background: {
+      style: "solid",
+      color: "#1A1A1A",
+      bg: null,
+      gradient: {
+        type: "linear",
+        stops: [0, "rgb(26, 26, 26)", 1, "rgb(26, 26, 26)"],
+        angle: 0,
+        pos: { x: 0.5, y: 0.5 },
+      },
+      grain: true,
+    },
+    qrConfig: {
+      url: "https://darkmode.com",
+      custom: {
+        primaryColor: "#00FF88",
+        secondaryColor: "#1A1A1A",
+        borderSizeRatio: 0.05,
+        borderColor: "#00FF88",
+        cornerRadiusRatio: 0.15,
+      },
+      positionPercentages: {
+        x: 0.5,
+        y: 0.6,
+      },
+      rotation: -10,
+    },
+    imagePalette: [],
+    uploadInfo: {
+      filename: null,
+      originalImageData: null,
+      croppedImageData: null,
+      crop: null,
+    },
+    libraryInfo: {
+      selectedImageId: null,
+      originalImageData: null,
+      croppedImageData: null,
+      crop: null,
+    },
+  },
 ];
 
 // Helper function to get a template by ID
