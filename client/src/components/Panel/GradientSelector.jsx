@@ -15,6 +15,9 @@ function GradientSelector() {
 
   const [frozenPreset, setFrozenPreset] = useState(null);
 
+  // Separate processed stops for sorting display/CSS without affecting dragging
+  const [processedStops, setProcessedStops] = useState([]);
+
   const updateGrain = useCallback(
     (grain) => {
       updateBackground({ grain });
@@ -23,6 +26,20 @@ function GradientSelector() {
   );
 
   const [gradientCSS, setGradientCSS] = useState(null);
+
+  // Update processed stops whenever gradient stops change
+  useEffect(() => {
+    const updatedStops = [];
+    for (let i = 0; i < device.gradient.stops.length; i += 2) {
+      updatedStops.push({
+        percent: device.gradient.stops[i] * 100,
+        color: device.gradient.stops[i + 1],
+      });
+    }
+    // Sort for display/CSS purposes only
+    updatedStops.sort((a, b) => a.percent - b.percent);
+    setProcessedStops(updatedStops);
+  }, [device.gradient.stops]);
 
   const updateCSS = () => {
     let css = "";
@@ -34,25 +51,15 @@ function GradientSelector() {
       css = `linear-gradient(${device.gradient.angle}deg,`;
     }
 
-    const stopsCSS = [];
-    for (let i = 0; i < device.gradient.stops.length; i += 2) {
-      const percent = device.gradient.stops[i] * 100;
-      const color = device.gradient.stops[i + 1];
-      stopsCSS.push(`${color} ${percent}%`);
-    }
-
+    // Use processedStops for CSS generation (sorted)
+    const stopsCSS = processedStops.map(({ percent, color }) => `${color} ${percent}%`);
     css += stopsCSS.join(", ") + ")";
     setGradientCSS(css);
   };
 
   useEffect(() => {
     updateCSS();
-  }, [
-    device.gradient.stops,
-    device.gradient.type,
-    device.gradient.angle,
-    device.gradient.pos,
-  ]);
+  }, [processedStops, device.gradient.type, device.gradient.angle, device.gradient.pos]);
 
   const handleClick = (e) => {
     const rect = gradientBar.current.getBoundingClientRect();
@@ -250,15 +257,9 @@ function GradientSelector() {
             onClick={handleClick}
             onTouchStart={handleClick}
             style={{
-              background: `linear-gradient(90deg, ${(() => {
-                const stopsCSS = [];
-                for (let i = 0; i < device.gradient.stops.length; i += 2) {
-                  const percent = device.gradient.stops[i] * 100;
-                  const color = device.gradient.stops[i + 1];
-                  stopsCSS.push(`${color} ${percent}%`);
-                }
-                return stopsCSS.join(", ");
-              })()})`,
+              background: `linear-gradient(90deg, ${processedStops
+                .map(({ color, percent }) => `${color} ${percent}%`)
+                .join(", ")})`,
             }}
           ></div>
           <div className="absolute w-full top-2/3">
@@ -273,7 +274,7 @@ function GradientSelector() {
               }
               return stopsArray.map(({ index, percent, color }) => (
                 <Slider
-                  key={index}
+                  key={index} // Use stable index since we're not reordering the original array
                   id={`gradient-slider-${index}`}
                   index={index}
                   stacked
@@ -305,6 +306,7 @@ function GradientSelector() {
                     const newStops = [...device.gradient.stops];
                     newStops[index * 2] = newPercent;
 
+                    // Real-time update without sorting - allows free dragging
                     updateBackground({
                       gradient: {
                         ...device.gradient,
@@ -313,6 +315,7 @@ function GradientSelector() {
                     });
                   }}
                   onBlur={() => {
+                    // No additional action needed - processedStops handles sorting for display
                     updateBackground({
                       gradient: {
                         ...device.gradient,
