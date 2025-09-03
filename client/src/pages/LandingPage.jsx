@@ -71,9 +71,9 @@ const LandingPage = () => {
         >
         </div>
       
-      <section className="flex flex-col mt-[50px] h-fit min-h-[90vh] items-center justify-center w-full gap-[35px] p-[25px] sm:p-[50px] relative !space-y-[50px]">
+      <section className="flex flex-col mt-[50px] h-fit min-h-[90vh] items-center justify-center w-full  p-[25px] sm:p-[50px] relative space-y-[35px]">
         {/* <div className="h-full"> */}
-           <p className=" flex-shrink-0 relative w-full max-w-[1200px] mx-auto slab font-black text-[var(--text-secondary)] self-start sm:text-6xl text-5xl tracking-[0] leading-[normal] whitespace-nowrap">
+           <p className=" flex-shrink-0 relative w-full max-w-[1200px] mx-auto slab font-black text-[var(--text-secondary)] self-start sm:text-6xl text-4xl tracking-[0] leading-[normal] whitespace-nowrap">
             How It Works
           </p>
           <span className="flex-wrap gap-[15px] max-w-[1200px] h-full mx-auto w-full flex relative grow">
@@ -81,7 +81,7 @@ const LandingPage = () => {
           {howItWorksSteps.map((step) => (
             <article
               key={step.id}
-              className={`flex flex-col min-w-[375px] min-h-[225px] max-h-[600px] items-start self-stretch ${
+              className={`flex flex-col min-w-[375px] min-h-[100px] max-h-[600px] items-start self-stretch ${
                 step.id === 2
                   ? "justify-center"
                   : step.id === 3
@@ -91,11 +91,11 @@ const LandingPage = () => {
                 step.bgColor
               }`}
             >
-              <text className="relative self-stretch mt-[-1.00px] rubik font-black text-[#001d28] text-3xl sm:text-4xl">
+              <text className="relative self-stretch mt-[-1.00px] rubik font-black text-[#001d28] text-2xl sm:text-4xl">
                 {step.title}
               </text>
 
-              <p className="relative self-stretch font-bold text-neutral-900 text-xl sm:text-3xl tracking-[0] leading-[normal]">
+              <p className="relative self-stretch font-bold text-neutral-900 text-lg sm:text-3xl tracking-[0] leading-[normal]">
                 {step.description}
               </p>
             </article>
@@ -104,9 +104,9 @@ const LandingPage = () => {
         {/* </div> */}
       </section>
       
-      <section className="flex flex-wrap mt-[150px] justify-center gap-[102px_102px] px-5 py-[150px] self-stretch w-full h-fit min-h-[90vh] flex-[0_0_auto] bg-[#001d28] rounded-[50px_50px_0px_0px] sm:rounded-[90px_90px_0px_0px] items-center relative">
-        <div className="inline-flex flex-col items-center justify-center gap-[75px] px-[33px] py-0 relative flex-[0_0_auto]">
-          <p className={`relative w-full tracking-tighter max-w-[385px] sm:max-w-[555px] md:max-w-[653px] rubik-mono font-normal text-white text-3xl sm:text-4xl md:text-5xl text-justify tracking-[0] leading-[normal]`}>
+      <section className="flex flex-row flex-wrap mt-[100px] sm:mt-[150px] justify-center gap-[35px] sm:gap-[100px] px-6 py-[75px] sm:py-[150px] self-stretch w-full h-fit min-h-[90vh] flex-[0_0_auto] bg-[#001d28] rounded-[50px_50px_0px_0px] sm:rounded-[90px_90px_0px_0px] items-center relative">
+        <div className="inline-flex flex-col items-center justify-center gap-[35px] sm:gap-[75px] px-[33px] py-0 relative flex-[0_0_auto]">
+          <p className={`relative w-full tracking-tighter max-w-[385px] sm:max-w-[555px] md:max-w-[653px] rubik-mono font-normal text-white text-[30px] sm:text-4xl md:text-5xl text-justify tracking-[0] leading-[normal]`}>
             Because business cards get lost and you're way more interesting than
             a black and white square.
           </p>
