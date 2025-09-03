@@ -19,7 +19,7 @@ function StartDesignPage() {
   const templates = getAllTemplates();
 
   return (
-  <div className="flex flex-col h-fit min-h-[calc(100dvh-40px)] md:min-h-[calc(100dvh-60px)] items-center relative p-3 bg-[var(--bg-main)]">
+  <div className="flex flex-col h-fit min-h-[calc(100dvh-40px)] md:min-h-[calc(100dvh-60px)] items-center relative p-3 bg-[var(--bg-secondary)]">
     <section className="flex flex-col items-center justify-center gap-8 sm:gap-10 relative self-stretch w-full my-auto">
       {/* <span className="flex flex-col items-center justify-center gap-10 relative self-stretch w-full"> */}
       <p className="relative w-fit slab font-black text-3xl sm:text-4xl text-[var(--text-secondary)] text-center tracking-wider [font-variant:small-caps] whitespace-nowrap">

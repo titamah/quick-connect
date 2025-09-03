@@ -11,6 +11,7 @@ const Exporter = forwardRef(({}, ref) => {
     size: 0.5,
     quality: 0.5,
   });
+
   function dataURLtoBlob(dataURL) {
     if (!dataURL) throw new Error("Invalid data URL");
     const arr = dataURL.split(",");
@@ -44,7 +45,7 @@ const Exporter = forwardRef(({}, ref) => {
   }
 
   const exportImage = () => {
-    setExportState(true);
+    setExportState(false);
 
     setTimeout(() => {
       try {

@@ -15,7 +15,7 @@ html, body, #root {
 
   /* Light Mode */
   --bg-main: #ffffff;
-  --bg-secondary: #eef5e9;
+  --bg-secondary: #F5F5EF;
   --contrast: #1e1c1c;
   --contrast-sheer: rgba(30, 28, 28, 0.1);
   --accent: #fc6524;

@@ -1,16 +1,10 @@
 import React from 'react';
 import { useDevice } from '../contexts/DeviceContext';
 import { Link } from 'react-router-dom';
-// import bendito1 from "./bendito-1.png";
-// import image3 from "./image-3.png";
 
 const LandingPage = () => {
   const { isMobile } = useDevice();
-  const navigationItems = [
-    { text: "START QREATING", type: "button" },
-    { text: "ABOUT", type: "link" },
-  ];
-
+  
   const howItWorksSteps = [
     {
       id: 1,
@@ -39,13 +33,12 @@ const LandingPage = () => {
     <main className="flex flex-col h-fit w-[100vw] overflow-x-hidden overflow-y-auto items-start relative bg-[var(--bg-main)]">
       
 
-      <section className="flex z-2 flex-row flex-wrap-reverse h-fit min-h-[80vh] w-full items-center justify-center space-y-[15px] gap-[25px] px-[50px] pb-[50px] pt-[50px] relative self-stretch bg-[var(--brand-orange)] rounded-[0px_0px_50px_50px] sm:rounded-[0px_0px_90px_90px]">
-        <div
-          className={` ${isMobile ? "hidden" : ""} relative max-w-[450px] w-full aspect-[1] !bg-pink-500`}
+      <section className="flex z-2 flex-row flex-wrap h-fit min-h-[80vh] w-full items-center justify-center space-y-[15px] gap-[25px] px-[50px] pb-[50px] pt-[50px] relative self-stretch bg-[var(--brand-orange)] rounded-[0px_0px_50px_50px] sm:rounded-[0px_0px_90px_90px]">
+        <img
+          className={` ${isMobile ? "hidden" : ""} relative max-w-[450px] w-full !bg-pink-500`}
           alt="Custom QR code wallpaper example showing a phone with a personalized QR code design"
-          // src={image3}
-        >
-        </div>
+          src="/MockUp1.png"
+        />
 
         <div className="flex flex-col h-full w-fit max-w-[515px] items-start justify-center gap-[25px] relative">
           <text className="relative self-stretch w-full slab font-black text-[#001d28] sm:text-6xl text-5xl">
@@ -64,12 +57,11 @@ const LandingPage = () => {
           </button>
         </div>
       </section>
-              <div
-          className={` ${isMobile ? "z-1 mt-[-45px]" : "hidden"} w-full aspect-[1] !bg-pink-500`}
+              <img
+          className={` ${isMobile ? "z-1 mt-[-45px]" : "hidden"} w-full !bg-pink-500`}
           alt="Custom QR code wallpaper example showing a phone with a personalized QR code design"
-          // src={image3}
-        >
-        </div>
+          src="/MockUp1.png"
+        />
       
       <section className="flex flex-col mt-[50px] h-fit min-h-[90vh] items-center justify-center w-full  p-[25px] sm:p-[50px] relative space-y-[35px]">
         {/* <div className="h-full"> */}
@@ -118,12 +110,11 @@ const LandingPage = () => {
           </button>
         </div>
 
-        <div
-          className="relative max-w-[450px] w-full aspect-[1] !bg-pink-500"
+        <img
+          className="relative max-w-[450px] w-full !bg-pink-500"
           alt="Phone displaying custom QR code wallpaper in use"
-          // src={image2}
-        >
-        </div>
+          src="/MockUp2.png"
+        />
       </section>
     </main>
   );

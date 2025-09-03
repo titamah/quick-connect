@@ -165,12 +165,11 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
     <div
       className="w-screen h-[calc(100.5%-40px)] top-[39px] right-0 absolute
       overflow-hidden
-          bg-bg-main dark:bg-neutral-900 
+          bg-[var(--bg-main)]
           bg-[image:repeating-linear-gradient(315deg,var(--pattern-fg)_0,var(--pattern-fg)_1px,transparent_0,transparent_50%)] 
           bg-[size:10px_10px] 
           bg-fixed 
-          [--pattern-fg:theme(colors.gray.950/0.05)] 
-          dark:[--pattern-fg:theme(colors.neutral.500/0.1)]
+          [--pattern-fg:var(--bg-secondary)]
           z-0
           pointer-events-auto 
     "
