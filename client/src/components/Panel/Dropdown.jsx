@@ -10,10 +10,10 @@ function Dropdown({ options = [], value, onChange }) {
   };
 
   return (
-    <div className="relative inline-block text-left w-[95px]">
+    <div className="relative inline-block text-left w-[100px]">
       <button
         type="button"
-        className="flex items-center justify-between px-[15px] py-1 border border-black/10 dark:border-white/10 rounded-sm text-sm text-neutral-600 dark:text-neutral-200/75 w-full"
+        className="flex items-center justify-between pl-[10px] pr-[7.25px] py-1 border border-black/10 dark:border-white/10 rounded-sm text-sm text-neutral-600 dark:text-neutral-200/75 w-full"
         onClick={() => setOpen(!open)}
       >
         <span>{value.charAt(0).toUpperCase() + value.slice(1)}</span>

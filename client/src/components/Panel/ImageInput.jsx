@@ -25,7 +25,7 @@ function ImageInput() {
 
   const [activeSource, setActiveSource] = useState("Upload");
   const activeInfo = activeSource === "Upload" ? uploadInfo : generatedInfo;
-  const menuOptions = activeSource !== "Upload" ? ["Upload"] : ["Library"];
+  const menuOptions = activeSource !== "Upload" ? ["Upload"] : ["Generate"];
 
   const [modalOpen, setModalOpen] = useState(false);
   const [crop, setCrop] = useState();
