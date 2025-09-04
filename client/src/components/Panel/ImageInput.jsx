@@ -239,6 +239,10 @@ function ImageInput() {
         }}
       >
         <ReactCrop
+          style={{
+            // maxWidth: "75%",
+            maxHeight: "85%",
+          }}
           crop={crop}
           unit="%"
           onChange={(_, percentCrop) => setCrop(percentCrop)}
