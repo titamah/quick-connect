@@ -222,7 +222,7 @@ function ImageGenerator({
 
   return (
     <>
-      <div className="pointer-events-auto relative p-1 h-[200px] w-full mb-[1.5px] rounded-sm border border-[5px] bg-[var(--bg-main)] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)] flex flex-col gap-1.5 relative">
+      <div className="pointer-events-auto relative p-1 h-full w-full mb-[1.5px] rounded-sm border border-[5px] bg-[var(--bg-main)] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)] flex flex-col gap-1.5 relative">
         {/* Loading State */}
         {isGenerating && (
           <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center py-8 text-center z-10">
@@ -295,7 +295,7 @@ function ImageGenerator({
         {/* Generated Image */}
         {currentImage && (
           <div className="space-y-2 h-full">
-            <div className="relative group h-[182px]">
+            <div className="relative group h-[190px]">
               <img
                 src={currentImage.url}
                 alt="Generated background"

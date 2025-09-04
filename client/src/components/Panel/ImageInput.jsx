@@ -85,7 +85,6 @@ function ImageInput() {
       style: "image",
       bg: newActiveInfo.croppedImageData,
     });
-    
   };
 
   useEffect(() => {
@@ -202,7 +201,7 @@ function ImageInput() {
           filename: `ai-generated-${Date.now()}.png`, // Generated filename for AI images
           originalImageData: reader.result,
           croppedImageData: null, // Will be set after cropping
-          crop: null // Will be set after cropping
+          crop: null, // Will be set after cropping
         });
         openModal(); // Opens the crop modal
       };
@@ -220,7 +219,7 @@ function ImageInput() {
         onCancel={closeModal}
         okText="Crop"
         cancelText="Cancel"
-        width={'50vw'}
+        width={"50vw"}
         style={{
           display: "flex",
           alignItems: "center",
@@ -249,7 +248,7 @@ function ImageInput() {
         </ReactCrop>
       </Modal>
 
-      <div className="dark:text-white w-full mb-4">
+      <div className="dark:text-white w-full">
         <div className="flex flex-row items-center justify-between w-full mb-2">
           <Dropdown
             options={menuOptions}
@@ -268,78 +267,85 @@ function ImageInput() {
             />
           </span>
         </div>
-          {/* <div
+        {/* <div
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => e.preventDefault()}
             className={`${isMobile ? "h-[200px]" : "h-[200px]"} w-fill mb-[1.5px] rounded-sm border border-[5px] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)]`}
           > */}
-            {activeInfo.originalImageData ? (
-
+        {activeInfo.originalImageData ? (
           <div
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => e.preventDefault()}
-          className={`${isMobile ? "h-[200px]" : "h-[200px]"} w-fill mb-[1.5px] rounded-sm border border-[5px] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)]`}
-        >
-              <div
-                onDrop={handleChange}
-                className="w-full h-full flex items-center justify-center relative"
-              >
-                <div className="hover absolute inset-0 bg-black/50 flex items-center justify-center transition-opacity">
-                  <Pencil
-                    onClick={openModal}
-                    className="p-2 z-1500 mx-2 cursor-pointer hover:opacity-50"
-                    size={42}
-                  />
-                  <Trash2
-                    onClick={deleteFile}
-                    className="p-2 z-1500 mx-2 cursor-pointer hover:opacity-50"
-                    size={42}
-                  />
-                </div>
-                <img
-                  src={activeInfo.originalImageData || null}
-                  alt="Thumbnail"
-                  style={{
-                    objectFit: "fit",
-                    maxWidth: "100%",
-                    maxHeight: "100%",
-                  }}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => e.preventDefault()}
+            className={`${
+              isMobile ? "h-[200px]" : "h-[200px]"
+            } w-fill mb-[1.5px] rounded-sm border border-[5px] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)]`}
+          >
+            <div
+              onDrop={handleChange}
+              className="w-full h-full flex items-center justify-center relative"
+            >
+              <div className="hover absolute inset-0 bg-black/50 flex items-center justify-center transition-opacity">
+                <Pencil
+                  onClick={openModal}
+                  className="p-2 z-1500 mx-2 cursor-pointer hover:opacity-50"
+                  size={42}
+                />
+                <Trash2
+                  onClick={deleteFile}
+                  className="p-2 z-1500 mx-2 cursor-pointer hover:opacity-50"
+                  size={42}
                 />
               </div>
-              </div>
-            ) : activeSource === "Library" ? (
-              <ImageGenerator 
-                setOriginalFile={setOriginalFile}
-                generatedInfo={generatedInfo}
-                updateGeneratedInfo={updateGeneratedInfo}
+              <img
+                src={activeInfo.originalImageData || null}
+                alt="Thumbnail"
+                style={{
+                  objectFit: "fit",
+                  maxWidth: "100%",
+                  maxHeight: "100%",
+                }}
               />
-            ) : (
-              <ImageUploader 
-                handleChange={handleChange}
-                fileTypes={fileTypes}
-                updateUploadInfo={updateUploadInfo}
-                openModal={openModal}
-              />
-            )}
+            </div>
           </div>
-        { activeInfo.originalImageData && (
-          <div className=" mt-4 space-y-2">
-            <h4 className=""> File Name </h4>
-            <div
-              className="w-fill h-[24px]  px-1.5 py-[2.5px] border border-[var(--border-color)]/50 rounded-sm bg-black/5 dark:bg-black/15 flex items-center justify-between"
-            >
-              <span>
-                {activeInfo.crop
-                  ? activeInfo.filename || "Library image"
-                  : "No image selected"}
-              </span>
-              <span className="flex items-center gap-2">
-              <Pencil onClick={openModal} size={18} className="cursor-pointer hover:opacity-50"/>
-              <Trash2 size={18} onClick={deleteFile} className="cursor-pointer hover:opacity-50"/>
-              </span>
-            </div>{" "}
-          </div>
+        ) : activeSource === "Library" ? (
+          <ImageGenerator
+            setOriginalFile={setOriginalFile}
+            generatedInfo={generatedInfo}
+            updateGeneratedInfo={updateGeneratedInfo}
+          />
+        ) : (
+          <ImageUploader
+            handleChange={handleChange}
+            fileTypes={fileTypes}
+            updateUploadInfo={updateUploadInfo}
+            openModal={openModal}
+          />
         )}
+      </div>
+      {activeInfo.originalImageData && (
+        <div className=" mt-4 space-y-2">
+          <h4 className=""> File Name </h4>
+          <div className="w-fill h-[24px]  px-1.5 py-[2.5px] border border-[var(--border-color)]/50 rounded-sm bg-black/5 dark:bg-black/15 flex items-center justify-between">
+            <span>
+              {activeInfo.crop
+                ? activeInfo.filename || "Library image"
+                : "No image selected"}
+            </span>
+            <span className="flex items-center gap-2">
+              <Pencil
+                onClick={openModal}
+                size={18}
+                className="cursor-pointer hover:opacity-50"
+              />
+              <Trash2
+                size={18}
+                onClick={deleteFile}
+                className="cursor-pointer hover:opacity-50"
+              />
+            </span>
+          </div>{" "}
+        </div>
+      )}
       {/* </div> */}
     </>
   );
