@@ -340,7 +340,7 @@ function ImageGenerator({
 
       {/* Generate/Cancel Button */}
       {!currentImage && (
-        <span className="flex gap-2 items-center mt-5 mb-2.5 ">
+        <span className="flex gap-2 items-center mt-5 ">
           <button
             onClick={() =>
               isGenerating ? cancelGeneration() : generateImage()
@@ -376,7 +376,7 @@ function ImageGenerator({
       )}
       {/* Use This Image Button */}
       {currentImage && (
-        <span className="flex gap-2 items-center mt-5 mb-2.5 ">
+        <span className="flex gap-2 items-center mt-5 ">
           <button
             onClick={() =>
               isGenerating ? cancelGeneration() : useImage(currentImage)
@@ -416,12 +416,18 @@ function ImageGenerator({
           </button>
         </span>
       )}
-      {/* Error State */}
-      {error && (
-        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-          <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
-        </div>
-      )}
+             {/* Error State */}
+       {error && (
+         <div className="relative p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+           <p className="text-xs text-red-600 dark:text-red-400 pr-6">{error}</p>
+           <button
+             onClick={() => setError(null)}
+             className="absolute top-1 right-1 text-red-400 hover:text-red-600 dark:text-red-500 dark:hover:text-red-300"
+           >
+             <X size={12} />
+           </button>
+         </div>
+       )}
     </>
   );
 }
