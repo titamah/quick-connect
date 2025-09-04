@@ -68,11 +68,11 @@ function ImageGenerator({
   };
 
   const vibes = [
-    { id: "professional", name: "Professional"},
-    { id: "creative", name: "Creative"},
-    { id: "abstract", name: "Abstract"},
-    { id: "minimalist", name: "Minimalist"},
-    { id: "nature", name: "Nature"},
+    { id: "professional", name: "Professional" },
+    { id: "creative", name: "Creative" },
+    { id: "abstract", name: "Abstract" },
+    { id: "minimalist", name: "Minimalist" },
+    { id: "nature", name: "Nature" },
   ];
 
   const buildPrompt = (userPrompt, vibe) => {
@@ -173,13 +173,13 @@ function ImageGenerator({
 
       // Add to history (limit to last 5)
       if (!isRegenerate) {
-        setImageHistory((prev) => [newImage, ...prev.slice(0, 4)]);
-        setCurrentImageIndex(0); // New image is always at index 0
+        setImageHistory((prev) => [...prev.slice(-4), newImage]);
+        setCurrentImageIndex(imageHistory.length); // New image is at the end
         setGenerationCount((prev) => prev + 1);
         setLastGenerationDate(new Date().toDateString());
       } else {
         // Replace current in history
-        setImageHistory((prev) => [newImage, ...prev.slice(1)]);
+        setImageHistory((prev) => [...prev.slice(0, -1), newImage]);
       }
     } catch (err) {
       if (err.name === "AbortError") {
@@ -222,25 +222,27 @@ function ImageGenerator({
 
   return (
     <>
-      <div className="pointer-events-auto relative p-1 h-[200px] w-full mb-[1.5px] rounded-sm border border-[5px] bg-[var(--bg-main)] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)] flex flex-col gap-1.5 overflow-y-hidden relative">
+      <div className="pointer-events-auto relative p-1 h-[200px] w-full mb-[1.5px] rounded-sm border border-[5px] bg-[var(--bg-main)] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)] flex flex-col gap-1.5 relative">
         {/* Loading State */}
         {isGenerating && (
           <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center py-8 text-center z-10">
             <Loader2 className="animate-spin mb-2" size={48} />
           </div>
         )}
-      {/* Generation Counter */}
-      {!currentImage && (
-        <div className="absolute bottom-0 right-0 w-full h-fit text-end">
-          {generationCount < 5 ? (
-            <h4 className="opacity-80 !text-[8px]">Remaining: {5 - generationCount}</h4>
-          ) : (
-            <h4 className="!text-red-500 opacity-80 !text-[8px]">
-              Daily limit reached.
-            </h4>
-          )}
-        </div>
-      )}
+        {/* Generation Counter */}
+        {!currentImage && (
+          <div className="absolute bottom-0 right-0 w-full h-fit text-end">
+            {generationCount < 5 ? (
+              <h4 className="opacity-80 !text-[8px]">
+                {5 - generationCount}/5 left
+              </h4>
+            ) : (
+              <h4 className="!text-red-500 opacity-80 !text-[8px]">
+                Daily limit reached.
+              </h4>
+            )}
+          </div>
+        )}
 
         {!currentImage && (
           <>
@@ -290,26 +292,19 @@ function ImageGenerator({
           </>
         )}
 
-        {/* Error State */}
-        {error && (
-          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-            <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
-          </div>
-        )}
-
         {/* Generated Image */}
         {currentImage && (
           <div className="space-y-2 h-full">
-            <div className="relative group h-[200px]">
+            <div className="relative group h-[182px]">
               <img
                 src={currentImage.url}
                 alt="Generated background"
-                className="w-full h-full object-contain rounded-md cursor-pointer hover:opacity-90 transition-opacity"
+                className="w-full h-full object-contain rounded-md"
                 // onClick={() => useImage(currentImage)}
               />
 
               {/* Navigation Arrows */}
-              {imageHistory.length == 1 && (
+              {imageHistory.length > 1 && (
                 <>
                   <button
                     onClick={(e) => {
@@ -317,7 +312,7 @@ function ImageGenerator({
                       navigateToPrevious();
                     }}
                     disabled={currentImageIndex === 0}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 bg-[var(--contrast-sheer)] hover:bg-[var(--contrast)] text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="absolute cursor-pointer left-0 top-1/2 -translate-y-1/2 bg-[var(--contrast-sheer)] hover:bg-[var(--contrast)]/50 text-white p-1 rounded-full opacity-100 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <ChevronLeft size={18} />
                   </button>
@@ -327,7 +322,7 @@ function ImageGenerator({
                       navigateToNext();
                     }}
                     disabled={currentImageIndex === imageHistory.length - 1}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 bg-[var(--contrast-sheer)] hover:bg-[var(--contrast)] text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="absolute cursor-pointer right-0 top-1/2 -translate-y-1/2 bg-[var(--contrast-sheer)] hover:bg-[var(--contrast)]/50 text-white p-1 rounded-full  opacity-100 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <ChevronRight size={18} />
                   </button>
@@ -338,28 +333,26 @@ function ImageGenerator({
               <div className="absolute top-0 left-0 bg-[var(--contrast-sheer)] text-white text-xs p-2 py-1 rounded-full opacity-80">
                 {currentImageIndex + 1} / {imageHistory.length}
               </div>
-
             </div>
           </div>
         )}
-        
       </div>
 
       {/* Generate/Cancel Button */}
       {!currentImage && (
-        <>
+        <span className="flex gap-2 items-center mt-5 mb-2.5 ">
           <button
             onClick={() =>
               isGenerating ? cancelGeneration() : generateImage()
             }
             disabled={(!prompt.trim() && !selectedVibe) || generationCount >= 5}
-            class={`p-1 mt-5 mb-2.5 inline-flex justify-center items-center gap-2 w-full text-sm  rounded-2xl text-white hover:opacity-80 cursor-pointer opacity-100 hover:opacity-80 transition-opacity duration-200 ease-in-out"
+            class={`p-1 inline-flex justify-center items-center gap-2 w-full text-sm  rounded-2xl text-white hover:opacity-80 cursor-pointer opacity-100 hover:opacity-80 transition-opacity duration-200 ease-in-out"
           ${isGenerating ? "bg-red-500" : "bg-[var(--accent)]"}`}
           >
             {isGenerating ? (
               <>
-                <X size={14} />
                 Cancel
+                <X size={14} />
               </>
             ) : (
               <>
@@ -368,7 +361,18 @@ function ImageGenerator({
               </>
             )}
           </button>
-        </>
+          {history.length > 1 && (
+            <button
+              onClick={() =>
+                setCurrentImage(imageHistory[imageHistory.length - 1])
+              }
+              className="bg-neutral-500 h-fit hover:opacity-80 text-white text-sm p-1.5 rounded-md transition-all cursor-pointer"
+              title="History"
+            >
+              <History size={16} />
+            </button>
+          )}
+        </span>
       )}
       {/* Use This Image Button */}
       {currentImage && (
@@ -396,7 +400,8 @@ function ImageGenerator({
 
           <button
             onClick={() => generateImage(true)}
-            className="bg-neutral-500 h-fit hover:opacity-80 text-white text-sm p-2 rounded-md transition-all"
+            disabled={generationCount >= 5}
+            className="bg-neutral-500 h-fit hover:opacity-80 text-white text-sm p-1.5 rounded-md transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             title="Regenerate"
           >
             <RotateCcw size={16} />
@@ -404,12 +409,18 @@ function ImageGenerator({
 
           <button
             onClick={() => setCurrentImage(null)}
-            className="bg-neutral-500 h-fit hover:opacity-80 text-white text-sm p-2 rounded-md transition-all"
+            className="bg-neutral-500 h-fit hover:opacity-80 text-white text-sm p-1.5 rounded-md transition-all cursor-pointer"
             title="Edit Prompt"
           >
             <Pencil size={16} />
           </button>
         </span>
+      )}
+      {/* Error State */}
+      {error && (
+        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+          <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
+        </div>
       )}
     </>
   );
