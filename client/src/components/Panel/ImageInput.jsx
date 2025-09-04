@@ -61,18 +61,21 @@ function ImageInput() {
 
   const initCrop = (e) => {
     if (!crop) {
-      const { naturalWidth: width, naturalHeight: height } = e.currentTarget;
-      const initialCrop = centerCrop(
-        makeAspectCrop(
-          { unit: "%", width: 90 },
-          device.size.x / device.size.y,
+      // Small delay to ensure modal is fully rendered
+      setTimeout(() => {
+        const { naturalWidth: width, naturalHeight: height } = e.currentTarget;
+        const initialCrop = centerCrop(
+          makeAspectCrop(
+            { unit: "%", width: 90 },
+            device.size.x / device.size.y,
+            width,
+            height
+          ),
           width,
           height
-        ),
-        width,
-        height
-      );
-      setCrop(initialCrop);
+        );
+        setCrop(initialCrop);
+      }, 100);
     }
   };
 
@@ -219,8 +222,6 @@ function ImageInput() {
         onCancel={closeModal}
         okText="Crop"
         cancelText="Cancel"
-        // width={"50vw"}
-        // maxHeight={"60vh"}
         style={{
           paddingLeft: "5vw",
           paddingRight: "5vw",
