@@ -33,7 +33,7 @@ export const useDeviceState = () => {
   const [background, setBackground] = useState({
     style: "solid",
     color: "#FFFFFF",
-    bg: null,
+    bg: "",
     gradient: {
       type: "linear",
       stops: [

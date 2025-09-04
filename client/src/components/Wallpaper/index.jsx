@@ -163,90 +163,98 @@ const Wallpaper = forwardRef(
     const [isCenterX, setIsCenterX] = useState(true);
     const [isCenterY, setIsCenterY] = useState(false);
 
-    const backgroundProps = useMemo(() => {
-      const baseProps = {
-        width:
-          background.style === "image"
-            ? imageSize.scaledWidth
-            : deviceInfo.size.x,
-        height:
-          background.style === "image"
-            ? imageSize.scaledHeight
-            : deviceInfo.size.y,
-        x: background.style === "image" ? imageSize.offsetX : 0,
-        y: background.style === "image" ? imageSize.offsetY : 0,
-      };
+    // Replace the backgroundProps useMemo with this fixed version:
 
-      switch (background.style) {
-        case "solid":
-          return { ...baseProps, fill: background.color };
+const backgroundProps = useMemo(() => {
+  // For image mode, only use imageSize if we actually have an image loaded
+  const useImageSize = background.style === "image" && background.bg && patternImage;
+  
+  const baseProps = {
+    width: useImageSize ? imageSize.scaledWidth : deviceInfo.size.x,
+    height: useImageSize ? imageSize.scaledHeight : deviceInfo.size.y,
+    x: useImageSize ? imageSize.offsetX : 0,
+    y: useImageSize ? imageSize.offsetY : 0,
+  };
 
-        case "gradient":
-          if (background.gradient.type === "linear") {
-            const angleRad = ((background.gradient.angle - 90) * Math.PI) / 180;
-            const dx = Math.cos(angleRad);
-            const dy = Math.sin(angleRad);
+  switch (background.style) {
+    case "solid":
+      return { ...baseProps, fill: background.color };
 
-            const cx = deviceInfo.size.x / 2;
-            const cy = deviceInfo.size.y / 2;
-            const gradientLength =
-              (Math.abs(dx) * deviceInfo.size.x +
-                Math.abs(dy) * deviceInfo.size.y) /
-              2;
+    case "gradient":
+      if (background.gradient.type === "linear") {
+        const angleRad = ((background.gradient.angle - 90) * Math.PI) / 180;
+        const dx = Math.cos(angleRad);
+        const dy = Math.sin(angleRad);
 
-            return {
-              ...baseProps,
-              fillLinearGradientColorStops: background.gradient.stops,
-              fillLinearGradientStartPoint: {
-                x: cx - dx * gradientLength,
-                y: cy - dy * gradientLength,
-              },
-              fillLinearGradientEndPoint: {
-                x: cx + dx * gradientLength,
-                y: cy + dy * gradientLength,
-              },
-            };
-          } else {
-            return {
-              ...baseProps,
-              fillRadialGradientColorStops: background.gradient.stops,
-              fillRadialGradientStartPoint: {
-                x: deviceInfo.size.x * background.gradient.pos.x,
-                y: deviceInfo.size.y * background.gradient.pos.y,
-              },
-              fillRadialGradientEndPoint: {
-                x: deviceInfo.size.x * background.gradient.pos.x,
-                y: deviceInfo.size.y * background.gradient.pos.y,
-              },
-              fillRadialGradientStartRadius: 0,
-              fillRadialGradientEndRadius:
-                Math.max(deviceInfo.size.x, deviceInfo.size.y) / 1.5,
-            };
-          }
+        const cx = deviceInfo.size.x / 2;
+        const cy = deviceInfo.size.y / 2;
+        const gradientLength =
+          (Math.abs(dx) * deviceInfo.size.x +
+            Math.abs(dy) * deviceInfo.size.y) /
+          2;
 
-        case "image":
-          if (background.bg) {
-          return {
-            ...baseProps,
-            fillPatternImage: patternImage,
-            fillPatternScale: imageSize.scaleFactors,
-            fillPatternRepeat: "no-repeat",
-            fillPriority: "pattern",
-          };
-        } else if (transparentImage && !isExporting) {
-          return {
-            ...baseProps,
-            fillPatternImage: transparentImage,
-            // fillPatternScale: imageSize.scaleFactors,
-            fillPatternRepeat: "repeat",
-            fillPriority: "pattern",
-          };
-        }
-
-        default:
-          return baseProps;
+        return {
+          ...baseProps,
+          fillLinearGradientColorStops: background.gradient.stops,
+          fillLinearGradientStartPoint: {
+            x: cx - dx * gradientLength,
+            y: cy - dy * gradientLength,
+          },
+          fillLinearGradientEndPoint: {
+            x: cx + dx * gradientLength,
+            y: cy + dy * gradientLength,
+          },
+        };
+      } else {
+        return {
+          ...baseProps,
+          fillRadialGradientColorStops: background.gradient.stops,
+          fillRadialGradientStartPoint: {
+            x: deviceInfo.size.x * background.gradient.pos.x,
+            y: deviceInfo.size.y * background.gradient.pos.y,
+          },
+          fillRadialGradientEndPoint: {
+            x: deviceInfo.size.x * background.gradient.pos.x,
+            y: deviceInfo.size.y * background.gradient.pos.y,
+          },
+          fillRadialGradientStartRadius: 0,
+          fillRadialGradientEndRadius:
+            Math.max(deviceInfo.size.x, deviceInfo.size.y) / 1.5,
+        };
       }
-    }, [background, deviceInfo.size, imageSize, patternImage, isExporting, transparentImage]);
+
+    case "image":
+      // If we have an actual uploaded/generated image, use it with proper scaling
+      if (background.bg && patternImage) {
+        return {
+          ...baseProps,
+          fillPatternImage: patternImage,
+          fillPatternScale: imageSize.scaleFactors,
+          fillPatternRepeat: "no-repeat",
+          fillPriority: "pattern",
+        };
+      }
+      // If no actual image but we have transparent pattern and not exporting, use it
+      else if (transparentImage && !isExporting) {
+        return {
+          ...baseProps,
+          fillPatternImage: transparentImage,
+          fillPatternRepeat: "repeat",
+          fillPriority: "pattern",
+        };
+      }
+      // Fallback for image mode when no pattern is available yet
+      else {
+        return {
+          ...baseProps,
+          fill: "#f0f0f0", // Light gray placeholder
+        };
+      }
+
+    default:
+      return baseProps;
+  }
+}, [background, deviceInfo.size, imageSize, patternImage, isExporting, transparentImage]);
 
     const handleDragMove = useCallback(
       (e) => {
@@ -574,6 +582,8 @@ const Wallpaper = forwardRef(
       };
     }, [showPhoneUI, isHovered, isDragging]);
 
+
+    
     return (
       <>
         <div
