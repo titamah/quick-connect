@@ -98,7 +98,7 @@ function ImageGenerator({
     return basePrompt;
   };
 
-  const generateImage = async (isRegenerate = false) => {
+  const generateImage = async () => {
     if (!API_CONFIG.FAL_API_KEY) {
       setError("AI generation not configured. Add your Fal API key.");
       return;
@@ -171,16 +171,11 @@ function ImageGenerator({
 
       setCurrentImage(newImage);
 
-      // Add to history (limit to last 5)
-      if (!isRegenerate) {
-        setImageHistory((prev) => [...prev.slice(-4), newImage]);
-        setCurrentImageIndex(imageHistory.length); // New image is at the end
-        setGenerationCount((prev) => prev + 1);
-        setLastGenerationDate(new Date().toDateString());
-      } else {
-        // Replace current in history
-        setImageHistory((prev) => [...prev.slice(0, -1), newImage]);
-      }
+      setImageHistory((prev) => [...prev.slice(-4), newImage]);
+      setCurrentImageIndex(imageHistory.length); // New image is at the end
+      setGenerationCount((prev) => prev + 1);
+      setLastGenerationDate(new Date().toDateString());
+
     } catch (err) {
       if (err.name === "AbortError") {
         console.log("Generation cancelled");
@@ -399,7 +394,7 @@ function ImageGenerator({
           </button>
 
           <button
-            onClick={() => generateImage(true)}
+            onClick={() => generateImage()}
             disabled={generationCount >= 5}
             className="bg-neutral-500 h-fit hover:opacity-80 text-white text-sm p-1.5 rounded-md transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             title="Regenerate"
@@ -416,18 +411,18 @@ function ImageGenerator({
           </button>
         </span>
       )}
-             {/* Error State */}
-       {error && (
-         <div className="relative p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-           <p className="text-xs text-red-600 dark:text-red-400 pr-6">{error}</p>
-           <button
-             onClick={() => setError(null)}
-             className="absolute top-1 right-1 text-red-400 hover:text-red-600 dark:text-red-500 dark:hover:text-red-300"
-           >
-             <X size={12} />
-           </button>
-         </div>
-       )}
+      {/* Error State */}
+      {error && (
+        <div className="relative p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+          <p className="text-xs text-red-600 dark:text-red-400 pr-6">{error}</p>
+          <button
+            onClick={() => setError(null)}
+            className="absolute top-1 right-1 text-red-400 hover:text-red-600 dark:text-red-500 dark:hover:text-red-300"
+          >
+            <X size={12} />
+          </button>
+        </div>
+      )}
     </>
   );
 }
