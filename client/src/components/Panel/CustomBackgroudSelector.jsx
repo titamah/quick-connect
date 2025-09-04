@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
-import ImageUploader from "./ImageUploader";
+import ImageInput from "./ImageInput";
 import ColorSelector from "./ColorSelector";
 import GradientSelector from "./GradientSelector";
 
 const BACKGROUND_TYPES = [
   { id: 1, label: "Solid", style: "solid", component: ColorSelector },
   { id: 2, label: "Gradient", style: "gradient", component: GradientSelector },
-  { id: 3, label: "Image", style: "image", component: ImageUploader },
+  { id: 3, label: "Image", style: "image", component: ImageInput },
 ];
 
 function CustomBackgroundSelector({ panelSize }) {

@@ -245,15 +245,15 @@ function GradientSelector() {
           />
         </span>
       </div>
-      <div className="react-colorful space-y-1 !w-full">
+      <div className="space-y-1 !w-full">
         <div
           className="react-colorful__saturation !w-full !border-radius-[4px] !border-[5px] !border-white dark:!border-[rgba(38,38,38,1)] !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)]"
           style={{ background: gradientCSS }}
         />
-        <div className="relative h-3">
+        <div className="relative mt-[12px]">
           <div
             ref={gradientBar}
-            className="w-full h-3 rounded-full cursor-pointer relative react-colorful__hue"
+            className="w-full rounded-full  cursor-pointer relative react-colorful__hue"
             onClick={handleClick}
             onTouchStart={handleClick}
             style={{
@@ -262,7 +262,7 @@ function GradientSelector() {
                 .join(", ")})`,
             }}
           ></div>
-          <div className="absolute w-full top-2/3">
+          <div className="absolute w-full top-[0]">
             {(() => {
               const stopsArray = [];
               for (let i = 0; i < device.gradient.stops.length; i += 2) {
@@ -350,7 +350,7 @@ function GradientSelector() {
       </div>
       <div className="flex flex-row items-center justify-center w-full space-x-1">
         {device.gradient.type === "linear" ? (
-          <div className="w-full my-4 space-y-2">
+          <div className="w-full mt-4 space-y-2">
             <h4> Angle </h4>
             <AngleInput
               type="gradient"
@@ -365,7 +365,7 @@ function GradientSelector() {
             />
           </div>
         ) : (
-          <div className="w-full my-4 space-y-2">
+          <div className="w-full mt-4 space-y-2">
             <h4> Position </h4>
             <PositionInput
               type="gradient"

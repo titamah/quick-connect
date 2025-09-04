@@ -195,7 +195,7 @@ const ColorSelector = ({ panelSize }) => {
     <div
       id="ColorSelectPanel"
       ref={pickerRef}
-      className="dark:text-white w-full h-[290px] space-y-2.5"
+      className="dark:text-white w-full space-y-2.5"
     >
       <div className="flex flex-row items-center justify-between w-full mb-2">
         <input
@@ -220,12 +220,13 @@ const ColorSelector = ({ panelSize }) => {
         </button>
       </div>
       <HexColorPicker
+        id="solid"
         color={background.color}
         onChange={handleColorChange}
         className={`space-y-1 !w-full`}
       />
       {colorBoxes && (
-        <div className="w-full  space-y-2">
+        <div className="w-full mt-4 space-y-2">
           <h4>Active Colors</h4>
           <div className="space-y-1 ">{colorBoxes}</div>
         </div>

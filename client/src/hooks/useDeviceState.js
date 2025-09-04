@@ -72,8 +72,8 @@ export const useDeviceState = () => {
     crop: null,
   });
 
-  const [libraryInfo, setLibraryInfo] = useState({
-    selectedImageId: null,
+  const [generatedInfo, setGeneratedInfo] = useState({
+    filename: null,
     originalImageData: null,
     croppedImageData: null,
     crop: null,
@@ -143,7 +143,7 @@ export const useDeviceState = () => {
     qrConfig: structuredClone(qrConfig),
     imagePalette: structuredClone(imagePalette),
     uploadInfo: structuredClone(uploadInfo),
-    libraryInfo: structuredClone(libraryInfo),
+    generatedInfo: structuredClone(generatedInfo),
   });
 
   useEffect(() => {
@@ -209,7 +209,7 @@ export const useDeviceState = () => {
     setQRConfig(previousState.state.qrConfig);
     setImagePalette(previousState.state.imagePalette);
     setUploadInfo(previousState.state.uploadInfo);
-    setLibraryInfo(previousState.state.libraryInfo);
+    setGeneratedInfo(previousState.state.generatedInfo);
 
     return true;
   };
@@ -234,7 +234,7 @@ export const useDeviceState = () => {
     setQRConfig(nextState.qrConfig);
     setImagePalette(nextState.imagePalette);
     setUploadInfo(nextState.uploadInfo);
-    setLibraryInfo(nextState.libraryInfo);
+    setGeneratedInfo(nextState.generatedInfo);
 
     return true;
   };
@@ -298,9 +298,9 @@ export const useDeviceState = () => {
     setUploadInfo((prev) => deepMerge(prev, updates));
   };
 
-  const updateLibraryInfo = (updates) => {
-    console.log("🔧 updateLibraryInfo:", updates);
-    setLibraryInfo((prev) => deepMerge(prev, updates));
+  const updateGeneratedInfo = (updates) => {
+    console.log("🔧 updateGeneratedInfo:", updates);
+    setGeneratedInfo((prev) => deepMerge(prev, updates));
   };
 
   // Load template data (for starting with templates)
@@ -311,7 +311,7 @@ export const useDeviceState = () => {
     setQRConfig(templateData.qrConfig);
     setImagePalette(templateData.imagePalette);
     setUploadInfo(templateData.uploadInfo);
-    setLibraryInfo(templateData.libraryInfo);
+    setGeneratedInfo(templateData.generatedInfo);
     
     // Clear history since we're loading new data
     setPast([]);
@@ -335,7 +335,7 @@ export const useDeviceState = () => {
     qrConfig,
     palette,
     uploadInfo,
-    libraryInfo,
+    generatedInfo,
     getPaletteExcluding,
     updateDeviceInfo,
     updateBackground,
@@ -343,7 +343,7 @@ export const useDeviceState = () => {
     updateQRPositionPercentages,
     updateImagePalette,
     updateUploadInfo,
-    updateLibraryInfo,
+    updateGeneratedInfo,
     takeSnapshot,
     undo,
     redo,

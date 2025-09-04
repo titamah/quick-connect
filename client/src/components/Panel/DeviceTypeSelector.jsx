@@ -321,7 +321,7 @@ function DeviceTypeSelector() {
 
       <div
         className={` flex-shrink-0 flex justify-between items-center ${
-          isMobile ? "py-0.5 px-3 mb-1 hidden" : "p-3.5 mb-3"
+          isMobile ? "py-0.5 px-3 mb-1 hidden" : "px-3.5"
         }`}
       >
         <h2>Select Device</h2>
@@ -335,7 +335,7 @@ function DeviceTypeSelector() {
       </div>
 
       <div
-        className={`flex-shrink-0 flex w-full justify-between gap-x-3 ${isMobile ? "pb-2.5 px-2" : "pb-5 px-2"}`}
+        className={`flex-shrink-0 flex w-full justify-between gap-x-3 ${isMobile ? "pb-2.5 px-2" : "pb-2 px-2"}`}
       >
         <div className="relative w-full my-2">
           <svg

@@ -3,7 +3,7 @@ import { useDevice } from "../../contexts/DeviceContext";
 import { Wand2, RotateCcw, History, X, Loader2 } from "lucide-react";
 import { API_CONFIG } from "../../config/api";
 
-function ImageLibrary({ setOriginalFile }) {
+function ImageGenerator({ setOriginalFile, generatedInfo, updateGeneratedInfo }) {
   const { device } = useDevice();
   
   const [prompt, setPrompt] = useState("");
@@ -155,20 +155,22 @@ function ImageLibrary({ setOriginalFile }) {
   };
 
   return (
-    <div className="pb-1 pointer-events-auto pt-2 w-full h-full flex flex-col gap-2 overflow-y-scroll relative">
-      
+    <>
+      <div className="pointer-events-auto p-1 h-[200px] w-full mb-[1.5px] rounded-sm border border-[5px] bg-[var(--bg-main)] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)] flex flex-col gap-1.5 overflow-y-scroll relative">
+
+      <h3 className="px-0.5 ">Prompt</h3>
       {/* Search Input */}
-      <form onSubmit={handleSubmit} className="w-full">
-        <input
-          type="text"
+      <form onSubmit={handleSubmit} className="">
+        <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="Describe your background..."
           disabled={isGenerating}
-          className="dark:text-white text-xs w-[98%] mx-[1px] h-4 mb-2 px-2 rounded-full sticky !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)] disabled:opacity-50"
+          className="text-xs w-full h-20 p-1.5 bg-[var(--bg-main)] rounded-md !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)] disabled:opacity-50 resize-none"
         />
       </form>
 
+      <h3>Styles</h3>
       {/* Vibe Buttons */}
       <div className="flex flex-wrap gap-1 mb-2">
         {vibes.map((vibe) => (
@@ -186,29 +188,6 @@ function ImageLibrary({ setOriginalFile }) {
           </button>
         ))}
       </div>
-
-      {/* Generate/Cancel Button */}
-      <button
-        onClick={() => isGenerating ? cancelGeneration() : generateImage()}
-        disabled={!prompt.trim() && !selectedVibe}
-        className={`flex items-center justify-center gap-2 py-2 px-3 rounded-md text-xs font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-          isGenerating 
-            ? 'bg-red-500 hover:bg-red-600 text-white' 
-            : 'bg-blue-500 hover:bg-blue-600 text-white'
-        }`}
-      >
-        {isGenerating ? (
-          <>
-            <X size={14} />
-            Cancel
-          </>
-        ) : (
-          <>
-            <Wand2 size={14} />
-            Generate
-          </>
-        )}
-      </button>
 
       {/* Loading State */}
       {isGenerating && (
@@ -301,8 +280,31 @@ function ImageLibrary({ setOriginalFile }) {
           <p className="text-xs mt-1">Lightning fast AI generation ⚡</p>
         </div>
       )}
-    </div>
+    </div> 
+    {/* Generate/Cancel Button */}
+      <button
+        onClick={() => isGenerating ? cancelGeneration() : generateImage()}
+        disabled={!prompt.trim() && !selectedVibe}
+        class={`p-1 mt-5 mb-2.5 inline-flex justify-center items-center gap-2 w-full text-sm  rounded-2xl text-white hover:opacity-80 cursor-pointer opacity-100 hover:opacity-80 transition-opacity duration-200 ease-in-out"
+          ${isGenerating 
+            ? 'bg-red-500' 
+            : 'bg-[var(--accent)]'
+        }`}
+      >
+        {isGenerating ? (
+          <>
+            <X size={14} />
+            Cancel
+          </>
+        ) : (
+          <>
+            <Wand2 size={14} />
+            Generate
+          </>
+        )}
+      </button>
+    </>
   );
 }
 
-export default ImageLibrary;
+export default ImageGenerator;

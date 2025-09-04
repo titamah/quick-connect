@@ -45,8 +45,8 @@ export const templates = [
       croppedImageData: null,
       crop: null,
     },
-    libraryInfo: {
-      selectedImageId: null,
+    generatedInfo: {
+      filename: null,
       originalImageData: null,
       croppedImageData: null,
       crop: null,
@@ -104,8 +104,8 @@ export const templates = [
       croppedImageData: null,
       crop: null,
     },
-    libraryInfo: {
-      selectedImageId: null,
+    generatedInfo: {
+      filename: null,
       originalImageData: null,
       croppedImageData: null,
       crop: null,
@@ -154,8 +154,8 @@ export const templates = [
       croppedImageData: null,
       crop: null,
     },
-    libraryInfo: {
-      selectedImageId: null,
+    generatedInfo: {
+      filename: null,
       originalImageData: null,
       croppedImageData: null,
       crop: null,
@@ -204,8 +204,8 @@ export const templates = [
       croppedImageData: null,
       crop: null,
     },
-    libraryInfo: {
-      selectedImageId: null,
+    generatedInfo: {
+      filename: null,
       originalImageData: null,
       croppedImageData: null,
       crop: null,
@@ -254,8 +254,8 @@ export const templates = [
       croppedImageData: null,
       crop: null,
     },
-    libraryInfo: {
-      selectedImageId: null,
+    generatedInfo: {
+      filename: null,
       originalImageData: null,
       croppedImageData: null,
       crop: null,

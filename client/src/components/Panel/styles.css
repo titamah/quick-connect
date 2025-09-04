@@ -2,11 +2,19 @@
   border: inherit !important;
   border-radius: 4px !important;
   box-shadow: inherit !important;
+  height: 180.5px !important;
 }
 .react-colorful__hue {
   border-radius: 4px !important;
   margin-top: 7.5px !important;
   height: 8px !important;
+}
+#solid > .react-colorful__hue{
+  margin-left: 2px !important;
+  margin-right: 2px !important;
+}
+#solid {
+
 }
 
 .react-colorful__pointer {
