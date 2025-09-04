@@ -352,7 +352,7 @@ function ImageGenerator({
               </>
             )}
           </button>
-                     {generationHistory.length > 1 && (
+                     {generationHistory.length > 0 && (
             <button
               onClick={() => {
                 const latestImage = generationHistory[generationHistory.length - 1];

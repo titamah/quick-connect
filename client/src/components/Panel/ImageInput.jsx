@@ -219,8 +219,13 @@ function ImageInput() {
         onCancel={closeModal}
         okText="Crop"
         cancelText="Cancel"
-        width={"50vw"}
+        // width={"50vw"}
+        // maxHeight={"60vh"}
         style={{
+          paddingLeft: "5vw",
+          paddingRight: "5vw",
+          paddingTop: "5vh",
+          paddingBottom: "5vh",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
