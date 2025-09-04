@@ -87,15 +87,6 @@ function ImageInput() {
     });
   };
 
-  useEffect(() => {
-    if (activeSource == "Library") {
-      setMinMax([236, Infinity]);
-      setHeight(236);
-    } else {
-      setMinMax([180.5, 180.5]);
-      setHeight(180.5);
-    }
-  }, [activeSource]);
 
   useEffect(() => {
     if (activeInfo.originalImageData) {
@@ -196,9 +187,15 @@ function ImageInput() {
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        // Since this is for Library/AI images, use generatedInfo
         updateGeneratedInfo({
-          filename: `ai-generated-${Date.now()}.png`, // Generated filename for AI images
+          filename: `${new Date().toLocaleString('en-US', { 
+            month: '2-digit', 
+            day: '2-digit', 
+            year: 'numeric', 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: false 
+          }).replace(/[\/\s,:]/g, '-')}.png`, // Generated filename for AI images
           originalImageData: reader.result,
           croppedImageData: null, // Will be set after cropping
           crop: null, // Will be set after cropping
@@ -307,7 +304,7 @@ function ImageInput() {
               />
             </div>
           </div>
-        ) : activeSource === "Library" ? (
+        ) : activeSource === "Generate" ? (
           <ImageGenerator
             setOriginalFile={setOriginalFile}
             generatedInfo={generatedInfo}
@@ -328,7 +325,7 @@ function ImageInput() {
           <div className="w-fill h-[24px]  px-1.5 py-[2.5px] border border-[var(--border-color)]/50 rounded-sm bg-black/5 dark:bg-black/15 flex items-center justify-between">
             <span>
               {activeInfo.crop
-                ? activeInfo.filename || "Library image"
+                ? activeInfo.filename
                 : "No image selected"}
             </span>
             <span className="flex items-center gap-2">
