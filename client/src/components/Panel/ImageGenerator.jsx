@@ -1,11 +1,25 @@
 import React, { useState, useRef } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
-import { Wand2, RotateCcw, History, X, Loader2 } from "lucide-react";
+import {
+  Pencil,
+  Wand2,
+  RotateCcw,
+  History,
+  X,
+  Loader2,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { API_CONFIG } from "../../config/api";
 
-function ImageGenerator({ setOriginalFile, generatedInfo, updateGeneratedInfo }) {
+function ImageGenerator({
+  setOriginalFile,
+  generatedInfo,
+  updateGeneratedInfo,
+}) {
   const { device } = useDevice();
-  
+
   const [prompt, setPrompt] = useState("");
   const [selectedVibe, setSelectedVibe] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -13,27 +27,64 @@ function ImageGenerator({ setOriginalFile, generatedInfo, updateGeneratedInfo })
   const [currentImage, setCurrentImage] = useState(null);
   const [imageHistory, setImageHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
-  
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [generationCount, setGenerationCount] = useState(0);
+  const [lastGenerationDate, setLastGenerationDate] = useState(null);
+
   const abortControllerRef = useRef(null);
+
+  // Check if user has reached generation limit
+  const checkGenerationLimit = () => {
+    const today = new Date().toDateString();
+    const lastDate = lastGenerationDate
+      ? new Date(lastGenerationDate).toDateString()
+      : null;
+
+    // Reset count if it's a new day
+    if (lastDate !== today) {
+      setGenerationCount(0);
+      setLastGenerationDate(today);
+      return true;
+    }
+
+    return generationCount < 5;
+  };
+
+  // Navigation functions
+  const navigateToPrevious = () => {
+    if (currentImageIndex > 0) {
+      const newIndex = currentImageIndex - 1;
+      setCurrentImageIndex(newIndex);
+      setCurrentImage(imageHistory[newIndex]);
+    }
+  };
+
+  const navigateToNext = () => {
+    if (currentImageIndex < imageHistory.length - 1) {
+      const newIndex = currentImageIndex + 1;
+      setCurrentImageIndex(newIndex);
+      setCurrentImage(imageHistory[newIndex]);
+    }
+  };
 
   const vibes = [
     { id: "professional", name: "Professional", emoji: "💼" },
     { id: "creative", name: "Creative", emoji: "🎨" },
     { id: "minimalist", name: "Minimalist", emoji: "✨" },
     { id: "nature", name: "Nature", emoji: "🌿" },
-    { id: "abstract", name: "Abstract", emoji: "🔮" }
+    { id: "abstract", name: "Abstract", emoji: "🔮" },
   ];
 
   const buildPrompt = (userPrompt, vibe) => {
     let basePrompt = userPrompt || "abstract background";
-    
+
     // Add vibe-specific modifiers
     const vibeModifiers = {
       professional: "professional, clean, corporate, minimal, elegant",
-      creative: "creative, artistic, dynamic, colorful, expressive", 
+      creative: "creative, artistic, dynamic, colorful, expressive",
       minimalist: "minimalist, simple, clean, subtle, refined",
       nature: "natural, organic, nature-inspired, earthy, serene",
-      abstract: "abstract, geometric, flowing, modern, artistic"
+      abstract: "abstract, geometric, flowing, modern, artistic",
     };
 
     if (vibe && vibeModifiers[vibe]) {
@@ -41,8 +92,9 @@ function ImageGenerator({ setOriginalFile, generatedInfo, updateGeneratedInfo })
     }
 
     // Add wallpaper-specific terms
-    basePrompt += ", wallpaper background, high quality, smooth gradients, mobile wallpaper, vertical orientation";
-    
+    basePrompt +=
+      ", wallpaper background, high quality, smooth gradients, mobile wallpaper, vertical orientation";
+
     return basePrompt;
   };
 
@@ -52,75 +104,89 @@ function ImageGenerator({ setOriginalFile, generatedInfo, updateGeneratedInfo })
       return;
     }
 
+    // Check generation limit
+    if (!checkGenerationLimit()) {
+      setError(
+        "You've reached your daily limit of 5 generations. Try again tomorrow!"
+      );
+      return;
+    }
+
     setIsGenerating(true);
     setError(null);
-    
+
     // Create abort controller for cancellation
     abortControllerRef.current = new AbortController();
 
     try {
       const finalPrompt = buildPrompt(prompt, selectedVibe);
-      
+
       // Fal uses different API structure
-      const response = await fetch(`${API_CONFIG.FAL_BASE_URL}/${API_CONFIG.FAL_MODEL}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Key ${API_CONFIG.FAL_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          prompt: finalPrompt,
-          negative_prompt: "text, letters, words, logos, watermarks, people, faces, low quality, blurry, horizontal",
-          image_size: {width: device.size.x, height: device.size.y},
-          // num_inference_steps: 25,
-          // guidance_scale: 7.5,
-          // num_images: 1,
-          // enable_safety_checker: false,
-          seed: Math.floor(Math.random() * 1000000)
-        }),
-        signal: abortControllerRef.current.signal
-      });
+      const response = await fetch(
+        `${API_CONFIG.FAL_BASE_URL}/${API_CONFIG.FAL_MODEL}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Key ${API_CONFIG.FAL_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            prompt: finalPrompt,
+            negative_prompt:
+              "text, letters, words, logos, watermarks, people, faces, low quality, blurry, horizontal",
+            image_size: { width: device.size.x, height: device.size.y },
+            // num_inference_steps: 25,
+            // guidance_scale: 7.5,
+            // num_images: 1,
+            // enable_safety_checker: false,
+            seed: Math.floor(Math.random() * 1000000),
+          }),
+          signal: abortControllerRef.current.signal,
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || 'Generation failed');
+        throw new Error(errorData.detail || "Generation failed");
       }
 
       const data = await response.json();
-      
+
       // Fal returns direct image URLs
       const imageUrl = data.images[0].url;
-      
+
       // Fetch the actual image to create a blob
       const imageResponse = await fetch(imageUrl);
       const blob = await imageResponse.blob();
       const localImageUrl = URL.createObjectURL(blob);
-      
+
       const newImage = {
         id: Date.now(),
         url: localImageUrl,
         blob: blob,
         prompt: finalPrompt,
         vibe: selectedVibe,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       setCurrentImage(newImage);
-      
+
       // Add to history (limit to last 5)
       if (!isRegenerate) {
-        setImageHistory(prev => [newImage, ...prev.slice(0, 4)]);
+        setImageHistory((prev) => [newImage, ...prev.slice(0, 4)]);
+        setCurrentImageIndex(0); // New image is always at index 0
+        setGenerationCount((prev) => prev + 1);
+        setLastGenerationDate(new Date().toDateString());
       } else {
         // Replace current in history
-        setImageHistory(prev => [newImage, ...prev.slice(1)]);
+        setImageHistory((prev) => [newImage, ...prev.slice(1)]);
       }
-
     } catch (err) {
-      if (err.name === 'AbortError') {
-        console.log('Generation cancelled');
+      if (err.name === "AbortError") {
+        console.log("Generation cancelled");
       } else {
         setError("Sorry, generation failed. Please try again later.");
-        console.error('Fal AI Generation Error:', err);
+        console.error("Fal AI Generation Error:", err);
       }
     } finally {
       setIsGenerating(false);
@@ -136,8 +202,8 @@ function ImageGenerator({ setOriginalFile, generatedInfo, updateGeneratedInfo })
 
   const useImage = (image) => {
     // Convert blob to File for your existing workflow
-    const file = new File([image.blob], `ai-generated-${image.id}.png`, { 
-      type: 'image/png' 
+    const file = new File([image.blob], `ai-generated-${image.id}.png`, {
+      type: "image/png",
     });
     setOriginalFile(file);
   };
@@ -156,153 +222,196 @@ function ImageGenerator({ setOriginalFile, generatedInfo, updateGeneratedInfo })
 
   return (
     <>
-      <div className="pointer-events-auto p-1 h-[200px] w-full mb-[1.5px] rounded-sm border border-[5px] bg-[var(--bg-main)] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)] flex flex-col gap-1.5 overflow-y-scroll relative">
-
-      <h3 className="px-0.5 ">Prompt</h3>
-      {/* Search Input */}
-      <form onSubmit={handleSubmit} className="">
-        <textarea
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Describe your background..."
-          disabled={isGenerating}
-          className="text-xs w-full h-20 p-1.5 bg-[var(--bg-main)] rounded-md !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)] disabled:opacity-50 resize-none"
-        />
-      </form>
-
-      <h3>Styles</h3>
-      {/* Vibe Buttons */}
-      <div className="flex flex-wrap gap-1 mb-2">
-        {vibes.map((vibe) => (
-          <button
-            key={vibe.id}
-            onClick={() => setSelectedVibe(selectedVibe === vibe.id ? "" : vibe.id)}
-            disabled={isGenerating}
-            className={`text-xs px-2 py-1 rounded-full transition-all disabled:opacity-50 ${
-              selectedVibe === vibe.id
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
-            }`}
-          >
-            {vibe.emoji} {vibe.name}
-          </button>
-        ))}
-      </div>
-
-      {/* Loading State */}
-      {isGenerating && (
-        <div className="flex flex-col items-center justify-center py-8 text-center">
-          <Loader2 className="animate-spin mb-2" size={24} />
-          <p className="text-xs text-gray-500">Generating your background...</p>
-          <p className="text-xs text-gray-400 mt-1">Usually takes 5-15 seconds</p>
-        </div>
-      )}
-
-      {/* Error State */}
-      {error && (
-        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-          <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
-        </div>
-      )}
-
-      {/* Generated Image */}
-      {currentImage && !isGenerating && (
-        <div className="space-y-2">
-          <div className="relative group" onClick={() => useImage(currentImage)}>
-            <img
-              src={currentImage.url}
-              alt="Generated background"
-              className="w-full h-32 object-cover rounded-md cursor-pointer hover:opacity-90 transition-opacity"
-            />
-            <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-all rounded-md flex items-center justify-center">
-              <span className="text-white opacity-0 group-hover:opacity-100 text-xs font-medium">
-                Click to use
-              </span>
-            </div>
+      <div className="pointer-events-auto relative p-1 h-full w-full mb-[1.5px] rounded-sm border border-[5px] bg-[var(--bg-main)] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)] flex flex-col gap-1.5 overflow-y-hidden relative">
+        {/* Loading State */}
+        {isGenerating && (
+          <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center py-8 text-center z-10">
+            <Loader2 className="animate-spin mb-2" size={48} />
           </div>
-          
-          {/* Action Buttons */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => useImage(currentImage)}
-              className="flex-1 bg-green-500 hover:bg-green-600 text-white text-xs py-2 px-3 rounded-md transition-all"
-            >
-              Use This Image
-            </button>
-            
-            <button
-              onClick={() => generateImage(true)}
-              className="bg-gray-500 hover:bg-gray-600 text-white text-xs py-2 px-3 rounded-md transition-all"
-              title="Regenerate"
-            >
-              <RotateCcw size={14} />
-            </button>
-            
-            {imageHistory.length > 1 && (
-              <button
-                onClick={() => setShowHistory(!showHistory)}
-                className="bg-gray-500 hover:bg-gray-600 text-white text-xs py-2 px-3 rounded-md transition-all"
-                title="History"
-              >
-                <History size={14} />
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+        )}
 
-      {/* History Panel */}
-      {showHistory && imageHistory.length > 1 && (
-        <div className="space-y-2 border-t pt-2">
-          <h4 className="text-xs font-medium text-gray-600 dark:text-gray-400">Recent Generations</h4>
-          {imageHistory.slice(1).map((image, index) => (
-            <div key={image.id} className="flex gap-2 items-center">
-              <img
-                src={image.url}
-                alt={`Generated ${index + 1}`}
-                className="w-12 h-12 object-cover rounded cursor-pointer hover:opacity-80"
-                onClick={() => selectFromHistory(image)}
+        {!currentImage && (
+          <>
+            <h3 className="px-0.5 ">Prompt</h3>
+            {/* Search Input */}
+            <form onSubmit={handleSubmit} className="">
+              <textarea
+                value={prompt}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    e.target.blur();
+                    generateImage();
+                  }
+                }}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="Describe your background..."
+                disabled={isGenerating}
+                className="text-xs w-full h-20 p-1.5 bg-[var(--bg-main)] rounded-md !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)] disabled:opacity-50 resize-none"
               />
-              <div className="flex-1 text-xs text-gray-500 dark:text-gray-400">
-                <p className="truncate">{image.prompt.slice(0, 30)}...</p>
-                <p>{new Date(image.timestamp).toLocaleTimeString()}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* No Image State */}
-      {!currentImage && !isGenerating && !error && (
-        <div className="text-center py-12 text-gray-400">
-          <Wand2 size={32} className="mx-auto mb-2 opacity-50" />
-          <p className="text-xs">Describe your ideal background above</p>
-          <p className="text-xs mt-1">Lightning fast AI generation ⚡</p>
-        </div>
-      )}
-    </div> 
-    {/* Generate/Cancel Button */}
-      <button
-        onClick={() => isGenerating ? cancelGeneration() : generateImage()}
-        disabled={!prompt.trim() && !selectedVibe}
-        class={`p-1 mt-5 mb-2.5 inline-flex justify-center items-center gap-2 w-full text-sm  rounded-2xl text-white hover:opacity-80 cursor-pointer opacity-100 hover:opacity-80 transition-opacity duration-200 ease-in-out"
-          ${isGenerating 
-            ? 'bg-red-500' 
-            : 'bg-[var(--accent)]'
-        }`}
-      >
-        {isGenerating ? (
-          <>
-            <X size={14} />
-            Cancel
-          </>
-        ) : (
-          <>
-            <Wand2 size={14} />
-            Generate
+            </form>
           </>
         )}
-      </button>
+
+        {!currentImage && (
+          <>
+            <h3>Styles</h3>
+            {/* Vibe Buttons */}
+            <div className="flex flex-wrap gap-1 mb-2">
+              {vibes.map((vibe) => (
+                <button
+                  key={vibe.id}
+                  onClick={() =>
+                    setSelectedVibe(selectedVibe === vibe.id ? "" : vibe.id)
+                  }
+                  disabled={isGenerating}
+                  className={`text-xs px-2 py-1 rounded-full transition-all hover:opacity-80 disabled:opacity-50 ${
+                    selectedVibe === vibe.id
+                      ? "bg-[var(--contrast)]/50 text-white"
+                      : "bg-[var(--contrast-sheer)] "
+                  }`}
+                >
+                  {vibe.emoji} {vibe.name}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+            <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
+          </div>
+        )}
+
+        {/* Generated Image */}
+        {currentImage && (
+          <div className="space-y-2 h-full">
+            <div className="relative group h-[200px]">
+              <img
+                src={currentImage.url}
+                alt="Generated background"
+                className="w-full h-full object-contain rounded-md cursor-pointer hover:opacity-90 transition-opacity"
+                // onClick={() => useImage(currentImage)}
+              />
+
+              {/* Navigation Arrows */}
+              {imageHistory.length == 1 && (
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigateToPrevious();
+                    }}
+                    disabled={currentImageIndex === 0}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 bg-[var(--contrast-sheer)] hover:bg-[var(--contrast)] text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigateToNext();
+                    }}
+                    disabled={currentImageIndex === imageHistory.length - 1}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 bg-[var(--contrast-sheer)] hover:bg-[var(--contrast)] text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </>
+              )}
+
+              {/* Generation Counter */}
+              <div className="absolute top-0 left-0 bg-[var(--contrast-sheer)] text-white text-xs p-2 py-1 rounded-full opacity-80">
+                {currentImageIndex + 1} / {imageHistory.length}
+              </div>
+
+            </div>
+          </div>
+        )}
+        
+      </div>
+
+      {/* Generation Counter */}
+      {!currentImage && (
+        <div className="text-center text-xs m-1">
+          {generationCount < 5 ? (
+            <span>Generations left today: {5 - generationCount}</span>
+          ) : (
+            <span className="text-red-500 opacity-80">
+              Daily limit reached. Try again tomorrow!
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Generate/Cancel Button */}
+      {!currentImage && (
+        <>
+          <button
+            onClick={() =>
+              isGenerating ? cancelGeneration() : generateImage()
+            }
+            disabled={(!prompt.trim() && !selectedVibe) || generationCount >= 5}
+            class={`p-1 mt-5 mb-2.5 inline-flex justify-center items-center gap-2 w-full text-sm  rounded-2xl text-white hover:opacity-80 cursor-pointer opacity-100 hover:opacity-80 transition-opacity duration-200 ease-in-out"
+          ${isGenerating ? "bg-red-500" : "bg-[var(--accent)]"}`}
+          >
+            {isGenerating ? (
+              <>
+                <X size={14} />
+                Cancel
+              </>
+            ) : (
+              <>
+                <Wand2 size={14} />
+                Generate
+              </>
+            )}
+          </button>
+        </>
+      )}
+      {/* Use This Image Button */}
+      {currentImage && (
+        <span className="flex gap-2 items-center mt-5 mb-2.5 ">
+          <button
+            onClick={() =>
+              isGenerating ? cancelGeneration() : useImage(currentImage)
+            }
+            disabled={!prompt.trim() && !selectedVibe}
+            class={`p-1 inline-flex justify-center items-center gap-2 w-full text-sm rounded-2xl text-white hover:opacity-80 cursor-pointer opacity-100 hover:opacity-80 transition-opacity duration-200 ease-in-out"
+          ${isGenerating ? "bg-red-500" : "bg-[var(--brand-green)]"}`}
+          >
+            {isGenerating ? (
+              <>
+                Cancel
+                <X size={14} />
+              </>
+            ) : (
+              <>
+                Select This Image
+                <Check size={14} />
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={() => generateImage(true)}
+            className="bg-neutral-500 h-fit hover:opacity-80 text-white text-sm p-2 rounded-md transition-all"
+            title="Regenerate"
+          >
+            <RotateCcw size={16} />
+          </button>
+
+          <button
+            onClick={() => setCurrentImage(null)}
+            className="bg-neutral-500 h-fit hover:opacity-80 text-white text-sm p-2 rounded-md transition-all"
+            title="Edit Prompt"
+          >
+            <Pencil size={16} />
+          </button>
+        </span>
+      )}
     </>
   );
 }
