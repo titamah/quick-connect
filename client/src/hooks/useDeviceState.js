@@ -27,6 +27,9 @@ export const useDeviceState = () => {
     size: { x: 1290, y: 2796 },
   });
 
+  const [activeImageSource, setActiveImageSource] = useState("Upload");
+  const [generationHistory, setGenerationHistory] = useState([]);
+
   const [background, setBackground] = useState({
     style: "solid",
     color: "#FFFFFF",
@@ -336,6 +339,10 @@ export const useDeviceState = () => {
     palette,
     uploadInfo,
     generatedInfo,
+    activeImageSource,
+    setActiveImageSource,
+    generationHistory,
+    setGenerationHistory,
     getPaletteExcluding,
     updateDeviceInfo,
     updateBackground,

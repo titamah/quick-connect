@@ -20,12 +20,15 @@ function ImageInput() {
     generatedInfo,
     updateUploadInfo,
     updateGeneratedInfo,
+    activeImageSource,
+    setActiveImageSource,
     isMobile,
   } = useDevice();
 
-  const [activeSource, setActiveSource] = useState("Upload");
+  const activeSource = activeImageSource;
+  const setActiveSource = setActiveImageSource;
   const activeInfo = activeSource === "Upload" ? uploadInfo : generatedInfo;
-  const menuOptions = activeSource !== "Upload" ? ["Upload"] : ["Generate"];
+  const menuOptions = activeSource !== "Upload" ? ["Upload"] : ["AI"];
 
   const [modalOpen, setModalOpen] = useState(false);
   const [crop, setCrop] = useState();
@@ -195,12 +198,12 @@ function ImageInput() {
             hour: '2-digit', 
             minute: '2-digit',
             hour12: false 
-          }).replace(/[\/\s,:]/g, '-')}.png`, // Generated filename for AI images
+          }).replace(/[\/\s,:]/g, '-')}.png`,
           originalImageData: reader.result,
-          croppedImageData: null, // Will be set after cropping
-          crop: null, // Will be set after cropping
+          croppedImageData: null, 
+          crop: null,
         });
-        openModal(); // Opens the crop modal
+        openModal(); 
       };
       reader.readAsDataURL(file);
     }
@@ -304,7 +307,7 @@ function ImageInput() {
               />
             </div>
           </div>
-        ) : activeSource === "Generate" ? (
+        ) : activeSource === "AI" ? (
           <ImageGenerator
             setOriginalFile={setOriginalFile}
             generatedInfo={generatedInfo}

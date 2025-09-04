@@ -12,58 +12,54 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { API_CONFIG } from "../../config/api";
+import { 
+  canGenerate, 
+  recordGeneration, 
+  getRemainingGenerations, 
+  getGenerationCount 
+} from "../../utils/generationLimit";
 
 function ImageGenerator({
   setOriginalFile,
   generatedInfo,
   updateGeneratedInfo,
 }) {
-  const { device } = useDevice();
+  const { device, generationHistory, setGenerationHistory } = useDevice();
 
   const [prompt, setPrompt] = useState("");
   const [selectedVibe, setSelectedVibe] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
-  const [imageHistory, setImageHistory] = useState([]);
-  const [showHistory, setShowHistory] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [generationCount, setGenerationCount] = useState(0);
-  const [lastGenerationDate, setLastGenerationDate] = useState(null);
 
   const abortControllerRef = useRef(null);
 
-  // Check if user has reached generation limit
-  const checkGenerationLimit = () => {
-    const today = new Date().toDateString();
-    const lastDate = lastGenerationDate
-      ? new Date(lastGenerationDate).toDateString()
-      : null;
-
-    // Reset count if it's a new day
-    if (lastDate !== today) {
-      setGenerationCount(0);
-      setLastGenerationDate(today);
-      return true;
-    }
-
-    return generationCount < 5;
-  };
+  // Get current generation count from localStorage
+  const generationCount = getGenerationCount();
 
   // Navigation functions
   const navigateToPrevious = () => {
     if (currentImageIndex > 0) {
       const newIndex = currentImageIndex - 1;
+      const image = generationHistory[newIndex];
       setCurrentImageIndex(newIndex);
-      setCurrentImage(imageHistory[newIndex]);
+      setCurrentImage(image);
+      // Restore prompt and vibe for better UX
+      setPrompt(image.prompt || "");
+      setSelectedVibe(image.vibe || "");
     }
   };
 
   const navigateToNext = () => {
-    if (currentImageIndex < imageHistory.length - 1) {
+    if (currentImageIndex < generationHistory.length - 1) {
       const newIndex = currentImageIndex + 1;
+      const image = generationHistory[newIndex];
       setCurrentImageIndex(newIndex);
-      setCurrentImage(imageHistory[newIndex]);
+      setCurrentImage(image);
+      // Restore prompt and vibe for better UX
+      setPrompt(image.prompt || "");
+      setSelectedVibe(image.vibe || "");
     }
   };
 
@@ -105,7 +101,7 @@ function ImageGenerator({
     }
 
     // Check generation limit
-    if (!checkGenerationLimit()) {
+    if (!canGenerate()) {
       setError(
         "You've reached your daily limit of 5 generations. Try again tomorrow!"
       );
@@ -133,7 +129,7 @@ function ImageGenerator({
           body: JSON.stringify({
             prompt: finalPrompt,
             negative_prompt:
-              "text, letters, words, logos, watermarks, people, faces, low quality, blurry, horizontal",
+              "text, letters, words, logos, watermarks, people, faces, low quality, blurry, horizontal, blank, empty",
             image_size: { width: device.size.x, height: device.size.y },
             // num_inference_steps: 25,
             // guidance_scale: 7.5,
@@ -171,10 +167,10 @@ function ImageGenerator({
 
       setCurrentImage(newImage);
 
-      setImageHistory((prev) => [...prev.slice(-4), newImage]);
-      setCurrentImageIndex(imageHistory.length); // New image is at the end
-      setGenerationCount((prev) => prev + 1);
-      setLastGenerationDate(new Date().toDateString());
+      // Add to history and record generation
+      setGenerationHistory((prev) => [...prev.slice(-4), newImage]);
+      setCurrentImageIndex(generationHistory.length); // New image is at the end
+      recordGeneration(); // Record in localStorage
 
     } catch (err) {
       if (err.name === "AbortError") {
@@ -225,19 +221,19 @@ function ImageGenerator({
           </div>
         )}
         {/* Generation Counter */}
-        {!currentImage && (
-          <div className="absolute bottom-0 right-0 w-full h-fit text-end">
-            {generationCount < 5 ? (
-              <h4 className="opacity-80 !text-[8px]">
-                {5 - generationCount}/5 left
-              </h4>
-            ) : (
-              <h4 className="!text-red-500 opacity-80 !text-[8px]">
-                Daily limit reached.
-              </h4>
-            )}
-          </div>
-        )}
+                 {!currentImage && (
+           <div className="absolute bottom-0 right-0 w-full h-fit text-end">
+             {getRemainingGenerations() > 0 ? (
+               <h4 className="opacity-80 !text-[8px]">
+                 {getRemainingGenerations()}/5 left
+               </h4>
+             ) : (
+               <h4 className="!text-red-500 opacity-80 !text-[8px]">
+                 Daily limit reached.
+               </h4>
+             )}
+           </div>
+         )}
 
         {!currentImage && (
           <>
@@ -273,7 +269,7 @@ function ImageGenerator({
                   onClick={() =>
                     setSelectedVibe(selectedVibe === vibe.id ? "" : vibe.id)
                   }
-                  disabled={isGenerating || generationCount >= 5}
+                  disabled={isGenerating || !canGenerate()}
                   className={`text-xs px-2 py-1 rounded-full transition-all hover:opacity-80 disabled:opacity-50 ${
                     selectedVibe === vibe.id
                       ? "bg-[var(--contrast)]/50 text-white"
@@ -298,8 +294,8 @@ function ImageGenerator({
                 // onClick={() => useImage(currentImage)}
               />
 
-              {/* Navigation Arrows */}
-              {imageHistory.length > 1 && (
+                             {/* Navigation Arrows */}
+               {generationHistory.length > 1 && (
                 <>
                   <button
                     onClick={(e) => {
@@ -316,7 +312,7 @@ function ImageGenerator({
                       e.stopPropagation();
                       navigateToNext();
                     }}
-                    disabled={currentImageIndex === imageHistory.length - 1}
+                    disabled={currentImageIndex === generationHistory.length - 1}
                     className="absolute cursor-pointer right-0 top-1/2 -translate-y-1/2 bg-[var(--contrast-sheer)] hover:bg-[var(--contrast)]/50 text-white p-1 rounded-full  opacity-100 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <ChevronRight size={18} />
@@ -325,9 +321,9 @@ function ImageGenerator({
               )}
 
               {/* Generation Counter */}
-              <div className="absolute top-0 left-0 bg-[var(--contrast-sheer)] text-white text-xs p-2 py-1 rounded-full opacity-80">
-                {currentImageIndex + 1} / {imageHistory.length}
-              </div>
+                             <div className="absolute top-0 left-0 bg-[var(--contrast-sheer)] text-white text-xs p-2 py-1 rounded-full opacity-80">
+                 {currentImageIndex + 1} / {generationHistory.length}
+               </div>
             </div>
           </div>
         )}
@@ -340,7 +336,7 @@ function ImageGenerator({
             onClick={() =>
               isGenerating ? cancelGeneration() : generateImage()
             }
-            disabled={(!prompt.trim() && !selectedVibe) || generationCount >= 5}
+                         disabled={(!prompt.trim() && !selectedVibe) || !canGenerate()}
             class={`p-1 inline-flex justify-center items-center gap-2 w-full text-sm  rounded-2xl text-white hover:opacity-80 cursor-pointer opacity-100 hover:opacity-80 transition-opacity duration-200 ease-in-out"
           ${isGenerating ? "bg-red-500" : "bg-[var(--accent)]"}`}
           >
@@ -356,11 +352,16 @@ function ImageGenerator({
               </>
             )}
           </button>
-          {history.length > 1 && (
+                     {generationHistory.length > 1 && (
             <button
-              onClick={() =>
-                setCurrentImage(imageHistory[imageHistory.length - 1])
-              }
+              onClick={() => {
+                const latestImage = generationHistory[generationHistory.length - 1];
+                setCurrentImage(latestImage);
+                setCurrentImageIndex(generationHistory.length - 1);
+                // Restore prompt and vibe for better UX
+                setPrompt(latestImage.prompt || "");
+                setSelectedVibe(latestImage.vibe || "");
+              }}
               className="bg-neutral-500 h-fit hover:opacity-80 text-white text-sm p-1.5 rounded-md transition-all cursor-pointer"
               title="History"
             >
@@ -377,7 +378,7 @@ function ImageGenerator({
               isGenerating ? cancelGeneration() : useImage(currentImage)
             }
             disabled={!prompt.trim() && !selectedVibe}
-            class={`p-1 inline-flex justify-center items-center gap-2 w-full text-sm rounded-2xl text-white hover:opacity-80 cursor-pointer opacity-100 hover:opacity-80 transition-opacity duration-200 ease-in-out"
+            class={`p-1 inline-flex justify-center items-center gap-2 w-full text-sm rounded-2xl text-white hover:opacity-80 cursor-pointer opacity-100 hover:opacity-80 transition-opacity duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
           ${isGenerating ? "bg-red-500" : "bg-[var(--brand-green)]"}`}
           >
             {isGenerating ? (
@@ -395,7 +396,7 @@ function ImageGenerator({
 
           <button
             onClick={() => generateImage()}
-            disabled={generationCount >= 5}
+                         disabled={!canGenerate()}
             className="bg-neutral-500 h-fit hover:opacity-80 text-white text-sm p-1.5 rounded-md transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             title="Regenerate"
           >
