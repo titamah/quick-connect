@@ -6,7 +6,7 @@ function ImageUploader({ handleChange, fileTypes, updateUploadInfo, openModal })
   const { isMobile } = useDevice();
 
   return (
-
+<>
     <div
     onDragOver={(e) => e.preventDefault()}
     onDrop={(e) => e.preventDefault()}
@@ -47,6 +47,16 @@ function ImageUploader({ handleChange, fileTypes, updateUploadInfo, openModal })
       </span>
     </div>
     </div>
+
+    <div className=" mt-4 space-y-2">
+          <h4 className=""> File Name </h4>
+          <div className="w-fill h-[24px]  px-1.5 py-[2.5px] border border-[var(--border-color)]/50 rounded-sm bg-black/5 dark:bg-black/15 flex items-center justify-between">
+            <span>
+              No image selected
+            </span>
+          </div>{" "}
+        </div>
+    </>
   );
 }
 

@@ -334,11 +334,11 @@ function ImageInput() {
             <span className="flex items-center gap-2">
               <Pencil
                 onClick={openModal}
-                size={18}
+                size={16}
                 className="cursor-pointer hover:opacity-50"
               />
               <Trash2
-                size={18}
+                size={16}
                 onClick={deleteFile}
                 className="cursor-pointer hover:opacity-50"
               />
