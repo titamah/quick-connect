@@ -68,11 +68,11 @@ function ImageGenerator({
   };
 
   const vibes = [
-    { id: "professional", name: "Professional", emoji: "💼" },
-    { id: "creative", name: "Creative", emoji: "🎨" },
-    { id: "minimalist", name: "Minimalist", emoji: "✨" },
-    { id: "nature", name: "Nature", emoji: "🌿" },
-    { id: "abstract", name: "Abstract", emoji: "🔮" },
+    { id: "professional", name: "Professional"},
+    { id: "creative", name: "Creative"},
+    { id: "abstract", name: "Abstract"},
+    { id: "minimalist", name: "Minimalist"},
+    { id: "nature", name: "Nature"},
   ];
 
   const buildPrompt = (userPrompt, vibe) => {
@@ -222,13 +222,25 @@ function ImageGenerator({
 
   return (
     <>
-      <div className="pointer-events-auto relative p-1 h-full w-full mb-[1.5px] rounded-sm border border-[5px] bg-[var(--bg-main)] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)] flex flex-col gap-1.5 overflow-y-hidden relative">
+      <div className="pointer-events-auto relative p-1 h-[200px] w-full mb-[1.5px] rounded-sm border border-[5px] bg-[var(--bg-main)] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)] flex flex-col gap-1.5 overflow-y-hidden relative">
         {/* Loading State */}
         {isGenerating && (
           <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center py-8 text-center z-10">
             <Loader2 className="animate-spin mb-2" size={48} />
           </div>
         )}
+      {/* Generation Counter */}
+      {!currentImage && (
+        <div className="absolute bottom-0 right-0 w-full h-fit text-end">
+          {generationCount < 5 ? (
+            <h4 className="opacity-80 !text-[8px]">Remaining: {5 - generationCount}</h4>
+          ) : (
+            <h4 className="!text-red-500 opacity-80 !text-[8px]">
+              Daily limit reached.
+            </h4>
+          )}
+        </div>
+      )}
 
         {!currentImage && (
           <>
@@ -246,7 +258,7 @@ function ImageGenerator({
                 }}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder="Describe your background..."
-                disabled={isGenerating}
+                disabled={isGenerating || generationCount >= 5}
                 className="text-xs w-full h-20 p-1.5 bg-[var(--bg-main)] rounded-md !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)] disabled:opacity-50 resize-none"
               />
             </form>
@@ -264,14 +276,14 @@ function ImageGenerator({
                   onClick={() =>
                     setSelectedVibe(selectedVibe === vibe.id ? "" : vibe.id)
                   }
-                  disabled={isGenerating}
+                  disabled={isGenerating || generationCount >= 5}
                   className={`text-xs px-2 py-1 rounded-full transition-all hover:opacity-80 disabled:opacity-50 ${
                     selectedVibe === vibe.id
                       ? "bg-[var(--contrast)]/50 text-white"
                       : "bg-[var(--contrast-sheer)] "
                   }`}
                 >
-                  {vibe.emoji} {vibe.name}
+                  {vibe.name}
                 </button>
               ))}
             </div>
@@ -332,19 +344,6 @@ function ImageGenerator({
         )}
         
       </div>
-
-      {/* Generation Counter */}
-      {!currentImage && (
-        <div className="text-center text-xs m-1">
-          {generationCount < 5 ? (
-            <span>Generations left today: {5 - generationCount}</span>
-          ) : (
-            <span className="text-red-500 opacity-80">
-              Daily limit reached. Try again tomorrow!
-            </span>
-          )}
-        </div>
-      )}
 
       {/* Generate/Cancel Button */}
       {!currentImage && (
