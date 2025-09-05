@@ -44,6 +44,7 @@ const ShareButton = ({ wallpaperRef }) => {
         borderColor: qrConfig.custom.borderColor,
         borderRadius: qrConfig.custom.cornerRadiusRatio,
         borderWidth: qrConfig.custom.borderSizeRatio,
+        rotation: qrConfig.rotation,
         pos: {
           x: qrConfig.positionPercentages.x,
           y: qrConfig.positionPercentages.y,
@@ -51,6 +52,7 @@ const ShareButton = ({ wallpaperRef }) => {
       },
       bg: {
         type: background.style,
+        grain: background.grain,
         activeTypeValue:
           background.style === "solid"
             ? background.color
@@ -273,7 +275,8 @@ const ShareButton = ({ wallpaperRef }) => {
                   width: `${QRborderWidth}px`,
                   height: `${QRborderWidth}px`,
                   backgroundColor: `${activeState?.qr.borderColor}`,
-                  // transform: `translate(50%, 50%)`,
+                  borderRadius: `${QRborderWidth * (activeState?.qr.borderRadius / 200)}px`,
+                  transform: `rotate(${activeState?.qr.rotation || 0}deg)`,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
