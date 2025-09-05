@@ -17,9 +17,11 @@ const ShareButton = ({ wallpaperRef }) => {
   const thumbnailWidth = 320;
   const phoneWidth = thumbnailWidth * 0.35;
   const phoneHeight = thumbnailWidth * 0.8;
+  const QRsize = phoneWidth / 2;
+  const QRborderWidth = QRsize + (QRsize * (activeState?.qr.borderWidth / 100));
 
   // Base positions (your padding/offset values)
-  const baseX = phoneWidth / 4 ;
+  const baseX = phoneWidth / 4;
   const baseY = thumbnailWidth / 12.5;
 
   // Offset calculations (same pattern for both)
@@ -248,7 +250,7 @@ const ShareButton = ({ wallpaperRef }) => {
             <div
               // src={wallpaperRef.current.toDataURL()}
               alt="Qreation"
-              className="absolute outline outline-black bg-pink-400"
+              className="relative outline outline-black bg-pink-400"
               style={{
                 width: `${phoneWidth}px`,
                 height: `${phoneHeight}px`,
@@ -256,256 +258,264 @@ const ShareButton = ({ wallpaperRef }) => {
                 // top: `20px`,
                 borderRadius: `${thumbnailHeight * 0.075}px`,
                 right: `${thumbnailWidth / 10}px`,
-                top: `${PhoneYpos - 2.8}px`,
+                // top: `${PhoneYpos - 2.8}px`,
                 outlineWidth: `${thumbnailWidth * 0.0175}px`,
                 transform: `translateY(${phoneHeight / -4}px)`,
+                  overflow: 'hidden'
               }}
             >
-
-
-            {/* THIS IS QR CODE SVG! */}
-            <svg
-              style={{
-                position: "absolute",
-                top: `${(phoneHeight * activeState?.qr.pos.y) - thumbnailWidth / 10}px`,
-                right: `${QRXpos}px`,
-              }}
-              transform="translate(width/2, height/2)"
-              width={`${phoneWidth / 2}px`}
-              height={`${phoneWidth / 2}px`}
-              viewBox="0 0 168 168"
-              fill={activeState?.qr.primaryColor}
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M168 0H0V168H168V0Z"
-                fill={activeState?.qr.secondaryColor}
-              />
-              <path d="M8 0H0V8H8V0Z" />
-              <path d="M8 8H0V16H8V8Z" />
-              <path d="M8 16H0V24H8V16Z" />
-              <path d="M8 24H0V32H8V24Z" />
-              <path d="M8 32H0V40H8V32Z" />
-              <path d="M8 40H0V48H8V40Z" />
-              <path d="M8 48H0V56H8V48Z" />
-              <path d="M8 64H0V72H8V64Z" />
-              <path d="M8 72H0V80H8V72Z" />
-              <path d="M8 112H0V120H8V112Z" />
-              <path d="M8 120H0V128H8V120Z" />
-              <path d="M8 128H0V136H8V128Z" />
-              <path d="M8 136H0V144H8V136Z" />
-              <path d="M8 144H0V152H8V144Z" />
-              <path d="M8 152H0V160H8V152Z" />
-              <path d="M8 160H0V168H8V160Z" />
-              <path d="M16 0H8V8H16V0Z" />
-              <path d="M16 48H8V56H16V48Z" />
-              <path d="M16 64H8V72H16V64Z" />
-              <path d="M16 80H8V88H16V80Z" />
-              <path d="M16 88H8V96H16V88Z" />
-              <path d="M16 96H8V104H16V96Z" />
-              <path d="M16 112H8V120H16V112Z" />
-              <path d="M16 160H8V168H16V160Z" />
-              <path d="M24 0H16V8H24V0Z" />
-              <path d="M24 16H16V24H24V16Z" />
-              <path d="M24 24H16V32H24V24Z" />
-              <path d="M24 32H16V40H24V32Z" />
-              <path d="M24 48H16V56H24V48Z" />
-              <path d="M24 64H16V72H24V64Z" />
-              <path d="M24 72H16V80H24V72Z" />
-              <path d="M24 80H16V88H24V80Z" />
-              <path d="M24 96H16V104H24V96Z" />
-              <path d="M24 112H16V120H24V112Z" />
-              <path d="M24 128H16V136H24V128Z" />
-              <path d="M24 136H16V144H24V136Z" />
-              <path d="M24 144H16V152H24V144Z" />
-              <path d="M24 160H16V168H24V160Z" />
-              <path d="M32 0H24V8H32V0Z" />
-              <path d="M32 16H24V24H32V16Z" />
-              <path d="M32 24H24V32H32V24Z" />
-              <path d="M32 32H24V40H32V32Z" />
-              <path d="M32 48H24V56H32V48Z" />
-              <path d="M32 72H24V80H32V72Z" />
-              <path d="M32 112H24V120H32V112Z" />
-              <path d="M32 128H24V136H32V128Z" />
-              <path d="M32 136H24V144H32V136Z" />
-              <path d="M32 144H24V152H32V144Z" />
-              <path d="M32 160H24V168H32V160Z" />
-              <path d="M40 0H32V8H40V0Z" />
-              <path d="M40 16H32V24H40V16Z" />
-              <path d="M40 24H32V32H40V24Z" />
-              <path d="M40 32H32V40H40V32Z" />
-              <path d="M40 48H32V56H40V48Z" />
-              <path d="M40 64H32V72H40V64Z" />
-              <path d="M40 96H32V104H40V96Z" />
-              <path d="M40 112H32V120H40V112Z" />
-              <path d="M40 128H32V136H40V128Z" />
-              <path d="M40 136H32V144H40V136Z" />
-              <path d="M40 144H32V152H40V144Z" />
-              <path d="M40 160H32V168H40V160Z" />
-              <path d="M48 0H40V8H48V0Z" />
-              <path d="M48 48H40V56H48V48Z" />
-              <path d="M48 64H40V72H48V64Z" />
-              <path d="M48 80H40V88H48V80Z" />
-              <path d="M48 88H40V96H48V88Z" />
-              <path d="M48 112H40V120H48V112Z" />
-              <path d="M48 160H40V168H48V160Z" />
-              <path d="M56 0H48V8H56V0Z" />
-              <path d="M56 8H48V16H56V8Z" />
-              <path d="M56 16H48V24H56V16Z" />
-              <path d="M56 24H48V32H56V24Z" />
-              <path d="M56 32H48V40H56V32Z" />
-              <path d="M56 40H48V48H56V40Z" />
-              <path d="M56 48H48V56H56V48Z" />
-              <path d="M56 64H48V72H56V64Z" />
-              <path d="M56 80H48V88H56V80Z" />
-              <path d="M56 96H48V104H56V96Z" />
-              <path d="M56 112H48V120H56V112Z" />
-              <path d="M56 120H48V128H56V120Z" />
-              <path d="M56 128H48V136H56V128Z" />
-              <path d="M56 136H48V144H56V136Z" />
-              <path d="M56 144H48V152H56V144Z" />
-              <path d="M56 152H48V160H56V152Z" />
-              <path d="M56 160H48V168H56V160Z" />
-              <path d="M64 64H56V72H64V64Z" />
-              <path d="M64 80H56V88H64V80Z" />
-              <path d="M64 96H56V104H64V96Z" />
-              <path d="M72 16H64V24H72V16Z" />
-              <path d="M72 48H64V56H72V48Z" />
-              <path d="M72 56H64V64H72V56Z" />
-              <path d="M72 64H64V72H72V64Z" />
-              <path d="M72 88H64V96H72V88Z" />
-              <path d="M72 96H64V104H72V96Z" />
-              <path d="M72 104H64V112H72V104Z" />
-              <path d="M72 112H64V120H72V112Z" />
-              <path d="M72 120H64V128H72V120Z" />
-              <path d="M72 128H64V136H72V128Z" />
-              <path d="M72 144H64V152H72V144Z" />
-              <path d="M72 152H64V160H72V152Z" />
-              <path d="M72 160H64V168H72V160Z" />
-              <path d="M80 32H72V40H80V32Z" />
-              <path d="M80 40H72V48H80V40Z" />
-              <path d="M80 72H72V80H80V72Z" />
-              <path d="M80 80H72V88H80V80Z" />
-              <path d="M80 104H72V112H80V104Z" />
-              <path d="M80 112H72V120H80V112Z" />
-              <path d="M80 120H72V128H80V120Z" />
-              <path d="M80 128H72V136H80V128Z" />
-              <path d="M80 136H72V144H80V136Z" />
-              <path d="M88 0H80V8H88V0Z" />
-              <path d="M88 16H80V24H88V16Z" />
-              <path d="M88 40H80V48H88V40Z" />
-              <path d="M88 48H80V56H88V48Z" />
-              <path d="M88 56H80V64H88V56Z" />
-              <path d="M88 64H80V72H88V64Z" />
-              <path d="M88 88H80V96H88V88Z" />
-              <path d="M88 104H80V112H88V104Z" />
-              <path d="M88 120H80V128H88V120Z" />
-              <path d="M96 32H88V40H96V32Z" />
-              <path d="M96 40H88V48H96V40Z" />
-              <path d="M96 72H88V80H96V72Z" />
-              <path d="M96 80H88V88H96V80Z" />
-              <path d="M96 88H88V96H96V88Z" />
-              <path d="M96 96H88V104H96V96Z" />
-              <path d="M96 104H88V112H96V104Z" />
-              <path d="M96 120H88V128H96V120Z" />
-              <path d="M96 144H88V152H96V144Z" />
-              <path d="M104 0H96V8H104V0Z" />
-              <path d="M104 8H96V16H104V8Z" />
-              <path d="M104 24H96V32H104V24Z" />
-              <path d="M104 32H96V40H104V32Z" />
-              <path d="M104 48H96V56H104V48Z" />
-              <path d="M104 64H96V72H104V64Z" />
-              <path d="M104 88H96V96H104V88Z" />
-              <path d="M104 112H96V120H104V112Z" />
-              <path d="M104 120H96V128H104V120Z" />
-              <path d="M104 136H96V144H104V136Z" />
-              <path d="M104 144H96V152H104V144Z" />
-              <path d="M112 64H104V72H112V64Z" />
-              <path d="M112 72H104V80H112V72Z" />
-              <path d="M112 80H104V88H112V80Z" />
-              <path d="M112 88H104V96H112V88Z" />
-              <path d="M112 128H104V136H112V128Z" />
-              <path d="M112 136H104V144H112V136Z" />
-              <path d="M112 160H104V168H112V160Z" />
-              <path d="M120 0H112V8H120V0Z" />
-              <path d="M120 8H112V16H120V8Z" />
-              <path d="M120 16H112V24H120V16Z" />
-              <path d="M120 24H112V32H120V24Z" />
-              <path d="M120 32H112V40H120V32Z" />
-              <path d="M120 40H112V48H120V40Z" />
-              <path d="M120 48H112V56H120V48Z" />
-              <path d="M120 64H112V72H120V64Z" />
-              <path d="M120 72H112V80H120V72Z" />
-              <path d="M120 80H112V88H120V80Z" />
-              <path d="M120 104H112V112H120V104Z" />
-              <path d="M120 136H112V144H120V136Z" />
-              <path d="M120 144H112V152H120V144Z" />
-              <path d="M128 0H120V8H128V0Z" />
-              <path d="M128 48H120V56H128V48Z" />
-              <path d="M128 72H120V80H128V72Z" />
-              <path d="M128 80H120V88H128V80Z" />
-              <path d="M128 104H120V112H128V104Z" />
-              <path d="M128 112H120V120H128V112Z" />
-              <path d="M128 120H120V128H128V120Z" />
-              <path d="M128 144H120V152H128V144Z" />
-              <path d="M136 0H128V8H136V0Z" />
-              <path d="M136 16H128V24H136V16Z" />
-              <path d="M136 24H128V32H136V24Z" />
-              <path d="M136 32H128V40H136V32Z" />
-              <path d="M136 48H128V56H136V48Z" />
-              <path d="M136 72H128V80H136V72Z" />
-              <path d="M136 80H128V88H136V80Z" />
-              <path d="M136 88H128V96H136V88Z" />
-              <path d="M136 104H128V112H136V104Z" />
-              <path d="M136 112H128V120H136V112Z" />
-              <path d="M136 120H128V128H136V120Z" />
-              <path d="M136 128H128V136H136V128Z" />
-              <path d="M136 136H128V144H136V136Z" />
-              <path d="M136 144H128V152H136V144Z" />
-              <path d="M136 160H128V168H136V160Z" />
-              <path d="M144 0H136V8H144V0Z" />
-              <path d="M144 16H136V24H144V16Z" />
-              <path d="M144 24H136V32H144V24Z" />
-              <path d="M144 32H136V40H144V32Z" />
-              <path d="M144 48H136V56H144V48Z" />
-              <path d="M144 80H136V88H144V80Z" />
-              <path d="M144 96H136V104H144V96Z" />
-              <path d="M144 112H136V120H144V112Z" />
-              <path d="M144 120H136V128H144V120Z" />
-              <path d="M144 160H136V168H144V160Z" />
-              <path d="M152 0H144V8H152V0Z" />
-              <path d="M152 16H144V24H152V16Z" />
-              <path d="M152 24H144V32H152V24Z" />
-              <path d="M152 32H144V40H152V32Z" />
-              <path d="M152 48H144V56H152V48Z" />
-              <path d="M152 64H144V72H152V64Z" />
-              <path d="M152 136H144V144H152V136Z" />
-              <path d="M160 0H152V8H160V0Z" />
-              <path d="M160 48H152V56H160V48Z" />
-              <path d="M160 80H152V88H160V80Z" />
-              <path d="M160 96H152V104H160V96Z" />
-              <path d="M160 112H152V120H160V112Z" />
-              <path d="M160 120H152V128H160V120Z" />
-              <path d="M160 128H152V136H160V128Z" />
-              <path d="M160 136H152V144H160V136Z" />
-              <path d="M160 152H152V160H160V152Z" />
-              <path d="M160 160H152V168H160V160Z" />
-              <path d="M168 0H160V8H168V0Z" />
-              <path d="M168 8H160V16H168V8Z" />
-              <path d="M168 16H160V24H168V16Z" />
-              <path d="M168 24H160V32H168V24Z" />
-              <path d="M168 32H160V40H168V32Z" />
-              <path d="M168 40H160V48H168V40Z" />
-              <path d="M168 48H160V56H168V48Z" />
-              <path d="M168 72H160V80H168V72Z" />
-              <path d="M168 80H160V88H168V80Z" />
-              <path d="M168 88H160V96H168V88Z" />
-              <path d="M168 96H160V104H168V96Z" />
-              <path d="M168 104H160V112H168V104Z" />
-              <path d="M168 112H160V120H168V112Z" />
-              <path d="M168 144H160V152H168V144Z" />
-              <path d="M168 160H160V168H168V160Z" />
-            </svg>
+              {/* THIS IS QR CODE SVG! */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: `${phoneHeight * activeState?.qr.pos.y - (QRborderWidth / 2)}px`,
+                  left: `${phoneWidth * activeState?.qr.pos.x - (QRborderWidth / 2)}px`,
+                  width: `${QRborderWidth}px`,
+                  height: `${QRborderWidth}px`,
+                  backgroundColor: `${activeState?.qr.borderColor}`,
+                  // transform: `translate(50%, 50%)`,
+                    display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <svg
+                  width={`${QRsize}px`}
+                  height={`${QRsize}px`}
+                  viewBox="0 0 168 168"
+                  fill={activeState?.qr.primaryColor}
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M168 0H0V168H168V0Z"
+                    fill={activeState?.qr.secondaryColor}
+                  />
+                  <path d="M8 0H0V8H8V0Z" />
+                  <path d="M8 8H0V16H8V8Z" />
+                  <path d="M8 16H0V24H8V16Z" />
+                  <path d="M8 24H0V32H8V24Z" />
+                  <path d="M8 32H0V40H8V32Z" />
+                  <path d="M8 40H0V48H8V40Z" />
+                  <path d="M8 48H0V56H8V48Z" />
+                  <path d="M8 64H0V72H8V64Z" />
+                  <path d="M8 72H0V80H8V72Z" />
+                  <path d="M8 112H0V120H8V112Z" />
+                  <path d="M8 120H0V128H8V120Z" />
+                  <path d="M8 128H0V136H8V128Z" />
+                  <path d="M8 136H0V144H8V136Z" />
+                  <path d="M8 144H0V152H8V144Z" />
+                  <path d="M8 152H0V160H8V152Z" />
+                  <path d="M8 160H0V168H8V160Z" />
+                  <path d="M16 0H8V8H16V0Z" />
+                  <path d="M16 48H8V56H16V48Z" />
+                  <path d="M16 64H8V72H16V64Z" />
+                  <path d="M16 80H8V88H16V80Z" />
+                  <path d="M16 88H8V96H16V88Z" />
+                  <path d="M16 96H8V104H16V96Z" />
+                  <path d="M16 112H8V120H16V112Z" />
+                  <path d="M16 160H8V168H16V160Z" />
+                  <path d="M24 0H16V8H24V0Z" />
+                  <path d="M24 16H16V24H24V16Z" />
+                  <path d="M24 24H16V32H24V24Z" />
+                  <path d="M24 32H16V40H24V32Z" />
+                  <path d="M24 48H16V56H24V48Z" />
+                  <path d="M24 64H16V72H24V64Z" />
+                  <path d="M24 72H16V80H24V72Z" />
+                  <path d="M24 80H16V88H24V80Z" />
+                  <path d="M24 96H16V104H24V96Z" />
+                  <path d="M24 112H16V120H24V112Z" />
+                  <path d="M24 128H16V136H24V128Z" />
+                  <path d="M24 136H16V144H24V136Z" />
+                  <path d="M24 144H16V152H24V144Z" />
+                  <path d="M24 160H16V168H24V160Z" />
+                  <path d="M32 0H24V8H32V0Z" />
+                  <path d="M32 16H24V24H32V16Z" />
+                  <path d="M32 24H24V32H32V24Z" />
+                  <path d="M32 32H24V40H32V32Z" />
+                  <path d="M32 48H24V56H32V48Z" />
+                  <path d="M32 72H24V80H32V72Z" />
+                  <path d="M32 112H24V120H32V112Z" />
+                  <path d="M32 128H24V136H32V128Z" />
+                  <path d="M32 136H24V144H32V136Z" />
+                  <path d="M32 144H24V152H32V144Z" />
+                  <path d="M32 160H24V168H32V160Z" />
+                  <path d="M40 0H32V8H40V0Z" />
+                  <path d="M40 16H32V24H40V16Z" />
+                  <path d="M40 24H32V32H40V24Z" />
+                  <path d="M40 32H32V40H40V32Z" />
+                  <path d="M40 48H32V56H40V48Z" />
+                  <path d="M40 64H32V72H40V64Z" />
+                  <path d="M40 96H32V104H40V96Z" />
+                  <path d="M40 112H32V120H40V112Z" />
+                  <path d="M40 128H32V136H40V128Z" />
+                  <path d="M40 136H32V144H40V136Z" />
+                  <path d="M40 144H32V152H40V144Z" />
+                  <path d="M40 160H32V168H40V160Z" />
+                  <path d="M48 0H40V8H48V0Z" />
+                  <path d="M48 48H40V56H48V48Z" />
+                  <path d="M48 64H40V72H48V64Z" />
+                  <path d="M48 80H40V88H48V80Z" />
+                  <path d="M48 88H40V96H48V88Z" />
+                  <path d="M48 112H40V120H48V112Z" />
+                  <path d="M48 160H40V168H48V160Z" />
+                  <path d="M56 0H48V8H56V0Z" />
+                  <path d="M56 8H48V16H56V8Z" />
+                  <path d="M56 16H48V24H56V16Z" />
+                  <path d="M56 24H48V32H56V24Z" />
+                  <path d="M56 32H48V40H56V32Z" />
+                  <path d="M56 40H48V48H56V40Z" />
+                  <path d="M56 48H48V56H56V48Z" />
+                  <path d="M56 64H48V72H56V64Z" />
+                  <path d="M56 80H48V88H56V80Z" />
+                  <path d="M56 96H48V104H56V96Z" />
+                  <path d="M56 112H48V120H56V112Z" />
+                  <path d="M56 120H48V128H56V120Z" />
+                  <path d="M56 128H48V136H56V128Z" />
+                  <path d="M56 136H48V144H56V136Z" />
+                  <path d="M56 144H48V152H56V144Z" />
+                  <path d="M56 152H48V160H56V152Z" />
+                  <path d="M56 160H48V168H56V160Z" />
+                  <path d="M64 64H56V72H64V64Z" />
+                  <path d="M64 80H56V88H64V80Z" />
+                  <path d="M64 96H56V104H64V96Z" />
+                  <path d="M72 16H64V24H72V16Z" />
+                  <path d="M72 48H64V56H72V48Z" />
+                  <path d="M72 56H64V64H72V56Z" />
+                  <path d="M72 64H64V72H72V64Z" />
+                  <path d="M72 88H64V96H72V88Z" />
+                  <path d="M72 96H64V104H72V96Z" />
+                  <path d="M72 104H64V112H72V104Z" />
+                  <path d="M72 112H64V120H72V112Z" />
+                  <path d="M72 120H64V128H72V120Z" />
+                  <path d="M72 128H64V136H72V128Z" />
+                  <path d="M72 144H64V152H72V144Z" />
+                  <path d="M72 152H64V160H72V152Z" />
+                  <path d="M72 160H64V168H72V160Z" />
+                  <path d="M80 32H72V40H80V32Z" />
+                  <path d="M80 40H72V48H80V40Z" />
+                  <path d="M80 72H72V80H80V72Z" />
+                  <path d="M80 80H72V88H80V80Z" />
+                  <path d="M80 104H72V112H80V104Z" />
+                  <path d="M80 112H72V120H80V112Z" />
+                  <path d="M80 120H72V128H80V120Z" />
+                  <path d="M80 128H72V136H80V128Z" />
+                  <path d="M80 136H72V144H80V136Z" />
+                  <path d="M88 0H80V8H88V0Z" />
+                  <path d="M88 16H80V24H88V16Z" />
+                  <path d="M88 40H80V48H88V40Z" />
+                  <path d="M88 48H80V56H88V48Z" />
+                  <path d="M88 56H80V64H88V56Z" />
+                  <path d="M88 64H80V72H88V64Z" />
+                  <path d="M88 88H80V96H88V88Z" />
+                  <path d="M88 104H80V112H88V104Z" />
+                  <path d="M88 120H80V128H88V120Z" />
+                  <path d="M96 32H88V40H96V32Z" />
+                  <path d="M96 40H88V48H96V40Z" />
+                  <path d="M96 72H88V80H96V72Z" />
+                  <path d="M96 80H88V88H96V80Z" />
+                  <path d="M96 88H88V96H96V88Z" />
+                  <path d="M96 96H88V104H96V96Z" />
+                  <path d="M96 104H88V112H96V104Z" />
+                  <path d="M96 120H88V128H96V120Z" />
+                  <path d="M96 144H88V152H96V144Z" />
+                  <path d="M104 0H96V8H104V0Z" />
+                  <path d="M104 8H96V16H104V8Z" />
+                  <path d="M104 24H96V32H104V24Z" />
+                  <path d="M104 32H96V40H104V32Z" />
+                  <path d="M104 48H96V56H104V48Z" />
+                  <path d="M104 64H96V72H104V64Z" />
+                  <path d="M104 88H96V96H104V88Z" />
+                  <path d="M104 112H96V120H104V112Z" />
+                  <path d="M104 120H96V128H104V120Z" />
+                  <path d="M104 136H96V144H104V136Z" />
+                  <path d="M104 144H96V152H104V144Z" />
+                  <path d="M112 64H104V72H112V64Z" />
+                  <path d="M112 72H104V80H112V72Z" />
+                  <path d="M112 80H104V88H112V80Z" />
+                  <path d="M112 88H104V96H112V88Z" />
+                  <path d="M112 128H104V136H112V128Z" />
+                  <path d="M112 136H104V144H112V136Z" />
+                  <path d="M112 160H104V168H112V160Z" />
+                  <path d="M120 0H112V8H120V0Z" />
+                  <path d="M120 8H112V16H120V8Z" />
+                  <path d="M120 16H112V24H120V16Z" />
+                  <path d="M120 24H112V32H120V24Z" />
+                  <path d="M120 32H112V40H120V32Z" />
+                  <path d="M120 40H112V48H120V40Z" />
+                  <path d="M120 48H112V56H120V48Z" />
+                  <path d="M120 64H112V72H120V64Z" />
+                  <path d="M120 72H112V80H120V72Z" />
+                  <path d="M120 80H112V88H120V80Z" />
+                  <path d="M120 104H112V112H120V104Z" />
+                  <path d="M120 136H112V144H120V136Z" />
+                  <path d="M120 144H112V152H120V144Z" />
+                  <path d="M128 0H120V8H128V0Z" />
+                  <path d="M128 48H120V56H128V48Z" />
+                  <path d="M128 72H120V80H128V72Z" />
+                  <path d="M128 80H120V88H128V80Z" />
+                  <path d="M128 104H120V112H128V104Z" />
+                  <path d="M128 112H120V120H128V112Z" />
+                  <path d="M128 120H120V128H128V120Z" />
+                  <path d="M128 144H120V152H128V144Z" />
+                  <path d="M136 0H128V8H136V0Z" />
+                  <path d="M136 16H128V24H136V16Z" />
+                  <path d="M136 24H128V32H136V24Z" />
+                  <path d="M136 32H128V40H136V32Z" />
+                  <path d="M136 48H128V56H136V48Z" />
+                  <path d="M136 72H128V80H136V72Z" />
+                  <path d="M136 80H128V88H136V80Z" />
+                  <path d="M136 88H128V96H136V88Z" />
+                  <path d="M136 104H128V112H136V104Z" />
+                  <path d="M136 112H128V120H136V112Z" />
+                  <path d="M136 120H128V128H136V120Z" />
+                  <path d="M136 128H128V136H136V128Z" />
+                  <path d="M136 136H128V144H136V136Z" />
+                  <path d="M136 144H128V152H136V144Z" />
+                  <path d="M136 160H128V168H136V160Z" />
+                  <path d="M144 0H136V8H144V0Z" />
+                  <path d="M144 16H136V24H144V16Z" />
+                  <path d="M144 24H136V32H144V24Z" />
+                  <path d="M144 32H136V40H144V32Z" />
+                  <path d="M144 48H136V56H144V48Z" />
+                  <path d="M144 80H136V88H144V80Z" />
+                  <path d="M144 96H136V104H144V96Z" />
+                  <path d="M144 112H136V120H144V112Z" />
+                  <path d="M144 120H136V128H144V120Z" />
+                  <path d="M144 160H136V168H144V160Z" />
+                  <path d="M152 0H144V8H152V0Z" />
+                  <path d="M152 16H144V24H152V16Z" />
+                  <path d="M152 24H144V32H152V24Z" />
+                  <path d="M152 32H144V40H152V32Z" />
+                  <path d="M152 48H144V56H152V48Z" />
+                  <path d="M152 64H144V72H152V64Z" />
+                  <path d="M152 136H144V144H152V136Z" />
+                  <path d="M160 0H152V8H160V0Z" />
+                  <path d="M160 48H152V56H160V48Z" />
+                  <path d="M160 80H152V88H160V80Z" />
+                  <path d="M160 96H152V104H160V96Z" />
+                  <path d="M160 112H152V120H160V112Z" />
+                  <path d="M160 120H152V128H160V120Z" />
+                  <path d="M160 128H152V136H160V128Z" />
+                  <path d="M160 136H152V144H160V136Z" />
+                  <path d="M160 152H152V160H160V152Z" />
+                  <path d="M160 160H152V168H160V160Z" />
+                  <path d="M168 0H160V8H168V0Z" />
+                  <path d="M168 8H160V16H168V8Z" />
+                  <path d="M168 16H160V24H168V16Z" />
+                  <path d="M168 24H160V32H168V24Z" />
+                  <path d="M168 32H160V40H168V32Z" />
+                  <path d="M168 40H160V48H168V40Z" />
+                  <path d="M168 48H160V56H168V48Z" />
+                  <path d="M168 72H160V80H168V72Z" />
+                  <path d="M168 80H160V88H168V80Z" />
+                  <path d="M168 88H160V96H168V88Z" />
+                  <path d="M168 96H160V104H168V96Z" />
+                  <path d="M168 104H160V112H168V104Z" />
+                  <path d="M168 112H160V120H168V112Z" />
+                  <path d="M168 144H160V152H168V144Z" />
+                  <path d="M168 160H160V168H168V160Z" />
+                </svg>
+              </div>
             </div>
           </div>
 
