@@ -15,14 +15,15 @@ const ShareButton = ({ wallpaperRef }) => {
 
   const thumbnailHeight = 160;
   const thumbnailWidth = 320;
+  const thumbnailPadding = thumbnailWidth / 10;
   const phoneWidth = thumbnailWidth * 0.35;
   const phoneHeight = thumbnailWidth * 0.8;
   const QRsize = phoneWidth / 2;
-  const QRborderWidth = QRsize + (QRsize * (activeState?.qr.borderWidth / 100));
+  const QRborderWidth = QRsize + QRsize * (activeState?.qr.borderWidth / 100);
 
   // Base positions (your padding/offset values)
   const baseX = phoneWidth / 4;
-  const baseY = thumbnailWidth / 12.5;
+  const baseY = thumbnailWidth / 10;
 
   // Offset calculations (same pattern for both)
   const xOffset = (0.5 - activeState?.qr.pos.x) * phoneWidth;
@@ -205,7 +206,7 @@ const ShareButton = ({ wallpaperRef }) => {
           </h3>
 
           <div
-            className=" relative border border-[var(--border-color)] mx-3.5 mb-3.5 rounded-md overflow-hidden"
+            className=" relative border border-[var(--border-color)] mx-3.5 mb-3.5 rounded-md overflow-hidden flex items-center justify-center"
             style={{
               height: `${thumbnailHeight}px`,
               width: `${thumbnailWidth}px`,
@@ -248,35 +249,34 @@ const ShareButton = ({ wallpaperRef }) => {
               </svg>
             </span>
             <div
-              // src={wallpaperRef.current.toDataURL()}
-              alt="Qreation"
-              className="relative outline outline-black bg-pink-400"
+              className="relative outline outline-black bg-pink-400 start-end"
               style={{
                 width: `${phoneWidth}px`,
                 height: `${phoneHeight}px`,
-                // right: `20px`,
-                // top: `20px`,
                 borderRadius: `${thumbnailHeight * 0.075}px`,
-                right: `${thumbnailWidth / 10}px`,
-                // top: `${PhoneYpos - 2.8}px`,
+                marginLeft: 'auto', // This keeps it on the right
                 outlineWidth: `${thumbnailWidth * 0.0175}px`,
-                transform: `translateY(${phoneHeight / -4}px)`,
-                  overflow: 'hidden'
+                transform: `translateY(${(0.5 - activeState?.qr.pos.y) * phoneHeight}px)`, // Move phone based on QR Y position
+                overflow: "hidden",
               }}
             >
               {/* THIS IS QR CODE SVG! */}
               <div
                 style={{
                   position: "absolute",
-                  top: `${phoneHeight * activeState?.qr.pos.y - (QRborderWidth / 2)}px`,
-                  left: `${phoneWidth * activeState?.qr.pos.x - (QRborderWidth / 2)}px`,
+                  top: `${
+                    phoneHeight * activeState?.qr.pos.y - QRborderWidth / 2
+                  }px`,
+                  left: `${
+                    phoneWidth * activeState?.qr.pos.x - QRborderWidth / 2
+                  }px`,
                   width: `${QRborderWidth}px`,
                   height: `${QRborderWidth}px`,
                   backgroundColor: `${activeState?.qr.borderColor}`,
                   // transform: `translate(50%, 50%)`,
-                    display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
                 <svg
