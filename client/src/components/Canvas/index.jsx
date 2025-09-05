@@ -194,7 +194,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
       >
         <PreviewButton />
         <UndoRedoButton />
-        <ShareButton />
+        <ShareButton wallpaperRef={wallpaperRef} />
         <span
           ref={previewRef}
           className="transition-all duration-150 ease-linear"

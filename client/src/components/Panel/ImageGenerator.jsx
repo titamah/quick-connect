@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import {
   Pencil,
@@ -32,6 +32,38 @@ function ImageGenerator({
   const [error, setError] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const today = new Date().toDateString();
+    const lastCleanup = localStorage.getItem('QRKI_HISTORY_CLEANUP');
+    
+    // If it's a new day, clean up old generation history
+    if (lastCleanup !== today) {
+      console.log('🧹 New day detected - cleaning up old generation history');
+      
+      // Clean up all old blob URLs from previous days
+      generationHistory.forEach(img => {
+        if (img.url && img.url.startsWith('blob:')) {
+          try {
+            URL.revokeObjectURL(img.url);
+          } catch (e) {
+            // URL might already be revoked, ignore
+          }
+        }
+      });
+      
+      // Clear the history for the new day
+      setGenerationHistory([]);
+      
+      // Mark cleanup as done for today
+      localStorage.setItem('QRKI_HISTORY_CLEANUP', today);
+    }
+  }, []); // Only run on component mount
+  
+  // Then keep your history management simple:
+  const addToHistory = (newImage) => {
+    setGenerationHistory((prev) => [...prev.slice(-4), newImage]);
+  };
 
   const abortControllerRef = useRef(null);
 
@@ -160,7 +192,7 @@ function ImageGenerator({
         id: Date.now(),
         url: localImageUrl,
         blob: blob,
-        prompt: finalPrompt,
+        prompt: prompt,
         vibe: selectedVibe,
         timestamp: Date.now(),
       };
@@ -168,7 +200,7 @@ function ImageGenerator({
       setCurrentImage(newImage);
 
       // Add to history and record generation
-      setGenerationHistory((prev) => [...prev.slice(-4), newImage]);
+      addToHistory( newImage );
       setCurrentImageIndex(generationHistory.length); // New image is at the end
       recordGeneration(); // Record in localStorage
 

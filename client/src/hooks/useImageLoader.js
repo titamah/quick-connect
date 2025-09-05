@@ -14,28 +14,32 @@ export const useImageLoader = (background, deviceSize) => {
       return;
     }
 
-    let isMounted = true;
+    // Create abort controller for this effect
+    const controller = new AbortController();
 
-    loadImage(background.bg, { crossOrigin: "anonymous" })
+    loadImage(background.bg, { 
+      crossOrigin: "anonymous",
+      signal: controller.signal 
+    })
       .then((img) => {
-        if (isMounted) {
-          setPatternImage(img);
-          setNaturalSize({
-            width: img.naturalWidth,
-            height: img.naturalHeight,
-          });
-          setIsImageLoaded(true);
-        }
+        setPatternImage(img);
+        setNaturalSize({
+          width: img.naturalWidth,
+          height: img.naturalHeight,
+        });
+        setIsImageLoaded(true);
       })
       .catch((error) => {
-        if (isMounted) {
+        // Don't log error if we intentionally cancelled it
+        if (error.name !== 'AbortError') {
           console.error("Failed to load image:", background.bg, error);
-          setIsImageLoaded(false);
         }
+        setIsImageLoaded(false);
       });
 
+    // Cleanup: cancel the operation when effect reruns or unmounts
     return () => {
-      isMounted = false;
+      controller.abort();
     };
   }, [background.style, background.bg, loadImage]);
 

@@ -26,6 +26,18 @@ export const useImageCache = () => {
       const img = new Image();
       img.crossOrigin = options.crossOrigin || "anonymous";
 
+      // Handle abort signal
+      if (options.signal) {
+        options.signal.addEventListener('abort', () => {
+          reject(new DOMException('Aborted', 'AbortError'));
+        });
+        
+        if (options.signal.aborted) {
+          reject(new DOMException('Aborted', 'AbortError'));
+          return;
+        }
+      }
+
       img.onload = () => {
         imageCache.set(src, img);
         resolve(img);

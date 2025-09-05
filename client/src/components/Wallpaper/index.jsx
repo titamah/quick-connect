@@ -419,8 +419,13 @@ const backgroundProps = useMemo(() => {
     useEffect(() => {
       if (!grainLoadedRef.current) {
         grainLoadedRef.current = true;
-
-        loadImage("/grain.jpeg", { crossOrigin: "anonymous" })
+    
+        const controller = new AbortController();
+    
+        loadImage("/grain.jpeg", { 
+          crossOrigin: "anonymous",
+          signal: controller.signal 
+        })
           .then((img) => {
             console.log("Grain image loaded successfully");
             setGrainImage(img);
@@ -429,20 +434,24 @@ const backgroundProps = useMemo(() => {
             }
           })
           .catch((error) => {
-            console.error(
-              "Failed to load grain texture from /grain.jpeg",
-              error
-            );
+            if (error.name !== 'AbortError') {
+              console.error("Failed to load grain texture from /grain.jpeg", error);
+            }
             setGrainImage(null);
           });
       }
-    }, []);
+    }, [loadImage]);
 
     useEffect(() => {
       if (!transparentLoadedRef.current) {
         transparentLoadedRef.current = true;
-
-        loadImage("/transparent.png", { crossOrigin: "anonymous" })
+    
+        const controller = new AbortController();
+    
+        loadImage("/transparent.png", { 
+          crossOrigin: "anonymous",
+          signal: controller.signal 
+        })
           .then((img) => {
             console.log("Transparent image loaded successfully");
             setTransparentImage(img);
@@ -451,14 +460,13 @@ const backgroundProps = useMemo(() => {
             }
           })
           .catch((error) => {
-            console.error(
-              "Failed to load transparent texture from /transparent.png",
-              error
-            );
+            if (error.name !== 'AbortError') {
+              console.error("Failed to load transparent texture from /transparent.png", error);
+            }
             setTransparentImage(null);
           });
       }
-    }, []);
+    }, [loadImage]);
 
     useEffect(() => {
       setIsDraggable(locked);
