@@ -17,8 +17,18 @@ const ShareButton = ({ wallpaperRef }) => {
   const thumbnailWidth = 320;
   const phoneWidth = thumbnailWidth * 0.35;
   const phoneHeight = thumbnailWidth * 0.8;
+
+  // Base positions (your padding/offset values)
+  const baseX = phoneWidth / 4 ;
+  const baseY = thumbnailWidth / 12.5;
+
+  // Offset calculations (same pattern for both)
   const xOffset = (0.5 - activeState?.qr.pos.x) * phoneWidth;
-  const QRbaseposition = (phoneWidth / 4) + (thumbnailWidth / 10) + xOffset;
+  const yOffset = (0.5 - activeState?.qr.pos.y) * phoneHeight;
+
+  // Final positions
+  const QRXpos = baseX + xOffset;
+  const PhoneYpos = baseY + yOffset;
 
   const buttonRef = useRef(null);
 
@@ -48,7 +58,7 @@ const ShareButton = ({ wallpaperRef }) => {
             : null,
       },
     };
-console.log(schema)
+    console.log(schema);
     return schema;
   };
 
@@ -244,20 +254,23 @@ console.log(schema)
                 height: `${phoneHeight}px`,
                 // right: `20px`,
                 // top: `20px`,
-                borderRadius:`${thumbnailHeight * 0.075}px`,
+                borderRadius: `${thumbnailHeight * 0.075}px`,
                 right: `${thumbnailWidth / 10}px`,
-                top: `${(-5 * thumbnailHeight) / 10}px`,
+                top: `${PhoneYpos - 2.8}px`,
                 outlineWidth: `${thumbnailWidth * 0.0175}px`,
-              }}>
-                </div>
-                
+                transform: `translateY(${phoneHeight / -4}px)`,
+              }}
+            >
+
+
             {/* THIS IS QR CODE SVG! */}
             <svg
-            style={{position: "absolute", 
-              top: `${(thumbnailHeight / 5) + (phoneWidth / 4)}px`,
-            right:`${QRbaseposition}px`,
-            }}
-            transform="translate(width/2, height/2)"
+              style={{
+                position: "absolute",
+                top: `${(phoneHeight * activeState?.qr.pos.y) - thumbnailWidth / 10}px`,
+                right: `${QRXpos}px`,
+              }}
+              transform="translate(width/2, height/2)"
               width={`${phoneWidth / 2}px`}
               height={`${phoneWidth / 2}px`}
               viewBox="0 0 168 168"
@@ -493,7 +506,7 @@ console.log(schema)
               <path d="M168 144H160V152H168V144Z" />
               <path d="M168 160H160V168H168V160Z" />
             </svg>
-            
+            </div>
           </div>
 
           {isGeneratingLink && (

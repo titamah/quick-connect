@@ -291,7 +291,7 @@ function DeviceTypeSelector() {
     "Samsung",
     "Google Pixel",
     "Android",
-    "Ipad",
+    "iPad",
     "Tablet",
     "Desktop",
     "Laptop",
