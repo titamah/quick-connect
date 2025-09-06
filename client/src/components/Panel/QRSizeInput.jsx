@@ -3,7 +3,8 @@ import { useDevice } from "../../contexts/DeviceContext";
 import { useThrottledCallback } from "../../hooks/useDebounce";
 import Slider from "../Slider";
 
-const SNAP_THRESHOLD = 3; // Snap within 3% of 10% increments
+const SNAP_THRESHOLD = 3; // Snap within 3% of quarter values
+const SNAP_POINTS = [25, 50, 75]; // Quarter values to snap to
 
 const QRSizeInput = ({ sizePercentage, onUpdate }) => {
   const { takeSnapshot } = useDevice();
@@ -16,12 +17,11 @@ const QRSizeInput = ({ sizePercentage, onUpdate }) => {
   }, 16);
 
   const applySnapping = (value) => {
-    // Find the nearest 10% increment
-    const nearestTen = Math.round(value / 10) * 10;
-    
-    // If we're within the snap threshold, snap to the nearest 10%
-    if (Math.abs(value - nearestTen) <= SNAP_THRESHOLD) {
-      return Math.max(10, Math.min(100, nearestTen));
+    // Check if we're close to any snap points
+    for (const snapPoint of SNAP_POINTS) {
+      if (Math.abs(value - snapPoint) <= SNAP_THRESHOLD) {
+        return snapPoint;
+      }
     }
     
     return value;
