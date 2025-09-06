@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import { zoom, zoomIdentity } from "d3-zoom";
 import { select } from "d3-selection";
+import Konva from "konva";
 import Wallpaper from "../Wallpaper/index";
 import PreviewButton from "./PreviewButton";
 import UndoRedoButton from "./UndoRedoButton";
@@ -13,6 +14,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   const { device, isMobile } = useDevice();
   const previewRef = useRef(null);
   const canvasRef = useRef(null);
+  const backgroundLayerRef = useRef(null);
   const windowSize = useWindowSize();
 
   const [isLoading, setIsLoading] = useState(true);
@@ -100,6 +102,55 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
     },
     [isZoomEnabled]
   );
+
+  const getBackgroundImage = useCallback(async () => {
+    if (!backgroundLayerRef?.current) {
+      throw new Error("Background layer reference not available");
+    }
+
+    if (!wallpaperRef?.current) {
+      throw new Error("Wallpaper stage reference not available");
+    }
+
+    try {
+      const stage = wallpaperRef.current;
+      const backgroundLayer = backgroundLayerRef.current;
+
+      console.log("Using direct background layer reference:", backgroundLayer);
+
+      // Create a temporary stage with just the background
+      const tempStage = new Konva.Stage({
+        container: document.createElement('div'),
+        width: stage.width(),
+        height: stage.height(),
+      });
+
+      // Clone the background layer
+      const clonedLayer = backgroundLayer.clone();
+      tempStage.add(clonedLayer);
+
+      // Generate the image
+      const dataURL = tempStage.toDataURL({
+        mimeType: 'image/png',
+        quality: 0.8,
+        pixelRatio: 1,
+      });
+
+      // Clean up
+      tempStage.destroy();
+
+      // Convert to Image object
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = dataURL;
+      });
+    } catch (error) {
+      console.error("Error generating background image:", error);
+      throw error;
+    }
+  }, [wallpaperRef, backgroundLayerRef]);
 
   useEffect(() => {
     updatePanelSize();
@@ -194,7 +245,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
       >
         <PreviewButton />
         <UndoRedoButton />
-        <ShareButton wallpaperRef={wallpaperRef} />
+        <ShareButton wallpaperRef={wallpaperRef} getBackgroundImage={getBackgroundImage} backgroundLayerRef={backgroundLayerRef} />
         <span
           ref={previewRef}
           className="transition-all duration-150 ease-linear"
@@ -225,6 +276,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
                 isOpen={isOpen}
                 locked={!isZoomEnabled}
                 setIsZoomEnabled={memoizedSetIsZoomEnabled}
+                backgroundLayerRef={backgroundLayerRef}
               />
             )}
           </figure>

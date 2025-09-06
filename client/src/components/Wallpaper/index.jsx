@@ -28,7 +28,7 @@ const QR_SIZE_RATIO = 0.5;
 const SNAP_TOLERANCE = 25;
 
 const Wallpaper = forwardRef(
-  ({ panelSize, isOpen, locked, setIsZoomEnabled }, ref) => {
+  ({ panelSize, isOpen, locked, setIsZoomEnabled, backgroundLayerRef }, ref) => {
     const {
       deviceInfo,
       background,
@@ -671,7 +671,7 @@ const backgroundProps = useMemo(() => {
               transformerRef.current?.getLayer()?.batchDraw();
             }}
           >
-            <Layer>
+            <Layer className="background-layer" ref={backgroundLayerRef}>
               <Rect {...backgroundProps} listening={false} />
 
               {background.grain && grainImage && (

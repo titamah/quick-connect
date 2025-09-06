@@ -3,16 +3,17 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Share, Share2, Copy, Facebook, Linkedin, Twitter } from "lucide-react";
 import { useDevice } from "../../contexts/DeviceContext";
-import Thumbnail from "./Thumbnail copy.jsx";
-import ThumbnailDiv from "./Thumbnail.jsx";
+import Thumbnail from "./Thumbnail.jsx";
 import { toast } from "react-toastify";
 
-const ShareButton = ({ wallpaperRef }) => {
+const ShareButton = ({ wallpaperRef, getBackgroundImage, backgroundLayerRef }) => {
   // Add props
   const { deviceState, qrConfig, background } = useDevice();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [remixLink, setRemixLink] = useState(null);
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
+  const [isGeneratingThumbnail, setIsGeneratingThumbnail] = useState(false);
+  const [backgroundImage, setBackgroundImage] = useState(null);
   const [activeState, setActiveState] = useState(null);
 
   const thumbnailHeight = 160;
@@ -71,11 +72,30 @@ const ShareButton = ({ wallpaperRef }) => {
 
   useEffect(() => {
     if (isMenuOpen) {
-      // setIsGeneratingLink(true);
-      // generateRemixLink();
-      setActiveState(createDeviceStateSchema());
+      const generateThumbnailData = async () => {
+        setIsGeneratingThumbnail(true);
+        try {
+          // Debug: Check if backgroundLayerRef is available
+          console.log("Background layer ref available:", !!backgroundLayerRef?.current);
+          
+          // Generate background image
+          const bgImage = await getBackgroundImage();
+          setBackgroundImage(bgImage);
+          
+          // Create device state schema
+          setActiveState(createDeviceStateSchema());
+        } catch (error) {
+          console.error("Failed to generate thumbnail data:", error);
+          // Still set active state even if background generation fails
+          setActiveState(createDeviceStateSchema());
+        } finally {
+          setIsGeneratingThumbnail(false);
+        }
+      };
+
+      generateThumbnailData();
     }
-  }, [isMenuOpen]);
+  }, [isMenuOpen, getBackgroundImage]);
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -116,11 +136,13 @@ const ShareButton = ({ wallpaperRef }) => {
   };
 
   const handleShareClick = async () => {
-    setIsMenuOpen(!isMenuOpen);
+    const newMenuState = !isMenuOpen;
+    setIsMenuOpen(newMenuState);
 
-    // Pre-generate the remix link when menu opens
-    if (!remixLink && !isGeneratingLink) {
-      await generateRemixLink();
+    // Reset states when closing menu
+    if (!newMenuState) {
+      setBackgroundImage(null);
+      setActiveState(null);
     }
   };
 
@@ -203,13 +225,30 @@ const ShareButton = ({ wallpaperRef }) => {
   return (
     <div className="fixed bottom-6 right-6 z-50" ref={buttonRef}>
       {/* Share Menu */}
-      {!isMenuOpen && (
+      {isMenuOpen && (
         <div className="absolute bottom-13 right-0 mb-2 bg-[var(--bg-main)] border border-[var(--border-color)] rounded-lg shadow-lg w-[350px] max-w-[90vw]">
           <h3 className="text-sm font-medium text-[var(--text-primary)] px-4 py-3">
             Share your Qreation
           </h3>
-          <Thumbnail activeState={activeState} />
-          <ThumbnailDiv activeState={activeState} />
+          
+          {/* Loading overlay */}
+          {isGeneratingThumbnail && (
+            <div className="relative">
+              <div className="absolute inset-0 bg-[var(--bg-main)] bg-opacity-90 flex items-center justify-center z-10 rounded-lg">
+                <div className="flex flex-col items-center gap-2">
+                  <div className="animate-spin size-6 border-2 border-current border-t-transparent text-[var(--accent)] rounded-full"></div>
+                  <span className="text-sm text-[var(--text-secondary)]">Generating preview...</span>
+                </div>
+              </div>
+              <div className="h-40 bg-[var(--bg-secondary)] rounded-md mx-3.5 mb-3.5 opacity-30"></div>
+            </div>
+          )}
+          
+          {/* Thumbnail - only show when not loading */}
+          {!isGeneratingThumbnail && (
+            <Thumbnail activeState={activeState} backgroundImage={backgroundImage} />
+          )}
+          
           {isGeneratingLink && (
             <h4 className="px-2 py-2 text-sm text-[var(--text-secondary)]">
               Generating share link...
