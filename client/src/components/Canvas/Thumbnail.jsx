@@ -15,7 +15,9 @@ const Thumbnail = ({ activeState, backgroundImage = null, dark = true }) => {
   const PHONE_WIDTH = THUMBNAIL_WIDTH * 0.3525;
   const PHONE_HEIGHT = THUMBNAIL_WIDTH * 0.8;
 
-  const QR_SIZE = PHONE_WIDTH * 0.5525;
+  const BASE_QR_SIZE = PHONE_WIDTH * 0.5525;
+  const QR_SCALE = activeState?.qr.scale || 0.5;
+  const QR_SIZE = BASE_QR_SIZE * QR_SCALE; // This is your scaled size  
   const QR_BORDER = QR_SIZE * (activeState?.qr.borderWidth / 100);
   const QR_GROUP_SIZE = QR_SIZE + QR_BORDER;
 

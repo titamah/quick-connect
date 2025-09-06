@@ -69,9 +69,9 @@ const Wallpaper = forwardRef(
 
     const qrSize = useMemo(() => {
       const minDimension = Math.min(deviceInfo.size.x, deviceInfo.size.y);
-      const sizePercentage = Math.max(10, Math.min(100, qrConfig.sizePercentage || 50));
-      return minDimension * (sizePercentage / 100);
-    }, [deviceInfo.size.x, deviceInfo.size.y, qrConfig.sizePercentage]);
+      const scale = Math.max(0.1, Math.min(1, qrConfig.scale || 0.5));
+      return minDimension * scale;
+    }, [deviceInfo.size.x, deviceInfo.size.y, qrConfig.scale]);
 
     const primaryColor = qrConfig.custom?.primaryColor || "#000";
     const secondaryColor = qrConfig.custom?.secondaryColor || "#fff";
@@ -400,8 +400,8 @@ const backgroundProps = useMemo(() => {
 
     useEffect(() => {
       const minDimension = Math.min(deviceInfo.size.x, deviceInfo.size.y);
-      const sizePercentage = Math.max(10, Math.min(100, qrConfig.sizePercentage || 50));
-      const newQRSize = minDimension * (sizePercentage / 100);
+      const scale = Math.max(0.1, Math.min(1, qrConfig.scale || 0.5));
+      const newQRSize = minDimension * scale;
       const maxBorderSize = newQRSize * 0.1;
 
       if (qrConfig.custom.borderSize > maxBorderSize) {
@@ -416,7 +416,7 @@ const backgroundProps = useMemo(() => {
           },
         });
       }
-    }, [deviceInfo.size.x, deviceInfo.size.y, qrConfig.sizePercentage]);
+    }, [deviceInfo.size.x, deviceInfo.size.y, qrConfig.scale]);
 
     useEffect(() => {
       if (!grainLoadedRef.current) {
@@ -482,122 +482,122 @@ const backgroundProps = useMemo(() => {
     }, [deviceInfo.size, qrConfig.positionPercentages]);
 
     useEffect(() => {
-      if (!shapeRef.current || !transformerRef.current) return;
-    
-      const qrGroup = shapeRef.current;
-      const transformer = transformerRef.current;
-    
-      const handleQRSelect = (e) => {
-        setTimeout(() => {
-          setIsDragging(false);
-          transformer.nodes([qrGroup]);
-          transformer.getLayer().batchDraw();
-        }, 5);
-      };
-    
-      const handleDragStart = (e) => {
-        if (!isTransforming) {
-          console.log("📸 Taking snapshot before drag");
-          takeSnapshot("Move QR Code");
-        }
-        setTimeout(() => {
-          setIsDragging(true);
-          transformer.nodes([]);
-          transformer.getLayer().batchDraw();
-        }, 5);
-      };
-    
-      // NEW: Handle transform start - take snapshot BEFORE any transformation
-      const handleTransformStart = (e) => {
-        if (!isTransforming) {
-          console.log("📸 Taking snapshot before transform");
-          takeSnapshot("Transform QR Code");
-          setIsTransforming(true);
-        }
-      };
-    
-      const handleTransformEnd = (e) => {
-        setTimeout(() => {
-          setIsTransforming(false);
-          transformer.nodes([qrGroup]);
-    
-          const group = qrGroup;
-          
-          // Update position
-          const newQRPos = {
-            x: group.x(),
-            y: group.y(),
-          };
-          const newPercentages = {
-            x: newQRPos.x / deviceInfo.size.x,
-            y: newQRPos.y / deviceInfo.size.y,
-          };
-          updateQRPositionPercentages(newPercentages);
-    
-          // Update rotation
-          const newRotation = group.rotation();
-          updateQRConfig({ rotation: newRotation });
-    
-          // Update scale via size percentage
-          const scaleX = group.scaleX();
-          const scaleY = group.scaleY();
-          // Use average scale and apply to size percentage
-          const avgScale = (scaleX + scaleY) / 2;
-          const currentSizePercentage = qrConfig.sizePercentage || 50;
-          const newSizePercentage = Math.max(10, Math.min(100, currentSizePercentage * avgScale));
-          
-          // Reset the group scale and update via size percentage instead
-          group.scaleX(1);
-          group.scaleY(1);
-          
-          updateQRConfig({ 
-            rotation: newRotation,
-            sizePercentage: newSizePercentage 
-          });
-    
-          transformer.getLayer().batchDraw();
-        }, 5);
-      };
-    
-      // Attach all event listeners
-      qrGroup.on("click dragend", handleQRSelect);
-      qrGroup.on("dragstart", handleDragStart);
-      qrGroup.on("tap", handleQRSelect);
+  if (!shapeRef.current || !transformerRef.current) return;
+
+  const qrGroup = shapeRef.current;
+  const transformer = transformerRef.current;
+
+  const handleQRSelect = (e) => {
+    setTimeout(() => {
+      setIsDragging(false);
+      transformer.nodes([qrGroup]);
+      transformer.getLayer().batchDraw();
+    }, 5);
+  };
+
+  const handleDragStart = (e) => {
+    if (!isTransforming) {
+      console.log("📸 Taking snapshot before drag");
+      takeSnapshot("Move QR Code");
+    }
+    setTimeout(() => {
+      setIsDragging(true);
+      transformer.nodes([]);
+      transformer.getLayer().batchDraw();
+    }, 5);
+  };
+
+  // NEW: Handle transform start - take snapshot BEFORE any transformation
+  const handleTransformStart = (e) => {
+    if (!isTransforming) {
+      console.log("📸 Taking snapshot before transform");
+      takeSnapshot("Transform QR Code");
+      setIsTransforming(true);
+    }
+  };
+
+  const handleTransformEnd = (e) => {
+    setTimeout(() => {
+      setIsTransforming(false);
+      transformer.nodes([qrGroup]);
+
+      const group = qrGroup;
       
-      // NEW: Add transform event listeners
-      transformer.on("transformstart", handleTransformStart);
-      transformer.on("transformend", handleTransformEnd);
-    
-      const handleOutsideClick = (e) => {
-        if (transformer.nodes().length > 0) {
-          transformer.nodes([]);
-          setIsZoomEnabled(false);
-          transformer.getLayer().batchDraw();
-        }
+      // Update position
+      const newQRPos = {
+        x: group.x(),
+        y: group.y(),
       };
-    
-      document
-        .getElementById("Canvas")
-        ?.addEventListener("mouseup", handleOutsideClick);
-      document
-        .getElementById("Canvas")
-        ?.addEventListener("touchend", handleOutsideClick);
-    
-      return () => {
-        qrGroup.off("click dragend", handleQRSelect);
-        qrGroup.off("dragstart", handleDragStart);
-        qrGroup.off("tap", handleQRSelect);
-        transformer.off("transformstart", handleTransformStart);
-        transformer.off("transformend", handleTransformEnd);
-        document
-          .getElementById("Canvas")
-          ?.removeEventListener("mouseup", handleOutsideClick);
-        document
-          .getElementById("Canvas")
-          ?.removeEventListener("touchend", handleOutsideClick);
+      const newPercentages = {
+        x: newQRPos.x / deviceInfo.size.x,
+        y: newQRPos.y / deviceInfo.size.y,
       };
-    }, [qrSize, deviceInfo.size, updateQRPositionPercentages, updateQRConfig, takeSnapshot, isTransforming, qrConfig.sizePercentage]);
-    
+      updateQRPositionPercentages(newPercentages);
+
+      // Update rotation
+      const newRotation = group.rotation();
+      updateQRConfig({ rotation: newRotation });
+
+      // Update scale via size percentage
+      const scaleX = group.scaleX();
+      const scaleY = group.scaleY();
+      // Use average scale and apply to size percentage
+      const avgScale = (scaleX + scaleY) / 2;
+      const currentScale = qrConfig.scale || 0.5;
+      const newScale = Math.max(0.1, Math.min(1, currentScale * avgScale));
+      
+      // Reset the group scale and update via size percentage instead
+      group.scaleX(1);
+      group.scaleY(1);
+      
+      updateQRConfig({ 
+        rotation: newRotation,
+        scale: newScale 
+      });
+
+      transformer.getLayer().batchDraw();
+    }, 5);
+  };
+
+  // Attach all event listeners
+  qrGroup.on("click dragend", handleQRSelect);
+  qrGroup.on("dragstart", handleDragStart);
+  qrGroup.on("tap", handleQRSelect);
+  
+  // NEW: Add transform event listeners
+  transformer.on("transformstart", handleTransformStart);
+  transformer.on("transformend", handleTransformEnd);
+
+  const handleOutsideClick = (e) => {
+    if (transformer.nodes().length > 0) {
+      transformer.nodes([]);
+      setIsZoomEnabled(false);
+      transformer.getLayer().batchDraw();
+    }
+  };
+
+  document
+    .getElementById("Canvas")
+    ?.addEventListener("mouseup", handleOutsideClick);
+  document
+    .getElementById("Canvas")
+    ?.addEventListener("touchend", handleOutsideClick);
+
+  return () => {
+    qrGroup.off("click dragend", handleQRSelect);
+    qrGroup.off("dragstart", handleDragStart);
+    qrGroup.off("tap", handleQRSelect);
+    transformer.off("transformstart", handleTransformStart);
+    transformer.off("transformend", handleTransformEnd);
+    document
+      .getElementById("Canvas")
+      ?.removeEventListener("mouseup", handleOutsideClick);
+    document
+      .getElementById("Canvas")
+      ?.removeEventListener("touchend", handleOutsideClick);
+  };
+}, [qrSize, deviceInfo.size, updateQRPositionPercentages, updateQRConfig, takeSnapshot, isTransforming, qrConfig.scale]);
+
 
     const phoneUIRef = useRef(null);
 

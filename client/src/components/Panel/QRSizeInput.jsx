@@ -3,14 +3,14 @@ import { useDevice } from "../../contexts/DeviceContext";
 import { useThrottledCallback } from "../../hooks/useDebounce";
 import Slider from "../Slider";
 
-const SNAP_THRESHOLD = 3; // Snap within 3% of quarter values
-const SNAP_POINTS = [25, 50, 75]; // Quarter values to snap to
+const SNAP_THRESHOLD = 0.03; // Snap within 3% of quarter values
+const SNAP_POINTS = [0.25, 0.5, 0.75]; // Quarter values to snap to
 
-const QRSizeInput = ({ sizePercentage, onUpdate }) => {
+const QRSizeInput = ({ scale, onUpdate }) => {
   const { takeSnapshot } = useDevice();
   
-  const currentSizeRef = useRef(sizePercentage);
-  currentSizeRef.current = sizePercentage;
+  const currentSizeRef = useRef(scale);
+  currentSizeRef.current = scale;
 
   const throttledUpdateSize = useThrottledCallback((size) => {
     onUpdate(size);
@@ -39,10 +39,10 @@ const QRSizeInput = ({ sizePercentage, onUpdate }) => {
 
   return (
     <Slider
-      min="10"
-      max="100"
+      min="0.1"
+      max="1"
       step="1"
-      value={sizePercentage || 50}
+      value={scale || 0.5}
       onChange={handleSliderChange}
       onMouseDown={handleSliderMouseDown}
     />
