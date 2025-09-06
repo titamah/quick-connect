@@ -15,7 +15,7 @@ const Thumbnail = ({ activeState, backgroundImage = null, dark = true }) => {
   const PHONE_WIDTH = THUMBNAIL_WIDTH * 0.3525;
   const PHONE_HEIGHT = THUMBNAIL_WIDTH * 0.8;
 
-  const BASE_QR_SIZE = PHONE_WIDTH * 0.5525;
+  const BASE_QR_SIZE = PHONE_WIDTH;
   const QR_SCALE = activeState?.qr.scale || 0.5;
   const QR_SIZE = BASE_QR_SIZE * QR_SCALE; // This is your scaled size  
   const QR_BORDER = QR_SIZE * (activeState?.qr.borderWidth / 100);
@@ -319,8 +319,9 @@ const Thumbnail = ({ activeState, backgroundImage = null, dark = true }) => {
               <Group
                 x={QR_BORDER / 2}
                 y={QR_BORDER / 2}
-                scaleY={0.375 / THUMBNAIL_SCALE}
-                scaleX={0.375 / THUMBNAIL_SCALE}
+                // fill="red"
+                // scaleY={0.375 / THUMBNAIL_SCALE}
+                // scaleX={0.375 / THUMBNAIL_SCALE}
               >
                 <Path
                   strokeWidth={0}
