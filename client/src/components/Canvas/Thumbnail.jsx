@@ -17,7 +17,7 @@ const Thumbnail = ({ activeState, backgroundImage = null, dark = true }) => {
 
   const BASE_QR_SIZE = PHONE_WIDTH;
   const QR_SCALE = activeState?.qr.scale || 0.5;
-  const QR_SIZE = BASE_QR_SIZE * QR_SCALE; // This is your scaled size
+  const QR_SIZE = BASE_QR_SIZE * QR_SCALE; 
   const QR_BORDER = QR_SIZE * (activeState?.qr.borderWidth / 100);
   const QR_GROUP_SIZE = QR_SIZE + QR_BORDER;
 
@@ -28,12 +28,9 @@ const Thumbnail = ({ activeState, backgroundImage = null, dark = true }) => {
   const phoneX = THUMBNAIL_WIDTH - (PHONE_WIDTH + strokeWidth) - THUMBNAIL_PADDING;
   const phoneY = (THUMBNAIL_HEIGHT - PHONE_HEIGHT) / 2 - qrRelativeY;
 
-  const phoneRectWidth = PHONE_WIDTH * 1.165;
-  const phoneRectHeight = PHONE_HEIGHT;
-
   const backgroundProps = {
-    width: phoneRectWidth,
-    height: phoneRectHeight,
+    width: PHONE_WIDTH,
+    height: PHONE_HEIGHT,
     x: 0,
     y: 0,
     ...(backgroundImage
@@ -41,8 +38,8 @@ const Thumbnail = ({ activeState, backgroundImage = null, dark = true }) => {
           fillPatternImage: backgroundImage,
           fillPatternRepeat: "no-repeat",
           fillPatternScale: (() => {
-            const scaleX = phoneRectWidth / backgroundImage.width;
-            const scaleY = phoneRectHeight / backgroundImage.height;
+            const scaleX = PHONE_WIDTH / backgroundImage.width;
+            const scaleY = PHONE_HEIGHT / backgroundImage.height;
             const scale = Math.max(scaleX, scaleY);
             return { x: scale, y: scale };
           })(),
@@ -81,41 +78,33 @@ const Thumbnail = ({ activeState, backgroundImage = null, dark = true }) => {
     }
 
     try {
-      // Set to full 1.0 scale for maximum detail export
       const stage = stageRef.current;
       const originalScaleX = stage.scaleX();
       const originalScaleY = stage.scaleY();
 
-      // Set to 1.0 scale (full design resolution) for maximum detail
       stage.scaleX(1.0);
       stage.scaleY(1.0);
 
-      // Update stage size to match full scale
       const originalWidth = stage.width();
       const originalHeight = stage.height();
       stage.width(THUMBNAIL_WIDTH);
       stage.height(THUMBNAIL_HEIGHT);
 
-      // Generate at full resolution with 2.0x pixelRatio for perfect QR codes
-      // This gives us 2560×1280 - crisp QR pixels, no gaps
       const dataURL = stage.toDataURL({
-        mimeType: "image/png", // PNG for clipboard compatibility
-        quality: 0.75, // Maximum quality for crisp QR codes
-        pixelRatio: 2.0, // 2x for crisp QR code pixels
-        imageSmoothingEnabled: false, // Crisp pixel-perfect rendering
+        mimeType: "image/png", 
+        quality: 0.75, 
+        pixelRatio: 2.0, 
+        imageSmoothingEnabled: false,
       });
 
-      // Restore original scaling and dimensions
       stage.scaleX(originalScaleX);
       stage.scaleY(originalScaleY);
       stage.width(originalWidth);
       stage.height(originalHeight);
 
-      // Convert data URL to blob
       const response = await fetch(dataURL);
       const blob = await response.blob();
 
-      // Copy to clipboard
       await navigator.clipboard.write([
         new ClipboardItem({
           "image/png": blob,
