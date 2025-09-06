@@ -13,6 +13,7 @@ const Slider = ({
   color,
   min = 0,
   max = 100,
+  step = 1,
   onColorPickerOpen,
   onColorPickerClose,
   onBlur,
@@ -78,6 +79,14 @@ const Slider = ({
     }
   };
 
+  const formatTooltipValue = (val) => {
+    if (max <= 1) {
+      return `${Math.round(val * 100)}%`;
+    } else {
+      return `${Math.round(val)}%`;
+    }
+  };
+
   return (
     <div
       className={`${
@@ -106,7 +115,7 @@ const Slider = ({
             color: "var(--bg-main)",
           }}
         >
-          {Math.round(value)}%
+          {formatTooltipValue(value)}
         </div>
       )}
       <div ref={containerRef} className={`relative`}>
@@ -133,6 +142,7 @@ const Slider = ({
               value={value}
               min={min}
               max={max}
+              step={step}
               onChangeCapture={(e) => {
                 setDrag(true);
               }}
@@ -157,7 +167,7 @@ const Slider = ({
               className={`appearance-none w-full absolute -translate-y-[2px] ${
                 stacked
                   ? ""
-                  : "rounded-full relative mt-[7.5px] h-[8px] bg-[var(--contrast-sheer)]"
+                  : "rounded-full relative mt-[7-px] h-[8px] bg-[var(--contrast-sheer)]"
               }`}
             />
           </ColorPicker>
@@ -169,6 +179,7 @@ const Slider = ({
             value={value}
             min={min}
             max={max}
+            step={step}
             onChangeCapture={(e) => {
               setDrag(true);
             }}

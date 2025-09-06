@@ -160,9 +160,9 @@ function QRGenerator(panelSize) {
         <div className="flex items-center pb-2.5">
           <h4 className="w-[85px]"> Size </h4>
           <QRSizeInput
-            sizePercentage={qrConfig.sizePercentage}
-            onUpdate={(newSizePercentage) =>
-              updateQRConfig({ sizePercentage: newSizePercentage })
+            scale={qrConfig.scale || 0.5}
+            onUpdate={(newScale) =>
+              updateQRConfig({ scale: newScale })
             }
           />
         </div>
@@ -175,7 +175,7 @@ function QRGenerator(panelSize) {
               updateQRConfig({ positionPercentages: newPosition })
             }
             deviceSize={device.size}
-            qrSizePercentage={qrConfig.sizePercentage}
+            qrScale={qrConfig.scale || 0.5}
             units="px"
           />
         </div>

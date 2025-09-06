@@ -41,7 +41,7 @@ const QRSizeInput = ({ scale, onUpdate }) => {
     <Slider
       min="0.1"
       max="1"
-      step="1"
+      step="0.01" // Fixed! Was "1" now "0.01" for smooth sliding
       value={scale || 0.5}
       onChange={handleSliderChange}
       onMouseDown={handleSliderMouseDown}

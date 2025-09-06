@@ -277,6 +277,12 @@ export const useDeviceState = () => {
 
   const updateQRConfig = (updates) => {
     console.log("🔧 updateQRConfig:", updates);
+    
+    if (updates.scale !== undefined) {
+      updates.scale = Math.max(0.1, Math.min(1, updates.scale));
+      console.log("📏 Clamped scale to:", updates.scale);
+    }
+    
     setQRConfig((prev) => deepMerge(prev, updates));
   };
 
