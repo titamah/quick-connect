@@ -7,7 +7,6 @@ const PositionInput = ({
   onUpdate,
   deviceSize,
   units = "px",
-  qrSizePercentage = 50,
 }) => {
   const { takeSnapshot } = useDevice();
 
@@ -16,9 +15,8 @@ const PositionInput = ({
     minY = 0,
     maxY = 100;
   if (type === "qr") {
-    const minDimension = Math.min(deviceSize.x, deviceSize.y);
-    const sizePercentage = Math.max(10, Math.min(100, qrSizePercentage));
-    const qrSize = minDimension * (sizePercentage / 100);
+    const QR_SIZE_RATIO = 0.5;
+    const qrSize = Math.min(deviceSize.x, deviceSize.y) * QR_SIZE_RATIO;
     minX = qrSize / 2;
     maxX = deviceSize.x - qrSize / 2;
     minY = qrSize / 2;
@@ -81,7 +79,6 @@ const PositionInput = ({
     minY,
     maxY,
     type,
-    qrSizePercentage,
   ]);
 
   const updatePosition = (axis, increment) => {
@@ -179,10 +176,10 @@ const PositionInput = ({
   return (
     <div className="flex-shrink-1 h-[24px] px-1.5 py-[2.5px] border border-[var(--border-color)]/50 rounded-sm bg-black/5 dark:bg-black/15 w-full items-center justify-center">
       <div className="flex flex-row gap-2 min-w-0 w-full h-[16px] justify-between">
-        <span className="flex flex-row gap-1.5 items-center">
-          <span className="text-xs flex text-[var(--text-secondary)]/50">
+        <span className="flex flex-row gap-1.5 items-center w-full">
+          {/* <span className="text-xs flex text-[var(--text-secondary)]/50">
             X
-          </span>
+          </span> */}
           <div className="relative flex-1 min-w-0">
             <input
               type="number"
@@ -212,7 +209,7 @@ const PositionInput = ({
             </span>
           </div>
         </span>
-        <span className="flex flex-row gap-1.5 items-center">
+        {/* <span className="flex flex-row gap-1.5 items-center">
           <span className="text-xs flex text-[var(--text-secondary)]/50">
             Y
           </span>
@@ -244,7 +241,7 @@ const PositionInput = ({
               {units}
             </span>
           </div>
-        </span>
+        </span> */}
       </div>
     </div>
   );

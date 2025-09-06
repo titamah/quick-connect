@@ -24,7 +24,6 @@ import { useImageCache } from "../../hooks/useImageCache";
 
 const PERFORMANCE_MONITORING = process.env.NODE_ENV === "development";
 
-const QR_SIZE_RATIO = 0.5;
 const SNAP_TOLERANCE = 25;
 
 const Wallpaper = forwardRef(
@@ -53,8 +52,6 @@ const Wallpaper = forwardRef(
     const [cachedSVGPaths, setCachedSVGPaths] = useState(null);
     const [lastURL, setLastURL] = useState(qrConfig.url);
     const [qrPos, setQRPos] = useState(() => {
-      const qrSize =
-        Math.min(deviceInfo.size.x, deviceInfo.size.y) * QR_SIZE_RATIO;
       return {
         x: deviceInfo.size.x * qrConfig.positionPercentages.x,
         y: deviceInfo.size.y * qrConfig.positionPercentages.y,
@@ -67,10 +64,11 @@ const Wallpaper = forwardRef(
     const [transparentImage, setTransparentImage] = useState(null);
     const transparentLoadedRef = useRef(false);
 
-    const qrSize = useMemo(
-      () => Math.min(deviceInfo.size.x, deviceInfo.size.y) * QR_SIZE_RATIO,
-      [deviceInfo.size.x, deviceInfo.size.y]
-    );
+    const qrSize = useMemo(() => {
+      const minDimension = Math.min(deviceInfo.size.x, deviceInfo.size.y);
+      const sizePercentage = Math.max(10, Math.min(100, qrConfig.sizePercentage || 50));
+      return minDimension * (sizePercentage / 100);
+    }, [deviceInfo.size.x, deviceInfo.size.y, qrConfig.sizePercentage]);
 
     const primaryColor = qrConfig.custom?.primaryColor || "#000";
     const secondaryColor = qrConfig.custom?.secondaryColor || "#fff";
@@ -398,8 +396,9 @@ const backgroundProps = useMemo(() => {
     }, [primaryColor, secondaryColor, cachedSVGPaths, updateSVGColors]);
 
     useEffect(() => {
-      const newQRSize =
-        Math.min(deviceInfo.size.x, deviceInfo.size.y) * QR_SIZE_RATIO;
+      const minDimension = Math.min(deviceInfo.size.x, deviceInfo.size.y);
+      const sizePercentage = Math.max(10, Math.min(100, qrConfig.sizePercentage || 50));
+      const newQRSize = minDimension * (sizePercentage / 100);
       const maxBorderSize = newQRSize * 0.1;
 
       if (qrConfig.custom.borderSize > maxBorderSize) {
@@ -414,7 +413,7 @@ const backgroundProps = useMemo(() => {
           },
         });
       }
-    }, [deviceInfo.size.x, deviceInfo.size.y]);
+    }, [deviceInfo.size.x, deviceInfo.size.y, qrConfig.sizePercentage]);
 
     useEffect(() => {
       if (!grainLoadedRef.current) {
@@ -772,6 +771,7 @@ const backgroundProps = useMemo(() => {
               </Group>
 
               <Transformer
+              centeredScaling={true}
                 borderStroke="red"
                 borderStrokeWidth={2 / stageScale}
                 enabledAnchors={[

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 
 import { useDevice } from "../../contexts/DeviceContext";
 import CustomColorInput from "./CustomColorInput";
+import QRSizeInput from "./QRSizeInput";
 import PositionInput from "./PositionInput";
 import AngleInput from "./AngleInput";
 import Slider from "../Slider";
@@ -157,6 +158,15 @@ function QRGenerator(panelSize) {
       </h3>
       <div className="px-3.5">
         <div className="flex items-center pb-2.5">
+          <h4 className="w-[85px]"> Size </h4>
+          <QRSizeInput
+            sizePercentage={qrConfig.sizePercentage}
+            onUpdate={(newSizePercentage) =>
+              updateQRConfig({ sizePercentage: newSizePercentage })
+            }
+          />
+        </div>
+        <div className="flex items-center pb-2.5">
           <h4 className="w-[85px]"> Position </h4>
           <PositionInput
             type="qr"
@@ -165,6 +175,7 @@ function QRGenerator(panelSize) {
               updateQRConfig({ positionPercentages: newPosition })
             }
             deviceSize={device.size}
+            qrSizePercentage={qrConfig.sizePercentage}
             units="px"
           />
         </div>

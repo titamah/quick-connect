@@ -52,6 +52,7 @@ export const useDeviceState = () => {
 
   const [qrConfig, setQRConfig] = useState({
     url: "www.qrki.com",
+    sizePercentage: 50, // 10-100%, where 100% = min(deviceSize.x, deviceSize.y)
     custom: {
       primaryColor: "#000000",
       secondaryColor: "#FFFFFF",
@@ -308,10 +309,17 @@ export const useDeviceState = () => {
 
   // Load template data (for starting with templates)
   const loadTemplateData = (templateData) => {
-    // Load template data into state
+    // Load template data into state, ensuring backwards compatibility
     setDeviceInfo(templateData.deviceInfo);
     setBackground(templateData.background);
-    setQRConfig(templateData.qrConfig);
+    
+    // Handle backwards compatibility for QR config
+    const qrConfigWithDefaults = {
+      ...templateData.qrConfig,
+      sizePercentage: templateData.qrConfig.sizePercentage ?? 50, // Default to 50% if not present
+    };
+    setQRConfig(qrConfigWithDefaults);
+    
     setImagePalette(templateData.imagePalette);
     setUploadInfo(templateData.uploadInfo);
     setGeneratedInfo(templateData.generatedInfo);
