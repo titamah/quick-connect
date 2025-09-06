@@ -7,7 +7,7 @@ const PositionInput = ({
   onUpdate,
   deviceSize,
   units = "px",
-  qrSizePercentage = 50,
+  qrScale = 0.5,
 }) => {
   const { takeSnapshot } = useDevice();
 
@@ -17,8 +17,8 @@ const PositionInput = ({
     maxY = 100;
   if (type === "qr") {
     const minDimension = Math.min(deviceSize.x, deviceSize.y);
-    const sizePercentage = Math.max(10, Math.min(100, qrSizePercentage));
-    const qrSize = minDimension * (sizePercentage / 100);
+    const scale = Math.max(0.1, Math.min(1, qrScale));
+    const qrSize = minDimension * scale;
     minX = qrSize / 2;
     maxX = deviceSize.x - qrSize / 2;
     minY = qrSize / 2;
@@ -81,7 +81,7 @@ const PositionInput = ({
     minY,
     maxY,
     type,
-    qrSizePercentage,
+    qrScale,
   ]);
 
   const updatePosition = (axis, increment) => {

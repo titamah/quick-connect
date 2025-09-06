@@ -43,6 +43,7 @@ const ShareButton = ({ wallpaperRef, getBackgroundImage, backgroundLayerRef }) =
   const createDeviceStateSchema = () => {
     const schema = {
       qr: {
+        sizePercentage: qrConfig.sizePercentage,
         primaryColor: qrConfig.custom.primaryColor,
         secondaryColor: qrConfig.custom.secondaryColor,
         borderColor: qrConfig.custom.borderColor,

@@ -64,6 +64,9 @@ const Wallpaper = forwardRef(
     const [transparentImage, setTransparentImage] = useState(null);
     const transparentLoadedRef = useRef(false);
 
+    const [isTransforming, setIsTransforming] = useState(false);
+
+
     const qrSize = useMemo(() => {
       const minDimension = Math.min(deviceInfo.size.x, deviceInfo.size.y);
       const sizePercentage = Math.max(10, Math.min(100, qrConfig.sizePercentage || 50));
@@ -480,57 +483,91 @@ const backgroundProps = useMemo(() => {
 
     useEffect(() => {
       if (!shapeRef.current || !transformerRef.current) return;
-
+    
       const qrGroup = shapeRef.current;
       const transformer = transformerRef.current;
-
+    
       const handleQRSelect = (e) => {
         setTimeout(() => {
           setIsDragging(false);
           transformer.nodes([qrGroup]);
-
           transformer.getLayer().batchDraw();
         }, 5);
       };
-
+    
       const handleDragStart = (e) => {
-        takeSnapshot("Drag start");
+        if (!isTransforming) {
+          console.log("📸 Taking snapshot before drag");
+          takeSnapshot("Move QR Code");
+        }
         setTimeout(() => {
           setIsDragging(true);
           transformer.nodes([]);
-
           transformer.getLayer().batchDraw();
         }, 5);
       };
-
+    
+      // NEW: Handle transform start - take snapshot BEFORE any transformation
+      const handleTransformStart = (e) => {
+        if (!isTransforming) {
+          console.log("📸 Taking snapshot before transform");
+          takeSnapshot("Transform QR Code");
+          setIsTransforming(true);
+        }
+      };
+    
       const handleTransformEnd = (e) => {
         setTimeout(() => {
+          setIsTransforming(false);
           transformer.nodes([qrGroup]);
-
+    
           const group = qrGroup;
+          
+          // Update position
           const newQRPos = {
             x: group.x(),
             y: group.y(),
           };
-
           const newPercentages = {
             x: newQRPos.x / deviceInfo.size.x,
             y: newQRPos.y / deviceInfo.size.y,
           };
           updateQRPositionPercentages(newPercentages);
-
+    
+          // Update rotation
           const newRotation = group.rotation();
           updateQRConfig({ rotation: newRotation });
-
+    
+          // Update scale via size percentage
+          const scaleX = group.scaleX();
+          const scaleY = group.scaleY();
+          // Use average scale and apply to size percentage
+          const avgScale = (scaleX + scaleY) / 2;
+          const currentSizePercentage = qrConfig.sizePercentage || 50;
+          const newSizePercentage = Math.max(10, Math.min(100, currentSizePercentage * avgScale));
+          
+          // Reset the group scale and update via size percentage instead
+          group.scaleX(1);
+          group.scaleY(1);
+          
+          updateQRConfig({ 
+            rotation: newRotation,
+            sizePercentage: newSizePercentage 
+          });
+    
           transformer.getLayer().batchDraw();
         }, 5);
       };
-
+    
+      // Attach all event listeners
       qrGroup.on("click dragend", handleQRSelect);
       qrGroup.on("dragstart", handleDragStart);
-      qrGroup.on("tap", handleQRSelect); // Add tap event for mobile
+      qrGroup.on("tap", handleQRSelect);
+      
+      // NEW: Add transform event listeners
+      transformer.on("transformstart", handleTransformStart);
       transformer.on("transformend", handleTransformEnd);
-
+    
       const handleOutsideClick = (e) => {
         if (transformer.nodes().length > 0) {
           transformer.nodes([]);
@@ -538,29 +575,29 @@ const backgroundProps = useMemo(() => {
           transformer.getLayer().batchDraw();
         }
       };
-
+    
       document
         .getElementById("Canvas")
         ?.addEventListener("mouseup", handleOutsideClick);
-      
-      // Add touch event handler for mobile
       document
         .getElementById("Canvas")
         ?.addEventListener("touchend", handleOutsideClick);
-
-              return () => {
-          qrGroup.off("click dragend", handleQRSelect);
-          qrGroup.off("dragstart", handleDragStart);
-          qrGroup.off("tap", handleQRSelect);
-          transformer.off("transformend", handleTransformEnd);
-          document
-            .getElementById("Canvas")
-            ?.removeEventListener("mouseup", handleOutsideClick);
-          document
-            .getElementById("Canvas")
-            ?.removeEventListener("touchend", handleOutsideClick);
-        };
-    }, [qrSize, deviceInfo.size, updateQRPositionPercentages]);
+    
+      return () => {
+        qrGroup.off("click dragend", handleQRSelect);
+        qrGroup.off("dragstart", handleDragStart);
+        qrGroup.off("tap", handleQRSelect);
+        transformer.off("transformstart", handleTransformStart);
+        transformer.off("transformend", handleTransformEnd);
+        document
+          .getElementById("Canvas")
+          ?.removeEventListener("mouseup", handleOutsideClick);
+        document
+          .getElementById("Canvas")
+          ?.removeEventListener("touchend", handleOutsideClick);
+      };
+    }, [qrSize, deviceInfo.size, updateQRPositionPercentages, updateQRConfig, takeSnapshot, isTransforming, qrConfig.sizePercentage]);
+    
 
     const phoneUIRef = useRef(null);
 

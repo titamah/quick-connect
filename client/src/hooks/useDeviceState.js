@@ -52,7 +52,7 @@ export const useDeviceState = () => {
 
   const [qrConfig, setQRConfig] = useState({
     url: "www.qrki.com",
-    sizePercentage: 50, // 10-100%, where 100% = min(deviceSize.x, deviceSize.y)
+    scale: 0.5,
     custom: {
       primaryColor: "#000000",
       secondaryColor: "#FFFFFF",
@@ -316,7 +316,7 @@ export const useDeviceState = () => {
     // Handle backwards compatibility for QR config
     const qrConfigWithDefaults = {
       ...templateData.qrConfig,
-      sizePercentage: templateData.qrConfig.sizePercentage ?? 50, // Default to 50% if not present
+      scale: templateData.qrConfig.scale ?? 0.5, // Default to 50% if not present
     };
     setQRConfig(qrConfigWithDefaults);
     
