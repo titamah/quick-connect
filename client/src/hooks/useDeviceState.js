@@ -55,7 +55,7 @@ export const useDeviceState = () => {
     custom: {
       primaryColor: "#000000",
       secondaryColor: "#FFFFFF",
-      borderSizeRatio: 0,
+      borderSizeRatio: -1,
       borderColor: "#000000",
       cornerRadiusRatio: 0,
     },

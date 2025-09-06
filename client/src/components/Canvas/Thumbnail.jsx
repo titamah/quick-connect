@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Stage, Layer, Rect, Group, Text, Path } from "react-konva";
 import { useDevice } from "../../contexts/DeviceContext";
+import { toast } from "react-toastify";
 
 const Thumbnail = ({ activeState, backgroundImage = null, dark = true }) => {
   const { deviceInfo, background } = useDevice();
+  const stageRef = useRef(null);
 
   const THUMBNAIL_HEIGHT = 640;
   const THUMBNAIL_WIDTH = 1280;
@@ -16,7 +18,6 @@ const Thumbnail = ({ activeState, backgroundImage = null, dark = true }) => {
   const QR_SIZE = PHONE_WIDTH * 0.5525;
   const QR_BORDER = QR_SIZE * (activeState?.qr.borderWidth / 100);
   const QR_GROUP_SIZE = QR_SIZE + QR_BORDER;
-
 
   const strokeWidth = PHONE_WIDTH * 0.15;
   const qrOffsetX = strokeWidth * (0.5 - activeState?.qr.pos.x);
@@ -31,37 +32,34 @@ const Thumbnail = ({ activeState, backgroundImage = null, dark = true }) => {
   const phoneY =
     (THUMBNAIL_HEIGHT - PHONE_HEIGHT) / 2 - qrRelativeY - THUMBNAIL_PADDING;
 
-  // Calculate proper scaling for the phone rectangle in thumbnail
   const phoneRectWidth = PHONE_WIDTH * 1.165;
   const phoneRectHeight = PHONE_HEIGHT;
-  
-  // Background props - properly scaled for the phone rectangle
+
   const backgroundProps = {
     width: phoneRectWidth,
     height: phoneRectHeight,
     x: 0,
     y: 0,
-    ...(backgroundImage ? {
-      fillPatternImage: backgroundImage,
-      fillPatternRepeat: "no-repeat",
-      fillPatternScale: (() => {
-        // Calculate scale to cover the phone rectangle (like CSS background-size: cover)
-        const scaleX = phoneRectWidth / backgroundImage.width;
-        const scaleY = phoneRectHeight / backgroundImage.height;
-        const scale = Math.max(scaleX, scaleY); // Use larger scale to ensure full coverage
-        return { x: scale , y: scale };
-      })(),
-      fillPriority: "pattern",
-    } : {
-      fill: activeState?.bg.activeTypeValue || "#f0f0f0",
-    }),
+    ...(backgroundImage
+      ? {
+          fillPatternImage: backgroundImage,
+          fillPatternRepeat: "no-repeat",
+          fillPatternScale: (() => {
+            const scaleX = phoneRectWidth / backgroundImage.width;
+            const scaleY = phoneRectHeight / backgroundImage.height;
+            const scale = Math.max(scaleX, scaleY);
+            return { x: scale, y: scale };
+          })(),
+          fillPriority: "pattern",
+        }
+      : {
+          fill: activeState?.bg.activeTypeValue || "#f0f0f0",
+        }),
   };
 
-  // helper (place above your component or in a utils file)
   const makeRoundedClip =
     (width, height, radius, epsilon = 0.5) =>
     (ctx) => {
-      // epsilon slightly expands the clip to avoid subpixel peeking
       const x = -epsilon;
       const y = -epsilon;
       const w = width + 2 * epsilon;
@@ -77,7 +75,70 @@ const Thumbnail = ({ activeState, backgroundImage = null, dark = true }) => {
       ctx.closePath();
     };
 
-  // Show loading state if activeState is not available
+  const copyThumbnailToClipboard = async () => {
+    if (!stageRef.current) {
+      toast.error("Thumbnail not ready", {
+        position: "bottom-right",
+        autoClose: 2000,
+      });
+      return;
+    }
+
+    try {
+      // Set to full 1.0 scale for maximum detail export
+      const stage = stageRef.current;
+      const originalScaleX = stage.scaleX();
+      const originalScaleY = stage.scaleY();
+      
+      // Set to 1.0 scale (full design resolution) for maximum detail
+      stage.scaleX(1.0);
+      stage.scaleY(1.0);
+      
+      // Update stage size to match full scale
+      const originalWidth = stage.width();
+      const originalHeight = stage.height();
+      stage.width(THUMBNAIL_WIDTH);
+      stage.height(THUMBNAIL_HEIGHT);
+
+      // Generate at full resolution with 2.0x pixelRatio for perfect QR codes
+      // This gives us 2560×1280 - crisp QR pixels, no gaps
+      const dataURL = stage.toDataURL({
+        mimeType: 'image/png', // PNG for clipboard compatibility
+        quality: 0.75, // Maximum quality for crisp QR codes
+        pixelRatio: 2.0, // 2x for crisp QR code pixels
+        imageSmoothingEnabled: false, // Crisp pixel-perfect rendering
+      });
+
+      // Restore original scaling and dimensions
+      stage.scaleX(originalScaleX);
+      stage.scaleY(originalScaleY);
+      stage.width(originalWidth);
+      stage.height(originalHeight);
+
+      // Convert data URL to blob
+      const response = await fetch(dataURL);
+      const blob = await response.blob();
+
+      // Copy to clipboard
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'image/png': blob
+        })
+      ]);
+
+      toast.success("Thumbnail copied to clipboard!", {
+        position: "bottom-right",
+        autoClose: 2000,
+      });
+    } catch (error) {
+      console.error("Failed to copy thumbnail:", error);
+      toast.error("Failed to copy thumbnail", {
+        position: "bottom-right",
+        autoClose: 2000,
+      });
+    }
+  };
+
   if (!activeState) {
     return (
       <div
@@ -90,7 +151,9 @@ const Thumbnail = ({ activeState, backgroundImage = null, dark = true }) => {
       >
         <div className="flex flex-col items-center gap-2">
           <div className="animate-spin size-6 border-2 border-current border-t-transparent text-[var(--accent)] rounded-full"></div>
-          <span className="text-sm text-[var(--text-secondary)]">Loading...</span>
+          <span className="text-sm text-[var(--text-secondary)]">
+            Loading...
+          </span>
         </div>
       </div>
     );
@@ -99,18 +162,26 @@ const Thumbnail = ({ activeState, backgroundImage = null, dark = true }) => {
   return (
     <div
       id="Thumbnail"
-      className=" relative border border-[var(--border-color)] mx-3.5 mb-3.5 rounded-md overflow-hidden flex items-center justify-center"
+      className=" relative border border-[var(--border-color)] mx-3.5 mb-3.5 rounded-md overflow-hidden flex items-center justify-center cursor-pointer hover:bg-[var(--bg-secondary)] transition-colors"
       style={{
         height: `${THUMBNAIL_HEIGHT * THUMBNAIL_SCALE}px`,
         width: `${THUMBNAIL_WIDTH * THUMBNAIL_SCALE}px`,
       }}
+      onClick={copyThumbnailToClipboard}
+      title="Click to copy thumbnail to clipboard"
     >
-      <Stage width={THUMBNAIL_WIDTH * THUMBNAIL_SCALE} height={THUMBNAIL_HEIGHT * THUMBNAIL_SCALE} scaleY={THUMBNAIL_SCALE}  scaleX={THUMBNAIL_SCALE}>
-        <Layer >
+      <Stage
+        ref={stageRef}
+        width={THUMBNAIL_WIDTH * THUMBNAIL_SCALE}
+        height={THUMBNAIL_HEIGHT * THUMBNAIL_SCALE}
+        scaleY={THUMBNAIL_SCALE}
+        scaleX={THUMBNAIL_SCALE}
+      >
+        <Layer>
           <Rect
             width={THUMBNAIL_WIDTH}
             height={THUMBNAIL_HEIGHT}
-            fill={ `${ dark ? "#232323" : "#F0F0F0" }`}
+            fill={`${dark ? "#232323" : "#F0F0F0"}`}
             strokeWidth={THUMBNAIL_PADDING * 2}
           />
           <Text
@@ -120,13 +191,13 @@ const Thumbnail = ({ activeState, backgroundImage = null, dark = true }) => {
             fontSize={THUMBNAIL_HEIGHT * 0.1}
             fontFamily="Rubik, -apple-system, BlinkMacSystemFont, sans-serif"
             fontStyle="800"
-            fill={ `${ !dark ? "#000000" : "#FFFFFF" }`}
+            fill={`${!dark ? "#000000" : "#FFFFFF"}`}
           />
           <Group
             width={THUMBNAIL_HEIGHT}
             height={THUMBNAIL_HEIGHT}
             x={THUMBNAIL_PADDING * 1.075}
-            y={THUMBNAIL_HEIGHT * 0.3 }
+            y={THUMBNAIL_HEIGHT * 0.3}
             scaleY={0.145 / THUMBNAIL_SCALE}
             scaleX={0.145 / THUMBNAIL_SCALE}
             strokeWidth={0}

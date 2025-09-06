@@ -282,7 +282,7 @@ function QRGenerator(panelSize) {
       <div className="flex items-center pb-1.5 px-3.5">
         <h4> Width</h4>
         <Slider
-          min="0"
+          min="-1"
           max="200"
           step="0.5"
           value={qrConfig.custom.borderSizeRatio}

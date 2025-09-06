@@ -5,6 +5,7 @@ import { Share, Share2, Copy, Facebook, Linkedin, Twitter } from "lucide-react";
 import { useDevice } from "../../contexts/DeviceContext";
 import Thumbnail from "./Thumbnail.jsx";
 import { toast } from "react-toastify";
+import chroma from "chroma-js";
 
 const ShareButton = ({ wallpaperRef, getBackgroundImage, backgroundLayerRef }) => {
   // Add props
@@ -246,7 +247,7 @@ const ShareButton = ({ wallpaperRef, getBackgroundImage, backgroundLayerRef }) =
           
           {/* Thumbnail - only show when not loading */}
           {!isGeneratingThumbnail && (
-            <Thumbnail activeState={activeState} backgroundImage={backgroundImage} />
+            <Thumbnail activeState={activeState} backgroundImage={backgroundImage} dark={chroma(activeState?.qr.primaryColor || "#000000").luminance() > 0.5}/>
           )}
           
           {isGeneratingLink && (
