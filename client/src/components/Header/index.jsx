@@ -26,13 +26,13 @@ function Header() {
               }`}>QRKI</h1>
           </Link>
         </div>
-        {!isMobile ? (
+        {!isMobile && location.pathname == "/" ? (
           <div className="flex items-center px-2 space-x-6">
             <Link
               to="/start-design"
-              className={`inline-flex items-center justify-center bg-[var(--brand-green)] gap-2.5 py-2 px-4 relative flex-[0_0_auto] rounded-[75px] border-[0.5px] border-solid border-neutral-900 hover:opacity-90 transition-opacity`}
+              className={`inline-flex items-center justify-center bg-[var(--brand-green)] gap-2.5 py-1.5 px-2 relative flex-[0_0_auto] rounded-[75px] border-[0.5px] border-solid border-neutral-900 hover:opacity-90 transition-opacity`}
             >
-              <span className="relative w-fit font-normal text-neutral-900 text-md sm:text-lg tracking-[0] leading-[normal] whitespace-nowrap">
+              <span className="relative w-fit font-normal text-neutral-900 text-md sm:text-md tracking-[0] leading-[normal] whitespace-nowrap">
                 START QREATING
               </span>
             </Link>
@@ -81,7 +81,7 @@ function Header() {
                         : "text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover-bg)]"
                     }`}
                   >
-                    Studio
+                    Start Qreating
                   </Link>
                 </div>
               </div>

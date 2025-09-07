@@ -14,7 +14,7 @@ function StartDesignPage() {
         <p className="relative mt-[-1.00px] rubik font-extrabold text-[var(--accent)] text-4xl sm:text-5xl text-center tracking-[0] leading-[43.2px]">
           Ready to make it yours?
         </p>
-        <p className="relative sm:max-w-[678px] rubik text-xl font-normal sm:text-3xl text-[var(--text-secondary)] sm:mb-10 text-center tracking-[0] leading-[normal]">
+        <p className="relative sm:max-w-[678px] rubik text-lg font-light sm:text-3xl text-[var(--text-secondary)] sm:mb-10 text-center tracking-[0] leading-[normal]">
           What deserves the spotlight? LinkedIn? That one creative side project?
           Your secret cooking blog? (we don't judge)
         </p>
