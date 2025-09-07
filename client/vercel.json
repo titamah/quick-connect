@@ -1,18 +1,4 @@
 {
-    "routes": [
-      {
-        "src": "/api/(.*)",
-        "dest": "/api/$1"
-      },
-      {
-        "src": "/remix/([^/]+)$",
-        "dest": "/remix/$1"
-      },
-      {
-        "src": "/((?!api/).*)",
-        "dest": "/index.html"
-      }
-    ],
     "functions": {
       "api/remix/[id].js": {
         "runtime": "edge"
@@ -20,12 +6,27 @@
     },
     "rewrites": [
       {
+        "source": "/remix/:id",
+        "destination": "/api/remix/:id"
+      },
+      {
         "source": "/api/(.*)",
         "destination": "/api/$1"
       },
       {
-        "source": "/((?!api/).*)",
+        "source": "/((?!api|_next|favicon\\.ico).*)",
         "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "/api/(.*)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "s-maxage=0"
+          }
+        ]
       }
     ]
   }
