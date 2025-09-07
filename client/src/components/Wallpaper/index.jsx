@@ -262,6 +262,7 @@ const backgroundProps = useMemo(() => {
       },
       [qrSize, SNAP_TOLERANCE, deviceInfo.size, updateQRPositionPercentages]
     );
+
     useEffect(() => {
       if (PERFORMANCE_MONITORING) {
         console.log("🔄 QR URL Generation Effect triggered by:", {
@@ -312,6 +313,8 @@ const backgroundProps = useMemo(() => {
       const timeoutId = setTimeout(generateQRCode, 100);
       return () => clearTimeout(timeoutId);
     }, [qrConfig.url, lastURL, extractSVGPaths]);
+
+
     useEffect(() => {
       if (!cachedSVGPaths) return;
       console.log("🎨 Color update effect triggered");
@@ -692,7 +695,7 @@ const backgroundProps = useMemo(() => {
               </Group>
               <Transformer
               centeredScaling={true}
-                borderStroke="red"
+                borderStroke="#7ED03B"
                 borderStrokeWidth={2 / stageScale}
                 enabledAnchors={[
                   "top-left",
@@ -702,7 +705,7 @@ const backgroundProps = useMemo(() => {
                 ]}
                 keepRatio={true}
                 anchorSize={7.5 / stageScale}
-                anchorStroke="red"
+                anchorStroke="#7ED03B"
                 anchorStrokeWidth={1 / stageScale}
                 anchorCornerRadius={7.5 / stageScale}
                 rotateEnabled={true}
@@ -718,7 +721,7 @@ const backgroundProps = useMemo(() => {
               />
               {isCenterX && isDragging && (
                 <Line
-                  stroke="red"
+                  stroke="#FC6524"
                   strokeWidth={5}
                   dash={[25, 15]}
                   points={[
@@ -732,7 +735,7 @@ const backgroundProps = useMemo(() => {
               )}
               {isCenterY && isDragging && (
                 <Line
-                  stroke="red"
+                  stroke="#FC6524"
                   strokeWidth={5}
                   dash={[25, 15]}
                   points={[
