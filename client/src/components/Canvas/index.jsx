@@ -7,18 +7,20 @@ import Wallpaper from "../Wallpaper/index";
 import PreviewButton from "./PreviewButton";
 import UndoRedoButton from "./UndoRedoButton";
 import ShareButton from "./ShareButton";
-import useWindowSize from "../../hooks/useWindowSize";
 import { useStageCalculations } from "../../hooks/useStageCalculations";
+
 function Canvas({ isOpen, panelSize, wallpaperRef }) {
+
   const { device, isMobile } = useDevice();
   const previewRef = useRef(null);
   const canvasRef = useRef(null);
   const backgroundLayerRef = useRef(null);
-  const windowSize = useWindowSize();
   const [isLoading, setIsLoading] = useState(true);
   const [isZoomEnabled, setIsZoomEnabled] = useState(false);
+
   const memoizedSetIsZoomEnabled = useCallback(setIsZoomEnabled, []);
   const scale = useStageCalculations(device.size, panelSize, isOpen);
+
   const previewSize = useMemo(() => ({
     x: device.size.x * scale,
     y: device.size.y * scale,
@@ -156,8 +158,8 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   const previewStyles = useMemo(
     () => ({
       transition: "all duration-150 ease-linear",
-      outline: isZoomEnabled ? "2px solid #3b82f6" : "none",
-      outlineOffset: "15px",
+      outline: isZoomEnabled ? "2px solid #7ED03B" : "none",
+      outlineOffset: "30px",
     }),
     [isZoomEnabled]
   );

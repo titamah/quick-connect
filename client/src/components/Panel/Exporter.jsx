@@ -40,7 +40,7 @@ const Exporter = forwardRef(({}, ref) => {
     }, 0);
   }
   const exportImage = () => {
-    setExportState(false);
+    setExportState(true);
     setTimeout(() => {
       try {
         const mimeType = downloadSettings.isPng ? "image/png" : "image/jpeg";
