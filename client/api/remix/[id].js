@@ -1,3 +1,4 @@
+// Export the edge runtime config first
 export const config = {
   runtime: 'edge'
 };
@@ -5,6 +6,9 @@ export const config = {
 export default async function handler(request) {
   const url = new URL(request.url);
   const id = url.pathname.split('/').pop();
+  
+  console.log('🔍 Edge function called for ID:', id);
+  console.log('🤖 User-Agent:', request.headers.get('user-agent'));
   
   if (!id) {
     return new Response('Invalid remix ID', { status: 400 });
@@ -31,12 +35,15 @@ export default async function handler(request) {
     const remix = data[0];
     const thumbnailUrl = remix.thumbnail_url || 'https://www.qrki.xyz/og-image.png';
     
-    // Detect if this is a bot/crawler
+    // Detect if this is a bot/crawler - expanded detection
     const userAgent = request.headers.get('user-agent') || '';
-    const isBot = /bot|crawler|spider|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegram|discord/i.test(userAgent);
+    const isBot = /bot|crawler|spider|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegram|discord|slackbot|skype|googlebot|bingbot|yahoo|duckduckbot/i.test(userAgent);
+    
+    console.log('🤖 Is Bot:', isBot, 'User-Agent:', userAgent);
     
     if (isBot) {
       // For bots: serve HTML with meta tags for social sharing
+      console.log('🤖 Serving bot HTML with thumbnail:', thumbnailUrl);
       return new Response(`<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -82,14 +89,15 @@ export default async function handler(request) {
         }
       });
     } else {
-      // For human users: serve React app with proper routing
-      // Let React Router handle the routing client-side
-      try {
-        const appResponse = await fetch('https://www.qrki.xyz/index.html');
-        let html = await appResponse.text();
-        
-        // Inject meta tags into the React app HTML
-        const metaTags = `
+      // For human users: Return the index.html but let client-side routing handle the route
+      console.log('👤 Serving human user - letting React Router handle /remix/' + id);
+      
+      // Fetch the main React app
+      const appResponse = await fetch('https://www.qrki.xyz/index.html');
+      let html = await appResponse.text();
+      
+      // Inject meta tags for consistency (humans can still share the link)
+      const metaTags = `
   <!-- Dynamic Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.qrki.xyz/remix/${id}">
@@ -105,27 +113,23 @@ export default async function handler(request) {
   <meta name="twitter:title" content="Check out this QReation!">
   <meta name="twitter:description" content="Someone made this custom QR wallpaper and wants to share it with you. Remix it yourself on QRKI!">
   <meta name="twitter:image" content="${thumbnailUrl}">`;
-        
-        // Insert meta tags before closing head tag
-        html = html.replace('</head>', `${metaTags}\n</head>`);
-        
-        return new Response(html, {
-          headers: { 
-            'Content-Type': 'text/html',
-            'Cache-Control': 'public, max-age=300'
-          }
-        });
-      } catch (fetchError) {
-        console.error('Failed to fetch React app:', fetchError);
-        // Fallback: redirect to home page with remix ID as query param
-        return Response.redirect(`https://www.qrki.xyz?remixId=${id}`, 302);
-      }
+      
+      // Insert meta tags before closing head tag
+      html = html.replace('</head>', `${metaTags}\n</head>`);
+      
+      // IMPORTANT: Don't redirect! Let React Router handle the /remix/:id route
+      return new Response(html, {
+        headers: { 
+          'Content-Type': 'text/html',
+          'Cache-Control': 'public, max-age=60'
+        }
+      });
     }
 
   } catch (error) {
-    console.error('Error in remix edge function:', error);
+    console.error('❌ Error in remix edge function:', error);
     
-    // Return fallback HTML for both bots and users
+    // Return fallback HTML 
     return new Response(`<!DOCTYPE html>
 <html lang="en">
 <head>
