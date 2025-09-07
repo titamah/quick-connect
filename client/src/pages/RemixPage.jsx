@@ -225,12 +225,15 @@ const RemixPage = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+  const getDaysUntilExpiry = (expiresAt) => {
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    const diffTime = expiry.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= 0) return "Expired";
+    if (diffDays === 1) return "Expires in 1 day";
+    return `Expires in ${diffDays} days`;
   };
 
   if (loading) {
@@ -286,9 +289,9 @@ const RemixPage = () => {
           Remix This Qreation
         </p>
 
-        <p className="relative rubik font-extrabold text-[var(--accent)] text-4xl sm:text-5xl text-center tracking-[0] leading-[43.2px]">
+        {/* <p className="relative rubik font-extrabold text-[var(--accent)] text-4xl sm:text-5xl text-center tracking-[0] leading-[43.2px]">
           Make it your own!
-        </p>
+        </p> */}
 
         <div className="md:w-[700px] w-full md:h-[350px] bg-[var(--bg-secondary)] rounded-lg overflow-hidden flex items-center justify-center">
           {remixData.thumbnail_url ? (
@@ -314,19 +317,11 @@ const RemixPage = () => {
         </div>
 
         <div className="flex flex-row items-center space-x-6 text-sm text-[var(--text-secondary)]">
-          <div className="flex flex-row items-center gap-2">
-            {" "}
-            <Clock size={16} /> Created {formatDate(remixData.created_at)}
+        <div className="flex flex-row items-center gap-2"> <Clock size={16}/>{getDaysUntilExpiry(remixData.expires_at)}</div>
+          <div className="flex flex-row items-center gap-2"> <Eye size={16} />{`${remixData.view_count || 0} views`}</div> 
           </div>
-          <div className="flex flex-row items-center gap-2">
-            <Eye size={16} />{" "}
-            <span className="font-medium">{`${
-              remixData.view_count || 0
-            } views`}</span>
-          </div>
-        </div>
         <button
-          className="inline-flex flex-col justify-center py-[12px] px-[18px] bg-[#03bec0] rounded-[60px] border border-solid border-[#817e6ba8] items-center gap-2.5 relative flex-[0_0_auto] hover:bg-[#02a8aa] transition-colors duration-200"
+          className="inline-flex flex-col justify-center py-[12px] px-[18px] bg-[var(--accent)] rounded-[60px] border border-solid border-[#817e6ba8] items-center gap-2.5 relative flex-[0_0_auto] hover:opacity-75 cursor-pointer transition-colors duration-200"
           onClick={handleStartRemixing}
           disabled={isLoading}
           aria-label="Start creating from scratch"
