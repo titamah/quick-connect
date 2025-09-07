@@ -7,10 +7,10 @@ export default async function handler(request) {
     }
   
     try {
-      const response = await fetch(`${process.env.SUPABASE_URL}/rest/v1/remixes?id=eq.${id}&select=*`, {
+      const response = await fetch(`${process.env.VITE_SUPABASE_URL}/rest/v1/remixes?id=eq.${id}&select=*`, {
         headers: {
-          'apikey': process.env.SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`
+          'apikey': process.env.VITE_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${process.env.VITE_SUPABASE_ANON_KEY}`
         }
       });
   
