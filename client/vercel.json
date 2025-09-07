@@ -2,7 +2,14 @@
     "rewrites": [
       {
         "source": "/remix/:id",
-        "destination": "/api/remix/:id"
+        "destination": "/api/remix/:id",
+        "has": [
+          {
+            "type": "header",
+            "key": "user-agent",
+            "value": ".*(bot|crawler|spider|facebookexternalhit|twitterbot|linkedinbot|whatsapp|telegram|discord|slackbot|skype|googlebot|bingbot|yahoo|duckduckbot).*"
+          }
+        ]
       },
       {
         "source": "/api/(.*)",
