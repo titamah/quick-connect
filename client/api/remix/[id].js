@@ -1,3 +1,7 @@
+export const config = {
+  runtime: 'edge'
+};
+
 export default async function handler(request) {
   const url = new URL(request.url);
   const id = url.pathname.split('/').pop();
@@ -25,7 +29,7 @@ export default async function handler(request) {
     }
 
     const remix = data[0];
-    const thumbnailUrl = remix.thumbnail_url || 'https://qrki.xyz/og-image.png';
+    const thumbnailUrl = remix.thumbnail_url || 'https://www.qrki.xyz/og-image.png';
     
     // Detect if this is a bot/crawler
     const userAgent = request.headers.get('user-agent') || '';
@@ -42,23 +46,23 @@ export default async function handler(request) {
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://qrki.xyz/remix/${id}">
+  <meta property="og:url" content="https://www.qrki.xyz/remix/${id}">
   <meta property="og:title" content="Check out this QReation!">
-  <meta property="og:description" content="Check out this QReation. Remix it yourself on QRKI!">
+  <meta property="og:description" content="Someone made this custom QR wallpaper and wants to share it with you. Remix it yourself on QRKI!">
   <meta property="og:image" content="${thumbnailUrl}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="https://qrki.xyz/remix/${id}">
+  <meta name="twitter:url" content="https://www.qrki.xyz/remix/${id}">
   <meta name="twitter:title" content="Check out this QReation!">
-  <meta name="twitter:description" content="Check out this QReation. Remix it yourself on QRKI!">
+  <meta name="twitter:description" content="Someone made this custom QR wallpaper and wants to share it with you. Remix it yourself on QRKI!">
   <meta name="twitter:image" content="${thumbnailUrl}">
   
   <!-- Additional meta tags -->
   <meta name="description" content="Custom QR code wallpaper shared on QRKI. Click to remix and make it your own!">
-  <link rel="canonical" href="https://qrki.xyz/remix/${id}">
+  <link rel="canonical" href="https://www.qrki.xyz/remix/${id}">
 </head>
 <body>
   <div style="text-align: center; padding: 50px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
@@ -66,7 +70,7 @@ export default async function handler(request) {
     <p>Someone shared their custom QR wallpaper with you.</p>
     <img src="${thumbnailUrl}" alt="Custom QR Wallpaper" style="max-width: 400px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
     <br><br>
-    <a href="https://qrki.xyz/remix/${id}" style="background: #FC6524; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">
+    <a href="https://www.qrki.xyz/remix/${id}" style="background: #FC6524; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">
       Remix This Design
     </a>
   </div>
@@ -78,27 +82,28 @@ export default async function handler(request) {
         }
       });
     } else {
-      // For human users: fetch and serve the React app with injected meta tags
+      // For human users: serve React app with proper routing
+      // Let React Router handle the routing client-side
       try {
-        const appResponse = await fetch('https://qrki.xyz/index.html');
+        const appResponse = await fetch('https://www.qrki.xyz/index.html');
         let html = await appResponse.text();
         
         // Inject meta tags into the React app HTML
         const metaTags = `
   <!-- Dynamic Open Graph / Facebook -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://qrki.xyz/remix/${id}">
+  <meta property="og:url" content="https://www.qrki.xyz/remix/${id}">
   <meta property="og:title" content="Check out this QReation!">
-  <meta property="og:description" content="Check out this QReation. Remix it yourself on QRKI!">
+  <meta property="og:description" content="Someone made this custom QR wallpaper and wants to share it with you. Remix it yourself on QRKI!">
   <meta property="og:image" content="${thumbnailUrl}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   
   <!-- Dynamic Twitter -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="https://qrki.xyz/remix/${id}">
+  <meta name="twitter:url" content="https://www.qrki.xyz/remix/${id}">
   <meta name="twitter:title" content="Check out this QReation!">
-  <meta name="twitter:description" content="Check out this QReation. Remix it yourself on QRKI!">
+  <meta name="twitter:description" content="Someone made this custom QR wallpaper and wants to share it with you. Remix it yourself on QRKI!">
   <meta name="twitter:image" content="${thumbnailUrl}">`;
         
         // Insert meta tags before closing head tag
@@ -112,8 +117,8 @@ export default async function handler(request) {
         });
       } catch (fetchError) {
         console.error('Failed to fetch React app:', fetchError);
-        // Fallback: redirect to home page
-        return Response.redirect('https://qrki.xyz', 302);
+        // Fallback: redirect to home page with remix ID as query param
+        return Response.redirect(`https://www.qrki.xyz?remixId=${id}`, 302);
       }
     }
 
@@ -130,21 +135,21 @@ export default async function handler(request) {
   
   <!-- Fallback Open Graph -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://qrki.xyz">
+  <meta property="og:url" content="https://www.qrki.xyz">
   <meta property="og:title" content="QRKI - Custom QR Wallpapers">
   <meta property="og:description" content="Make lock screens that spark connections. Design custom QR code wallpapers for your phone.">
-  <meta property="og:image" content="https://qrki.xyz/og-image.png">
+  <meta property="og:image" content="https://www.qrki.xyz/og-image.png">
   
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="QRKI - Custom QR Wallpapers">
   <meta name="twitter:description" content="Make lock screens that spark connections">
-  <meta name="twitter:image" content="https://qrki.xyz/og-image.png">
+  <meta name="twitter:image" content="https://www.qrki.xyz/og-image.png">
   
   <script>
     // Redirect to home page after a brief delay
     setTimeout(() => {
-      window.location.href = 'https://qrki.xyz';
+      window.location.href = 'https://www.qrki.xyz';
     }, 2000);
   </script>
 </head>
@@ -153,7 +158,7 @@ export default async function handler(request) {
     <h1>Design Not Found</h1>
     <p>This remix link may have expired or is no longer available.</p>
     <p>Redirecting to QRKI...</p>
-    <a href="https://qrki.xyz" style="background: #FC6524; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">
+    <a href="https://www.qrki.xyz" style="background: #FC6524; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">
       Create Your Own Design
     </a>
   </div>
@@ -167,7 +172,3 @@ export default async function handler(request) {
     });
   }
 }
-
-export const config = {
-  runtime: 'edge'
-};

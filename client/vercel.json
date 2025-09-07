@@ -1,9 +1,4 @@
 {
-    "functions": {
-      "api/remix/[id].js": {
-        "runtime": "edge"
-      }
-    },
     "rewrites": [
       {
         "source": "/remix/:id",
@@ -16,17 +11,6 @@
       {
         "source": "/((?!api|_next|favicon\\.ico).*)",
         "destination": "/index.html"
-      }
-    ],
-    "headers": [
-      {
-        "source": "/api/(.*)",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "s-maxage=0"
-          }
-        ]
       }
     ]
   }
