@@ -40,7 +40,7 @@ const LandingPage = () => {
         />
         <div className="flex flex-col h-full w-fit max-w-[515px] items-start justify-center gap-[25px] relative">
           <text className="relative self-stretch w-full slab font-black text-[#001d28] sm:text-6xl text-5xl">
-            Make Custom Qr Code Wallpapers
+          Lock screens<br/>that spark connections
           </text>
           <p className="relative w-full rubik font-medium text-neutral-900 text-xl sm:text-2xl tracking-[0] leading-[normal]">
             Turn your lock screen into your superpower. Custom wallpapers with

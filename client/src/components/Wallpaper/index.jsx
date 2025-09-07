@@ -269,35 +269,29 @@ const backgroundProps = useMemo(() => {
           url: qrConfig.url,
         });
       }
+      
       const generateQRCode = () => {
-        const startTime =
-          PERFORMANCE_MONITORING && window.performance
-            ? window.performance.now()
-            : 0;
+        const startTime = PERFORMANCE_MONITORING && window.performance ? window.performance.now() : 0;
         const svg = qrRef.current?.querySelector("svg");
         if (!svg) {
           console.log("QR SVG not found");
           return;
         }
+    
         if (qrConfig.url !== lastURL || !cachedSVGPaths) {
           console.log("🔄 URL changed or initial load, extracting SVG paths");
           const newPaths = extractSVGPaths(svg);
           setCachedSVGPaths(newPaths);
           setLastURL(qrConfig.url);
+          
           try {
             const svgData = new XMLSerializer().serializeToString(svg);
-            const dataUrl =
-              "data:image/svg+xml;base64," +
-              btoa(unescape(encodeURIComponent(svgData)));
+            const dataUrl = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
             const qrImage = new Image();
             qrImage.onload = () => {
               if (PERFORMANCE_MONITORING && window.performance) {
                 const endTime = window.performance.now();
-                console.log(
-                  `✅ QR image loaded successfully in ${(
-                    endTime - startTime
-                  ).toFixed(2)}ms`
-                );
+                console.log(`✅ QR image loaded successfully in ${(endTime - startTime).toFixed(2)}ms`);
               }
               setQRImg(qrImage);
             };
@@ -310,6 +304,7 @@ const backgroundProps = useMemo(() => {
           }
         }
       };
+    
       const timeoutId = setTimeout(generateQRCode, 100);
       return () => clearTimeout(timeoutId);
     }, [qrConfig.url, lastURL, extractSVGPaths]);
@@ -317,28 +312,26 @@ const backgroundProps = useMemo(() => {
 
     useEffect(() => {
       if (!cachedSVGPaths) return;
-      console.log("🎨 Color update effect triggered");
+      
+      console.log("🎨 Fast color update - no regeneration needed");
       updateSVGColors(primaryColor, secondaryColor);
+      
       const svg = qrRef.current?.querySelector("svg");
       if (svg) {
         try {
           const svgData = new XMLSerializer().serializeToString(svg);
-          const dataUrl =
-            "data:image/svg+xml;base64," +
-            btoa(unescape(encodeURIComponent(svgData)));
+          const dataUrl = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
           const qrImage = new Image();
-          qrImage.onload = () => {
-            setQRImg(qrImage);
-          };
-          qrImage.onerror = (error) => {
-            console.error("Failed to load QR code image:", error);
-          };
+          qrImage.onload = () => setQRImg(qrImage);
+          qrImage.onerror = (error) => console.error("Failed to load QR code image:", error);
           qrImage.src = dataUrl;
         } catch (error) {
           console.error("Error updating QR code image:", error);
         }
       }
     }, [primaryColor, secondaryColor, cachedSVGPaths, updateSVGColors]);
+    
+
     useEffect(() => {
       const minDimension = Math.min(deviceInfo.size.x, deviceInfo.size.y);
       const scale = Math.max(0.1, Math.min(1, qrConfig.scale || 0.5));
