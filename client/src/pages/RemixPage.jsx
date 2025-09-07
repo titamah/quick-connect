@@ -134,30 +134,69 @@ const RemixPage = () => {
 
   const handleStartRemixing = async () => {
     if (!remixData) return;
-
+  
     try {
       setIsLoading(true);
-
       console.log("🎨 Starting remix process...");
-
-      // Convert remix data to template format
+  
       const templateData = convertRemixToTemplate(remixData);
-
-      // Load the template data using your existing function
-      loadTemplateData(templateData);
-
-      // Take a snapshot for undo/redo
-      takeSnapshot("Loaded remix design");
-
-      console.log("✅ Template loaded, navigating to studio...");
-
-      // Navigate to studio
-      navigate("/studio");
-
+  
+      // 🚀 NEW: Load background image into uploadInfo if it exists
+      if (templateData.background.style === 'image' && templateData.background.bg) {
+        try {
+          console.log("🖼️ Loading background image for editing...");
+          
+          // Convert storage URL to File object
+          const response = await fetch(templateData.background.bg);
+          const blob = await response.blob();
+          const filename = templateData.background.bg.split('/').pop() || 'remix-background.webp';
+          const file = new File([blob], filename, { type: blob.type });
+  
+          // Create data URL for the image
+          const reader = new FileReader();
+          reader.onload = () => {
+            // Update template to include upload info
+            templateData.uploadInfo = {
+              filename: filename,
+              originalImageData: reader.result,
+              croppedImageData: reader.result, // Set both as same initially
+              crop: {
+                x: 0,
+                y: 0,
+                width: 100,
+                height: 100,
+                unit: '%'
+              }
+            };
+  
+            // Load the template data
+            loadTemplateData(templateData);
+            takeSnapshot("Loaded remix design");
+            
+            console.log("✅ Background image loaded for editing");
+            navigate("/studio");
+          };
+          reader.readAsDataURL(file);
+  
+        } catch (imageError) {
+          console.warn("⚠️ Failed to load background image for editing:", imageError);
+          // Still load the template without the image
+          loadTemplateData(templateData);
+          takeSnapshot("Loaded remix design");
+          navigate("/studio");
+        }
+      } else {
+        // No background image, load normally
+        loadTemplateData(templateData);
+        takeSnapshot("Loaded remix design");
+        navigate("/studio");
+      }
+  
       toast.success("Remix loaded! Start customizing your design.", {
         position: "bottom-right",
         autoClose: 3000,
       });
+  
     } catch (err) {
       console.error("❌ Failed to start remixing:", err);
       toast.error("Failed to load remix. Please try again.", {
@@ -241,38 +280,63 @@ const RemixPage = () => {
   }
 
   return (
-      <div className="flex flex-col h-fit min-h-[calc(100dvh-40px)] md:min-h-[calc(100dvh-60px)] items-center justify-center relative p-10 bg-[var(--bg-secondary)]">
-        <section className="  h-fit p-10 sm:p-20 flex flex-col items-center justify-center gap-8 sm:gap-10 relative self-stretch max-w-[850px] w-fit m-auto bg-[var(--bg-main)] rounded-[30px] sm:rounded-[45px] border-[0.5px] border-solid border-[var(--border-color)] ">
-          <p className="relative w-fit slab font-black text-3xl sm:text-4xl text-[var(--text-secondary)] text-center tracking-wider [font-variant:all-small-caps] whitespace-nowrap">
-            Remix This Qreation
-          </p>
+    <div className="flex flex-col h-fit min-h-[calc(100dvh-40px)] md:min-h-[calc(100dvh-60px)] items-center justify-center relative p-10 bg-[var(--bg-secondary)]">
+      <section className="  h-fit p-10 sm:p-20 flex flex-col items-center justify-center gap-8 sm:gap-10 relative self-stretch max-w-[850px] w-fit m-auto bg-[var(--bg-main)] rounded-[30px] sm:rounded-[45px] border-[0.5px] border-solid border-[var(--border-color)] ">
+        <p className="relative w-fit slab font-black text-3xl sm:text-4xl text-[var(--text-secondary)] text-center tracking-wider [font-variant:all-small-caps] whitespace-nowrap">
+          Remix This Qreation
+        </p>
 
-          <p className="relative rubik font-extrabold text-[var(--accent)] text-4xl sm:text-5xl text-center tracking-[0] leading-[43.2px]">
-            Make it your own!
-          </p>
+        <p className="relative rubik font-extrabold text-[var(--accent)] text-4xl sm:text-5xl text-center tracking-[0] leading-[43.2px]">
+          Make it your own!
+        </p>
 
-          <p className="md:w-[700px] w-full md:h-[350px] bg-red-500">
-            
-          </p>
-
-          <div className="flex flex-row items-center space-x-6 text-sm text-[var(--text-secondary)]">
-            <div className="flex flex-row items-center gap-2"> <Clock size={16}/> Created {formatDate(remixData.created_at)}</div>
-            <div className="flex flex-row items-center gap-2">
-              <Eye size={16}/> <span className="font-medium">{`${remixData.view_count || 0} views`}</span>
+        <div className="md:w-[700px] w-full md:h-[350px] bg-[var(--bg-secondary)] rounded-lg overflow-hidden flex items-center justify-center">
+          {remixData.thumbnail_url ? (
+            <img
+              src={remixData.thumbnail_url}
+              alt="Remix preview"
+              className="w-full h-full object-contain"
+              onError={(e) => {
+                e.target.style.display = "none";
+                e.target.nextSibling.style.display = "flex";
+              }}
+            />
+          ) : null}
+          <div
+            className="w-full h-full flex items-center justify-center text-[var(--text-secondary)]"
+            style={{ display: remixData.thumbnail_url ? "none" : "flex" }}
+          >
+            <div className="text-center">
+              <div className="text-4xl mb-2">🎨</div>
+              <p>Preview generating...</p>
             </div>
           </div>
-          <button
-            className="inline-flex flex-col justify-center py-[12px] px-[18px] bg-[#03bec0] rounded-[60px] border border-solid border-[#817e6ba8] items-center gap-2.5 relative flex-[0_0_auto] hover:bg-[#02a8aa] transition-colors duration-200"
-            onClick={handleStartRemixing}
-            disabled={isLoading}
-            aria-label="Start creating from scratch"
-          >
-            <span className="relative w-fit font-normal text-black text-lg sm:text-xl text-center tracking-wide leading-[normal] whitespace-nowrap uppercase">
-              Let's Do This
-            </span>
-          </button>
-        </section>
-      </div>
+        </div>
+
+        <div className="flex flex-row items-center space-x-6 text-sm text-[var(--text-secondary)]">
+          <div className="flex flex-row items-center gap-2">
+            {" "}
+            <Clock size={16} /> Created {formatDate(remixData.created_at)}
+          </div>
+          <div className="flex flex-row items-center gap-2">
+            <Eye size={16} />{" "}
+            <span className="font-medium">{`${
+              remixData.view_count || 0
+            } views`}</span>
+          </div>
+        </div>
+        <button
+          className="inline-flex flex-col justify-center py-[12px] px-[18px] bg-[#03bec0] rounded-[60px] border border-solid border-[#817e6ba8] items-center gap-2.5 relative flex-[0_0_auto] hover:bg-[#02a8aa] transition-colors duration-200"
+          onClick={handleStartRemixing}
+          disabled={isLoading}
+          aria-label="Start creating from scratch"
+        >
+          <span className="relative w-fit font-normal text-black text-lg sm:text-xl text-center tracking-wide leading-[normal] whitespace-nowrap uppercase">
+            Let's Do This
+          </span>
+        </button>
+      </section>
+    </div>
   );
 };
 

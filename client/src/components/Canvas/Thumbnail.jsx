@@ -1,4 +1,4 @@
-import React, { useRef, useMemo } from "react";
+import React, { useRef, useMemo, forwardRef, useImperativeHandle } from "react";
 import { Stage, Layer, Rect, Group, Text, Path } from "react-konva";
 import { useDevice } from "../../contexts/DeviceContext";
 import { toast } from "react-toastify";
@@ -9,7 +9,7 @@ const THUMBNAIL_WIDTH = 1280;
 const THUMBNAIL_SCALE = 0.25;
 const THUMBNAIL_PADDING = THUMBNAIL_WIDTH / 10;
 
-const Thumbnail = ({ activeState, backgroundImage = null, dark = true }) => {
+const Thumbnail = forwardRef(({ activeState, backgroundImage = null, dark = true }, ref) => {
   const { deviceInfo, background } = useDevice();
   const stageRef = useRef(null);
 
@@ -157,6 +157,62 @@ const Thumbnail = ({ activeState, backgroundImage = null, dark = true }) => {
       });
     }
   };
+
+  const exportAsBlob = async (options = {}) => {
+    const {
+      quality = 0.8,
+      format = 'image/webp',
+      pixelRatio = 2.0
+    } = options;
+  
+    if (!stageRef.current) {
+      throw new Error("Thumbnail not ready for export");
+    }
+  
+    try {
+      const stage = stageRef.current;
+      
+      // Save current state
+      const originalScaleX = stage.scaleX();
+      const originalScaleY = stage.scaleY();
+      const originalWidth = stage.width();
+      const originalHeight = stage.height();
+  
+      // Scale to full resolution
+      stage.scaleX(1.0);
+      stage.scaleY(1.0);
+      stage.width(THUMBNAIL_WIDTH);
+      stage.height(THUMBNAIL_HEIGHT);
+  
+      // Export
+      const dataURL = stage.toDataURL({
+        mimeType: format,
+        quality: quality,
+        pixelRatio: pixelRatio,
+        imageSmoothingEnabled: true,
+      });
+  
+      // Restore original state
+      stage.scaleX(originalScaleX);
+      stage.scaleY(originalScaleY);
+      stage.width(originalWidth);
+      stage.height(originalHeight);
+  
+      // Convert to blob
+      const response = await fetch(dataURL);
+      const blob = await response.blob();
+  
+      console.log(`✅ Thumbnail exported as ${format}: ${Math.round(blob.size/1024)}KB`);
+      return blob;
+    } catch (error) {
+      console.error("❌ Failed to export thumbnail:", error);
+      throw new Error("Failed to export thumbnail");
+    }
+  };
+  
+  useImperativeHandle(ref, () => ({
+    exportAsBlob
+  }));
 
   if (!activeState) {
     return (
@@ -1464,6 +1520,6 @@ const Thumbnail = ({ activeState, backgroundImage = null, dark = true }) => {
       </Stage>
     </div>
   );
-};
+});
 
 export default Thumbnail;

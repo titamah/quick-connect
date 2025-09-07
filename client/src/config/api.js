@@ -6,6 +6,7 @@ export const API_CONFIG = {
   // Fal AI config
   FAL_API_KEY: import.meta.env.VITE_FAL_API_KEY || '',
   FAL_BASE_URL: 'https://fal.run/fal-ai',
-  FAL_MODEL: 'flux/schnell', // Super fast model
+  FAL_MODEL: 'fast-sdxl', // Super fast model
   FAL_TIMEOUT: 30000, // 30 seconds max
+
 };
