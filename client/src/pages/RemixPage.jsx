@@ -2,9 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDevice } from "../contexts/DeviceContext";
 import {
-  Copy,
-  ExternalLink,
-  ArrowRight,
   Loader2,
   AlertCircle,
   Eye,
@@ -22,7 +19,6 @@ const RemixPage = () => {
   const [remixData, setRemixData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load remix data on mount
   useEffect(() => {
     const loadRemix = async () => {
       if (!remixId) {
@@ -35,16 +31,13 @@ const RemixPage = () => {
         setLoading(true);
         setError(null);
 
-        console.log("🔍 Loading remix:", remixId);
 
-        // Import remixService dynamically
         const { default: remixService } = await import(
           "../services/remixService"
         );
         const data = await remixService.getRemix(remixId);
         setRemixData(data);
 
-        console.log("✅ Remix data loaded:", data);
       } catch (err) {
         console.error("❌ Failed to load remix:", err);
         setError(err.message || "Failed to load remix");
@@ -56,13 +49,9 @@ const RemixPage = () => {
     loadRemix();
   }, [remixId]);
 
-  // Convert remix device_state to your template format
   const convertRemixToTemplate = (remixData) => {
     const { device_state } = remixData;
 
-    console.log("🔄 Converting remix to template:", device_state);
-
-    // Map remix schema to your internal state structure
     const templateData = {
       deviceInfo: {
         name: "Remixed QR Wallpaper",
@@ -128,7 +117,6 @@ const RemixPage = () => {
       },
     };
 
-    console.log("✅ Template data converted:", templateData);
     return templateData;
   };
 
@@ -137,29 +125,23 @@ const RemixPage = () => {
   
     try {
       setIsLoading(true);
-      console.log("🎨 Starting remix process...");
   
       const templateData = convertRemixToTemplate(remixData);
   
-      // 🚀 NEW: Load background image into uploadInfo if it exists
       if (templateData.background.style === 'image' && templateData.background.bg) {
         try {
-          console.log("🖼️ Loading background image for editing...");
           
-          // Convert storage URL to File object
           const response = await fetch(templateData.background.bg);
           const blob = await response.blob();
           const filename = templateData.background.bg.split('/').pop() || 'remix-background.webp';
           const file = new File([blob], filename, { type: blob.type });
   
-          // Create data URL for the image
           const reader = new FileReader();
           reader.onload = () => {
-            // Update template to include upload info
             templateData.uploadInfo = {
               filename: filename,
               originalImageData: reader.result,
-              croppedImageData: reader.result, // Set both as same initially
+              croppedImageData: reader.result, 
               crop: {
                 x: 0,
                 y: 0,
@@ -169,7 +151,6 @@ const RemixPage = () => {
               }
             };
   
-            // Load the template data
             loadTemplateData(templateData);
             takeSnapshot("Loaded remix design");
             
@@ -180,13 +161,11 @@ const RemixPage = () => {
   
         } catch (imageError) {
           console.warn("⚠️ Failed to load background image for editing:", imageError);
-          // Still load the template without the image
           loadTemplateData(templateData);
           takeSnapshot("Loaded remix design");
           navigate("/studio");
         }
       } else {
-        // No background image, load normally
         loadTemplateData(templateData);
         takeSnapshot("Loaded remix design");
         navigate("/studio");
@@ -205,23 +184,6 @@ const RemixPage = () => {
       });
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const copyRemixLink = async () => {
-    try {
-      const url = window.location.href;
-      await navigator.clipboard.writeText(url);
-      toast.success("Remix link copied to clipboard!", {
-        position: "bottom-right",
-        autoClose: 2000,
-      });
-    } catch (err) {
-      console.error("Failed to copy link:", err);
-      toast.error("Failed to copy link", {
-        position: "bottom-right",
-        autoClose: 2000,
-      });
     }
   };
 
@@ -288,11 +250,6 @@ const RemixPage = () => {
         <p className="relative w-fit slab font-black text-3xl sm:text-4xl text-[var(--text-secondary)] text-center tracking-wider [font-variant:all-small-caps] whitespace-nowrap">
           Remix This Qreation
         </p>
-
-        {/* <p className="relative rubik font-extrabold text-[var(--accent)] text-4xl sm:text-5xl text-center tracking-[0] leading-[43.2px]">
-          Make it your own!
-        </p> */}
-
         <div className="md:w-[700px] w-full md:h-[350px] bg-[var(--bg-secondary)] rounded-lg overflow-hidden flex items-center justify-center">
           {remixData.thumbnail_url ? (
             <img
@@ -327,7 +284,7 @@ const RemixPage = () => {
           aria-label="Start creating from scratch"
         >
           <span className="relative w-fit font-normal text-black text-lg sm:text-xl text-center tracking-wide leading-[normal] whitespace-nowrap uppercase">
-            Let's Do This
+            Make It Yours
           </span>
         </button>
       </section>

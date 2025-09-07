@@ -1,22 +1,12 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useDevice } from "../contexts/DeviceContext";
-import { getAllTemplates } from "../utils/templates";
+import { useNavigate } from "react-router-dom";
 
 function StartDesignPage() {
   const navigate = useNavigate();
-  const { loadTemplateData } = useDevice();
 
   const handleStartNewDesign = () => {
     navigate("/studio");
   };
-
-  const handleLoadTemplate = (template) => {
-    loadTemplateData(template);
-    navigate("/studio");
-  };
-
-  const templates = getAllTemplates();
 
   return (
     <div className="flex flex-col h-fit min-h-[calc(100dvh-40px)] md:min-h-[calc(100dvh-60px)] items-center relative p-10 bg-[var(--bg-secondary)]">
@@ -30,7 +20,8 @@ function StartDesignPage() {
         </p>
 
         <p className="relative sm:max-w-[678px] rubik text-xl font-normal sm:text-3xl text-[var(--text-secondary)] sm:mb-10 text-center tracking-[0] leading-[normal]">
-        What deserves the spotlight? LinkedIn? That one creative side project? Your secret cooking blog? (we don't judge)
+          What deserves the spotlight? LinkedIn? That one creative side project?
+          Your secret cooking blog? (we don't judge)
         </p>
 
         <button
