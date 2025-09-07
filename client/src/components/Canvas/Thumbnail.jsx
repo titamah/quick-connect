@@ -1,54 +1,88 @@
-import React, { useRef } from "react";
+import React, { useRef, useMemo } from "react";
 import { Stage, Layer, Rect, Group, Text, Path } from "react-konva";
 import { useDevice } from "../../contexts/DeviceContext";
 import { toast } from "react-toastify";
+
+// Thumbnail static constants accessible throughout this module
+const THUMBNAIL_HEIGHT = 640;
+const THUMBNAIL_WIDTH = 1280;
+const THUMBNAIL_SCALE = 0.25;
+const THUMBNAIL_PADDING = THUMBNAIL_WIDTH / 10;
 
 const Thumbnail = ({ activeState, backgroundImage = null, dark = true }) => {
   const { deviceInfo, background } = useDevice();
   const stageRef = useRef(null);
 
-  const THUMBNAIL_HEIGHT = 640;
-  const THUMBNAIL_WIDTH = 1280;
-  const THUMBNAIL_SCALE = 0.25;
-  const THUMBNAIL_PADDING = THUMBNAIL_WIDTH / 10;
+  const layout = useMemo(() => {
+    if (!activeState) return null;
 
-  const PHONE_WIDTH = THUMBNAIL_WIDTH * 0.3525;
-  const PHONE_HEIGHT = THUMBNAIL_WIDTH * 0.8;
+    // Static layout values
+    const PHONE_WIDTH = THUMBNAIL_WIDTH * 0.3525;
+    const PHONE_HEIGHT = THUMBNAIL_WIDTH * 0.8;
+    const QR_SIZE = PHONE_WIDTH / 2; // Your intentional sizing for the ad
+    const QR_BORDER = QR_SIZE * (activeState.qr.borderWidth / 100);
+    const QR_GROUP_SIZE = QR_SIZE + QR_BORDER;
+    const strokeWidth = PHONE_WIDTH * 0.075;
 
-  const BASE_QR_SIZE = PHONE_WIDTH;
-  const QR_SCALE = activeState?.qr.scale || 0.5;
-  const QR_SIZE = BASE_QR_SIZE * QR_SCALE; 
-  const QR_BORDER = QR_SIZE * (activeState?.qr.borderWidth / 100);
-  const QR_GROUP_SIZE = QR_SIZE + QR_BORDER;
+    // Phone positioning
+    const phoneX = THUMBNAIL_WIDTH - (PHONE_WIDTH + strokeWidth) - THUMBNAIL_PADDING;
+    const qrRelativeY = (activeState.qr.pos.y - 0.5) * PHONE_HEIGHT;
+    const phoneY = (THUMBNAIL_HEIGHT - PHONE_HEIGHT) / 2 - qrRelativeY;
 
-  const strokeWidth = PHONE_WIDTH * 0.075;
+    // QR positioning (your original logic - it's working perfectly!)
+    const baseX = PHONE_WIDTH / 4;
+    const baseY = THUMBNAIL_PADDING;
+    const xOffset = (0.5 - activeState.qr.pos.x) * PHONE_WIDTH;
+    const yOffset = (0.5 - activeState.qr.pos.y) * PHONE_HEIGHT;
+    const qrX = baseX + xOffset;
+    const qrY = baseY + yOffset;
 
-  const qrRelativeY = (activeState?.qr.pos.y - 0.5) * PHONE_HEIGHT;
+    return {
+      THUMBNAIL_HEIGHT,
+      THUMBNAIL_WIDTH,
+      THUMBNAIL_SCALE,
+      PHONE_WIDTH,
+      PHONE_HEIGHT,
+      QR_SIZE,
+      QR_BORDER,
+      QR_GROUP_SIZE,
+      strokeWidth,
+      phoneX,
+      phoneY,
+      qrX,
+      qrY,
+    };
+  }, [activeState]);
 
-  const phoneX = THUMBNAIL_WIDTH - (PHONE_WIDTH + strokeWidth) - THUMBNAIL_PADDING;
-  const phoneY = (THUMBNAIL_HEIGHT - PHONE_HEIGHT) / 2 - qrRelativeY;
+  const backgroundProps = useMemo(() => {
+    if (!layout || !activeState) return null;
 
-  const backgroundProps = {
-    width: PHONE_WIDTH,
-    height: PHONE_HEIGHT,
-    x: 0,
-    y: 0,
-    ...(backgroundImage
-      ? {
-          fillPatternImage: backgroundImage,
-          fillPatternRepeat: "no-repeat",
-          fillPatternScale: (() => {
-            const scaleX = PHONE_WIDTH / backgroundImage.width;
-            const scaleY = PHONE_HEIGHT / backgroundImage.height;
-            const scale = Math.max(scaleX, scaleY);
-            return { x: scale, y: scale };
-          })(),
-          fillPriority: "pattern",
-        }
-      : {
-          fill: activeState?.bg.activeTypeValue || "#f0f0f0",
-        }),
-  };
+    const baseProps = {
+      width: layout.PHONE_WIDTH,
+      height: layout.PHONE_HEIGHT,
+      x: 0,
+      y: 0,
+    };
+
+    if (backgroundImage) {
+      const scaleX = layout.PHONE_WIDTH / backgroundImage.width;
+      const scaleY = layout.PHONE_HEIGHT / backgroundImage.height;
+      const scale = Math.max(scaleX, scaleY);
+
+      return {
+        ...baseProps,
+        fillPatternImage: backgroundImage,
+        fillPatternRepeat: "no-repeat",
+        fillPatternScale: { x: scale, y: scale },
+        fillPriority: "pattern",
+      };
+    }
+
+    return {
+      ...baseProps,
+      fill: activeState.bg.activeTypeValue || "#f0f0f0",
+    };
+  }, [layout, backgroundImage, activeState]);
 
   const makeRoundedClip =
     (width, height, radius, epsilon = 0.5) =>
@@ -236,49 +270,56 @@ const Thumbnail = ({ activeState, backgroundImage = null, dark = true }) => {
           </Group>
         </Layer>
         <Layer>
+          <Rect
+            x={layout.phoneX - layout.strokeWidth / 2}
+            y={layout.phoneY - layout.strokeWidth / 2}
+            width={layout.PHONE_WIDTH + layout.strokeWidth}
+            height={layout.PHONE_HEIGHT + layout.strokeWidth}
+            fill="transparent"
+            strokeWidth={layout.strokeWidth}
+            stroke="#000"
+            cornerRadius={THUMBNAIL_HEIGHT * 0.075}
+            shadowBlur="25"
+            shadowColor="black"
+          />
           <Group
-            x={phoneX}
-            y={phoneY}
+            x={layout.phoneX}
+            y={layout.phoneY}
             clip={{
               x: 0,
               y: 0,
-              width: PHONE_WIDTH,
-              height: PHONE_HEIGHT,
+              width: layout.PHONE_WIDTH,
+              height: layout.PHONE_HEIGHT,
             }}
           >
             <Rect
-              width={PHONE_WIDTH}
-              height={PHONE_HEIGHT}
+              width={layout.PHONE_WIDTH}
+              height={layout.PHONE_HEIGHT}
               {...backgroundProps}
             />
             <Group
-              x={PHONE_WIDTH * activeState?.qr.pos.x}
-              y={PHONE_HEIGHT * activeState?.qr.pos.y}
-              width={QR_GROUP_SIZE}
-              height={QR_GROUP_SIZE}
-              offsetX={QR_GROUP_SIZE / 2}
-              offsetY={QR_GROUP_SIZE / 2}
+              x={layout.PHONE_WIDTH * activeState?.qr.pos.x}
+              y={layout.PHONE_HEIGHT * activeState?.qr.pos.y}
+              width={layout.QR_GROUP_SIZE}
+              height={layout.QR_GROUP_SIZE}
+              offsetX={layout.QR_GROUP_SIZE / 2}
+              offsetY={layout.QR_GROUP_SIZE / 2}
               rotation={activeState?.qr.rotation || 0}
-              clipFunc={makeRoundedClip(
-                QR_GROUP_SIZE,
-                QR_GROUP_SIZE,
-                QR_GROUP_SIZE * (activeState?.qr.borderRadius / 200)
-              )}
             >
               <Rect
-                width={QR_GROUP_SIZE}
-                height={QR_GROUP_SIZE}
+                width={layout.QR_GROUP_SIZE}
+                height={layout.QR_GROUP_SIZE}
                 fill={activeState?.qr.borderColor}
                 cornerRadius={
-                  QR_GROUP_SIZE * (activeState?.qr.borderRadius / 200)
+                  layout.QR_GROUP_SIZE * (activeState?.qr.borderRadius / 200)
                 }
               />
 
               <Group
-                x={QR_BORDER / 2}
-                y={QR_BORDER / 2}
-                scaleY={QR_SIZE / 168}
-                scaleX={QR_SIZE / 168}
+                x={layout.QR_BORDER / 2}
+                y={layout.QR_BORDER / 2}
+                scaleY={layout.QR_SIZE / 168}
+                scaleX={layout.QR_SIZE / 168}
               >
                 <Path
                   strokeWidth={0}
@@ -1410,12 +1451,12 @@ const Thumbnail = ({ activeState, backgroundImage = null, dark = true }) => {
           </Group>
 
           <Rect
-            x={phoneX - strokeWidth / 2}
-            y={phoneY - strokeWidth / 2}
-            width={PHONE_WIDTH + strokeWidth}
-            height={PHONE_HEIGHT + strokeWidth}
+            x={layout.phoneX - layout.strokeWidth / 2}
+            y={layout.phoneY - layout.strokeWidth / 2}
+            width={layout.PHONE_WIDTH + layout.strokeWidth}
+            height={layout.PHONE_HEIGHT + layout.strokeWidth}
             fill="transparent"
-            strokeWidth={strokeWidth}
+            strokeWidth={layout.strokeWidth}
             stroke="#000"
             cornerRadius={THUMBNAIL_HEIGHT * 0.075}
           />

@@ -1,4 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+
+const validateScale = (scale) => {
+  if (typeof scale !== 'number' || isNaN(scale)) return 0.5;
+  return Math.max(0.1, Math.min(1, scale));
+};
+
+const validatePosition = (pos) => ({
+  x: Math.max(0, Math.min(1, pos?.x ?? 0.5)),
+  y: Math.max(0, Math.min(1, pos?.y ?? 0.5)),
+});
+
+const validateRotation = (rotation) => {
+  const num = typeof rotation === 'number' ? rotation : 0;
+  return ((num % 360) + 360) % 360; 
+};
 
 const deepMerge = (target, source) => {
   const result = { ...target };
@@ -169,12 +184,6 @@ export const useDeviceState = () => {
       if (currentKey === lastKey) {
         console.log("⏭️ Skip duplicate snapshot:", description);
         return;
-      } else {
-        console.log("🔍 States different:");
-        console.log("  Current QR rotation:", currentState.qrConfig.rotation);
-        console.log("  Last QR rotation:", lastSnapshot.qrConfig.rotation);
-        console.log("  Current device type:", currentState.deviceInfo.type);
-        console.log("  Last device type:", lastSnapshot.deviceInfo.type);
       }
     }
 
@@ -275,28 +284,49 @@ export const useDeviceState = () => {
     setBackground((prev) => deepMerge(prev, updates));
   };
 
-  const updateQRConfig = (updates) => {
+  // 🚀 FIXED: Enhanced QR config validation
+  const updateQRConfig = useCallback((updates) => {
     console.log("🔧 updateQRConfig:", updates);
     
+    // Validate scale consistently
     if (updates.scale !== undefined) {
-      updates.scale = Math.max(0.1, Math.min(1, updates.scale));
-      console.log("📏 Clamped scale to:", updates.scale);
+      updates.scale = validateScale(updates.scale);
+      console.log("📏 Validated scale to:", updates.scale);
+    }
+    
+    // Validate position percentages
+    if (updates.positionPercentages) {
+      updates.positionPercentages = validatePosition(updates.positionPercentages);
+      console.log("📍 Validated position to:", updates.positionPercentages);
+    }
+    
+    // Validate rotation
+    if (updates.rotation !== undefined) {
+      updates.rotation = validateRotation(updates.rotation);
+      console.log("🔄 Validated rotation to:", updates.rotation);
+    }
+
+    // Validate border values
+    if (updates.custom?.borderSizeRatio !== undefined) {
+      updates.custom.borderSizeRatio = Math.max(-1, Math.min(200, updates.custom.borderSizeRatio));
+    }
+    
+    if (updates.custom?.cornerRadiusRatio !== undefined) {
+      updates.custom.cornerRadiusRatio = Math.max(0, Math.min(100, updates.custom.cornerRadiusRatio));
     }
     
     setQRConfig((prev) => deepMerge(prev, updates));
-  };
+  }, []);
 
-  const updateQRPositionPercentages = (percentages) => {
+  const updateQRPositionPercentages = useCallback((percentages) => {
     console.log("🔧 updateQRPositionPercentages:", percentages);
+    const validatedPercentages = validatePosition(percentages);
     setQRConfig((prev) =>
       deepMerge(prev, {
-        positionPercentages: deepMerge(
-          prev.positionPercentages || {},
-          percentages
-        ),
+        positionPercentages: validatedPercentages,
       })
     );
-  };
+  }, []);
 
   const updateImagePalette = (colors) => {
     console.log("🔧 updateImagePalette:", colors.length, "colors");
@@ -313,30 +343,40 @@ export const useDeviceState = () => {
     setGeneratedInfo((prev) => deepMerge(prev, updates));
   };
 
-  // Load template data (for starting with templates)
-  const loadTemplateData = (templateData) => {
-    // Load template data into state, ensuring backwards compatibility
-    setDeviceInfo(templateData.deviceInfo);
-    setBackground(templateData.background);
+  // 🚀 FIXED: Enhanced template loading with validation
+  const loadTemplateData = useCallback((templateData) => {
+    console.log("📋 Loading template data with validation...");
     
-    // Handle backwards compatibility for QR config
+    // Validate all QR config values when loading
     const qrConfigWithDefaults = {
-      ...templateData.qrConfig,
-      scale: templateData.qrConfig.scale ?? 0.5, // Default to 50% if not present
+      url: templateData.qrConfig?.url || "www.qrki.com",
+      scale: validateScale(templateData.qrConfig?.scale),
+      custom: {
+        primaryColor: templateData.qrConfig?.custom?.primaryColor || "#000000",
+        secondaryColor: templateData.qrConfig?.custom?.secondaryColor || "#FFFFFF",
+        borderSizeRatio: Math.max(-1, Math.min(200, templateData.qrConfig?.custom?.borderSizeRatio ?? -1)),
+        borderColor: templateData.qrConfig?.custom?.borderColor || "#000000",
+        cornerRadiusRatio: Math.max(0, Math.min(100, templateData.qrConfig?.custom?.cornerRadiusRatio ?? 0)),
+      },
+      positionPercentages: validatePosition(templateData.qrConfig?.positionPercentages),
+      rotation: validateRotation(templateData.qrConfig?.rotation),
     };
-    setQRConfig(qrConfigWithDefaults);
     
-    setImagePalette(templateData.imagePalette);
-    setUploadInfo(templateData.uploadInfo);
-    setGeneratedInfo(templateData.generatedInfo);
+    // Load other data
+    setDeviceInfo(templateData.deviceInfo || deviceInfo);
+    setBackground(templateData.background || background);
+    setQRConfig(qrConfigWithDefaults);
+    setImagePalette(templateData.imagePalette || []);
+    setUploadInfo(templateData.uploadInfo || uploadInfo);
+    setGeneratedInfo(templateData.generatedInfo || generatedInfo);
     
     // Clear history since we're loading new data
     setPast([]);
     setFuture([]);
     setPresent(null);
     
-    console.log("📋 Loaded template data:", templateData.name);
-  };
+    console.log("✅ Template loaded with validated QR config:", qrConfigWithDefaults);
+  }, [deviceInfo, background, uploadInfo, generatedInfo]);
 
   const device = {
     ...deviceInfo,
