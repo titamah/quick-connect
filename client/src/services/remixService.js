@@ -112,6 +112,59 @@ const validateDeviceState = (deviceState) => {
   return true;
 };
 
+const generateCuteId = () => {
+    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    let result = '';
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+  
+  // Check if ID already exists
+  const checkIdExists = async (id) => {
+    try {
+      const response = await fetch(
+        `${API_BASE}/remixes?id=eq.${id}&select=id`, 
+        {
+          method: 'GET',
+          headers: getHeaders()
+        }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        return data.length > 0;
+      }
+      return false;
+    } catch (error) {
+      console.warn('Error checking ID existence:', error);
+      return false;
+    }
+  };
+  
+  // Generate unique cute ID (with collision detection)
+  const generateUniqueId = async () => {
+    let attempts = 0;
+    const maxAttempts = 10;
+    
+    while (attempts < maxAttempts) {
+      const id = generateCuteId();
+      const exists = await checkIdExists(id);
+      
+      if (!exists) {
+        console.log('✅ Generated unique cute ID:', id);
+        return id;
+      }
+      
+      attempts++;
+      console.warn(`⚠️ ID collision detected (${id}), retrying... (${attempts}/${maxAttempts})`);
+    }
+    
+    throw new Error('Failed to generate unique ID after multiple attempts');
+  };
+  
+
 export const remixService = {
   /**
    * Upload image to Supabase Storage
@@ -154,68 +207,72 @@ export const remixService = {
       throw error;
     }
   },
-
-  /**
-   * Create a new remix
-   * @param {Object} deviceState - The device state to save
-   * @param {File|null} backgroundImageFile - Optional background image file
-   * @returns {Promise<string>} - The remix ID
-   */
-  async createRemix(deviceState, backgroundImageFile = null) {
-    try {
-      checkRateLimit();
-      
-      // Clone device state to avoid mutation
-      const processedDeviceState = JSON.parse(JSON.stringify(deviceState));
-      
-      // If there's a background image, upload it FIRST before validation
-      if (backgroundImageFile && processedDeviceState.bg.type === 'image') {
-        console.log('🖼️ Uploading background image for remix...');
-        const imageUrl = await this.uploadImage(backgroundImageFile);
-        processedDeviceState.bg.activeTypeValue = imageUrl;
-        console.log('✅ Background image uploaded, URL stored in device state');
-      }
-      
-      // Remove any remaining base64 data if image upload failed or wasn't provided
-      if (processedDeviceState.bg.type === 'image' && 
-          processedDeviceState.bg.activeTypeValue && 
-          processedDeviceState.bg.activeTypeValue.startsWith('data:')) {
-        console.log('⚠️ Removing base64 data from device state (image should be uploaded separately)');
-        processedDeviceState.bg.activeTypeValue = '';
-      }
-
-      // NOW validate after image is uploaded and base64 is removed
-      validateDeviceState(processedDeviceState);
-
-      console.log('🚀 Creating remix with processed device state (image URLs only):', processedDeviceState);
-
-      const response = await fetch(`${API_BASE}/remixes`, {
-        method: 'POST',
-        headers: getHeaders('POST'),
-        body: JSON.stringify({
-          device_state: processedDeviceState
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Create remix failed:', response.status, errorText);
+  
+    /**
+     * Create a new remix with cute ID
+     * @param {Object} deviceState - The device state to save
+     * @param {File|null} backgroundImageFile - Optional background image file
+     * @returns {Promise<string>} - The remix ID
+     */
+    async createRemix(deviceState, backgroundImageFile = null) {
+      try {
+        checkRateLimit();
         
-        if (response.status === 413) {
-          throw new Error('Design too large to share');
+        // Generate unique cute ID first
+        const cuteId = await generateUniqueId();
+        
+        // Clone device state to avoid mutation
+        const processedDeviceState = JSON.parse(JSON.stringify(deviceState));
+        
+        // If there's a background image, upload it FIRST before validation
+        if (backgroundImageFile && processedDeviceState.bg.type === 'image') {
+          console.log('🖼️ Uploading background image for remix...');
+          const imageUrl = await this.uploadImage(backgroundImageFile);
+          processedDeviceState.bg.activeTypeValue = imageUrl;
+          console.log('✅ Background image uploaded, URL stored in device state');
         }
-        throw new Error(`Failed to create remix: ${response.status}`);
+        
+        // Remove any remaining base64 data if image upload failed or wasn't provided
+        if (processedDeviceState.bg.type === 'image' && 
+            processedDeviceState.bg.activeTypeValue && 
+            processedDeviceState.bg.activeTypeValue.startsWith('data:')) {
+          console.log('⚠️ Removing base64 data from device state (image should be uploaded separately)');
+          processedDeviceState.bg.activeTypeValue = '';
+        }
+  
+        // NOW validate after image is uploaded and base64 is removed
+        validateDeviceState(processedDeviceState);
+  
+        console.log('🚀 Creating remix with cute ID:', cuteId);
+  
+        const response = await fetch(`${API_BASE}/remixes`, {
+          method: 'POST',
+          headers: getHeaders('POST'),
+          body: JSON.stringify({
+            id: cuteId,  // ← Use our cute ID instead of auto-generated UUID
+            device_state: processedDeviceState
+          })
+        });
+  
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ Create remix failed:', response.status, errorText);
+          
+          if (response.status === 413) {
+            throw new Error('Design too large to share');
+          }
+          throw new Error(`Failed to create remix: ${response.status}`);
+        }
+  
+        const data = await response.json();
+        const remixId = data[0].id;
+        console.log('✅ Remix created successfully with cute ID:', remixId);
+        return remixId;
+      } catch (error) {
+        console.error('Error creating remix:', error);
+        throw error;
       }
-
-      const data = await response.json();
-      const remixId = data[0].id;
-      console.log('✅ Remix created successfully:', remixId);
-      return remixId;
-    } catch (error) {
-      console.error('Error creating remix:', error);
-      throw error;
-    }
-  },
+    },
 
   /**
    * Get a remix by ID

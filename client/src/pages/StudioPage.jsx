@@ -8,7 +8,7 @@ import Canvas from "../components/Canvas/index.jsx";
 const StudioPage = () => {
   const navigate = useNavigate();
 
-  const { isMobile } = useDevice();
+  const { isMobile, undo, redo, canUndo, canRedo } = useDevice();
 
   const wallpaperRef = React.useRef(null);
 
@@ -35,6 +35,45 @@ const StudioPage = () => {
       setBreakpoint(currentBreakpoint);
     }
   }, [windowSize.width, breakpoint, panelSize.width]);
+
+  // Keyboard shortcuts for undo/redo
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      // Check if we're in an input field or textarea
+      const isInputField = event.target.tagName === 'INPUT' || 
+                          event.target.tagName === 'TEXTAREA' || 
+                          event.target.contentEditable === 'true';
+      
+      // Don't trigger shortcuts when typing in input fields
+      if (isInputField) return;
+
+      // Handle Mac Cmd key as well as Ctrl
+      const isModifierPressed = event.ctrlKey || event.metaKey;
+
+      // Ctrl/Cmd+Z for undo
+      if (isModifierPressed && event.key === 'z' && !event.shiftKey) {
+        event.preventDefault();
+        if (canUndo) {
+          undo();
+        }
+      }
+      
+      // Ctrl/Cmd+Y or Ctrl/Cmd+Shift+Z for redo
+      if ((isModifierPressed && event.key === 'y') || 
+          (isModifierPressed && event.shiftKey && event.key.toLowerCase() === 'z')) {
+        event.preventDefault();
+        if (canRedo) {
+          redo();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [undo, redo, canUndo, canRedo]);
 
   // Request fullscreen when Studio page loads on mobile
   useEffect(() => {

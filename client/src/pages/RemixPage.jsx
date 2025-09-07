@@ -1,14 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useDevice } from '../contexts/DeviceContext';
-import { Copy, ExternalLink, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
-import { toast } from 'react-toastify';
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useDevice } from "../contexts/DeviceContext";
+import {
+  Copy,
+  ExternalLink,
+  ArrowRight,
+  Loader2,
+  AlertCircle,
+  Eye,
+  Clock,
+} from "lucide-react";
+import { toast } from "react-toastify";
 
 const RemixPage = () => {
   const { remixId } = useParams();
   const navigate = useNavigate();
   const { loadTemplateData, takeSnapshot } = useDevice();
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [remixData, setRemixData] = useState(null);
@@ -18,7 +26,7 @@ const RemixPage = () => {
   useEffect(() => {
     const loadRemix = async () => {
       if (!remixId) {
-        setError('Invalid remix link');
+        setError("Invalid remix link");
         setLoading(false);
         return;
       }
@@ -26,18 +34,20 @@ const RemixPage = () => {
       try {
         setLoading(true);
         setError(null);
-        
-        console.log('🔍 Loading remix:', remixId);
-        
+
+        console.log("🔍 Loading remix:", remixId);
+
         // Import remixService dynamically
-        const { default: remixService } = await import('../services/remixService');
+        const { default: remixService } = await import(
+          "../services/remixService"
+        );
         const data = await remixService.getRemix(remixId);
         setRemixData(data);
-        
-        console.log('✅ Remix data loaded:', data);
+
+        console.log("✅ Remix data loaded:", data);
       } catch (err) {
-        console.error('❌ Failed to load remix:', err);
-        setError(err.message || 'Failed to load remix');
+        console.error("❌ Failed to load remix:", err);
+        setError(err.message || "Failed to load remix");
       } finally {
         setLoading(false);
       }
@@ -49,27 +59,43 @@ const RemixPage = () => {
   // Convert remix device_state to your template format
   const convertRemixToTemplate = (remixData) => {
     const { device_state } = remixData;
-    
-    console.log('🔄 Converting remix to template:', device_state);
-    
+
+    console.log("🔄 Converting remix to template:", device_state);
+
     // Map remix schema to your internal state structure
     const templateData = {
       deviceInfo: {
         name: "Remixed QR Wallpaper",
         type: "iPhone 15 Pro Max",
-        size: { x: 1290, y: 2796 }
+        size: { x: 1290, y: 2796 },
       },
       background: {
         style: device_state.bg.type,
-        color: device_state.bg.type === 'solid' ? device_state.bg.activeTypeValue : "#FFFFFF",
-        bg: device_state.bg.type === 'image' ? device_state.bg.activeTypeValue : "",
-        gradient: device_state.bg.type === 'gradient' ? device_state.bg.activeTypeValue : {
-          type: "linear",
-          stops: [0, "rgb(255, 170, 0)", 0.5, "rgb(228,88,191)", 1, "rgb(177,99,232)"],
-          angle: 0,
-          pos: { x: 0.5, y: 0.5 }
-        },
-        grain: device_state.bg.grain || false
+        color:
+          device_state.bg.type === "solid"
+            ? device_state.bg.activeTypeValue
+            : "#FFFFFF",
+        bg:
+          device_state.bg.type === "image"
+            ? device_state.bg.activeTypeValue
+            : "",
+        gradient:
+          device_state.bg.type === "gradient"
+            ? device_state.bg.activeTypeValue
+            : {
+                type: "linear",
+                stops: [
+                  0,
+                  "rgb(255, 170, 0)",
+                  0.5,
+                  "rgb(228,88,191)",
+                  1,
+                  "rgb(177,99,232)",
+                ],
+                angle: 0,
+                pos: { x: 0.5, y: 0.5 },
+              },
+        grain: device_state.bg.grain || false,
       },
       qrConfig: {
         url: "www.qrki.com",
@@ -79,30 +105,30 @@ const RemixPage = () => {
           secondaryColor: device_state.qr.secondaryColor,
           borderColor: device_state.qr.borderColor,
           borderSizeRatio: device_state.qr.borderWidth,
-          cornerRadiusRatio: device_state.qr.borderRadius
+          cornerRadiusRatio: device_state.qr.borderRadius,
         },
         positionPercentages: {
           x: device_state.qr.pos.x,
-          y: device_state.qr.pos.y
+          y: device_state.qr.pos.y,
         },
-        rotation: device_state.qr.rotation || 0
+        rotation: device_state.qr.rotation || 0,
       },
       imagePalette: [],
       uploadInfo: {
         filename: null,
         originalImageData: null,
         croppedImageData: null,
-        crop: null
+        crop: null,
       },
       generatedInfo: {
         filename: null,
         originalImageData: null,
         croppedImageData: null,
-        crop: null
-      }
+        crop: null,
+      },
     };
 
-    console.log('✅ Template data converted:', templateData);
+    console.log("✅ Template data converted:", templateData);
     return templateData;
   };
 
@@ -111,31 +137,30 @@ const RemixPage = () => {
 
     try {
       setIsLoading(true);
-      
-      console.log('🎨 Starting remix process...');
-      
+
+      console.log("🎨 Starting remix process...");
+
       // Convert remix data to template format
       const templateData = convertRemixToTemplate(remixData);
-      
+
       // Load the template data using your existing function
       loadTemplateData(templateData);
-      
+
       // Take a snapshot for undo/redo
-      takeSnapshot('Loaded remix design');
-      
-      console.log('✅ Template loaded, navigating to studio...');
-      
+      takeSnapshot("Loaded remix design");
+
+      console.log("✅ Template loaded, navigating to studio...");
+
       // Navigate to studio
-      navigate('/studio');
-      
-      toast.success('Remix loaded! Start customizing your design.', {
+      navigate("/studio");
+
+      toast.success("Remix loaded! Start customizing your design.", {
         position: "bottom-right",
         autoClose: 3000,
       });
-      
     } catch (err) {
-      console.error('❌ Failed to start remixing:', err);
-      toast.error('Failed to load remix. Please try again.', {
+      console.error("❌ Failed to start remixing:", err);
+      toast.error("Failed to load remix. Please try again.", {
         position: "bottom-right",
         autoClose: 3000,
       });
@@ -148,13 +173,13 @@ const RemixPage = () => {
     try {
       const url = window.location.href;
       await navigator.clipboard.writeText(url);
-      toast.success('Remix link copied to clipboard!', {
+      toast.success("Remix link copied to clipboard!", {
         position: "bottom-right",
         autoClose: 2000,
       });
     } catch (err) {
-      console.error('Failed to copy link:', err);
-      toast.error('Failed to copy link', {
+      console.error("Failed to copy link:", err);
+      toast.error("Failed to copy link", {
         position: "bottom-right",
         autoClose: 2000,
       });
@@ -162,10 +187,10 @@ const RemixPage = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -190,16 +215,15 @@ const RemixPage = () => {
               Remix Not Found
             </h1>
             <p className="text-[var(--text-secondary)] mb-6">
-              {error === 'Remix not found or has expired' 
-                ? 'This remix link has expired or the design is no longer available.'
-                : error
-              }
+              {error === "Remix not found or has expired"
+                ? "This remix link has expired or the design is no longer available."
+                : error}
             </p>
           </div>
-          
+
           <div className="space-y-3">
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate("/")}
               className="w-full bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-white px-6 py-3 rounded-lg font-medium transition-colors"
             >
               Create Your Own Design
@@ -217,120 +241,38 @@ const RemixPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-main)]">
-      {/* Header */}
-      <header className="border-b border-[var(--border-color)] bg-[var(--bg-main)]">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <h1 className="text-2xl font-bold text-[var(--text-primary)]">
-                QRKi
-              </h1>
-              <span className="text-[var(--text-secondary)]">•</span>
-              <span className="text-[var(--text-secondary)]">Remix</span>
-            </div>
+      <div className="flex flex-col h-fit min-h-[calc(100dvh-40px)] md:min-h-[calc(100dvh-60px)] items-center justify-center relative p-10 bg-[var(--bg-secondary)]">
+        <section className="  h-fit p-10 sm:p-20 flex flex-col items-center justify-center gap-8 sm:gap-10 relative self-stretch max-w-[850px] w-fit m-auto bg-[var(--bg-main)] rounded-[30px] sm:rounded-[45px] border-[0.5px] border-solid border-[var(--border-color)] ">
+          <p className="relative w-fit slab font-black text-3xl sm:text-4xl text-[var(--text-secondary)] text-center tracking-wider [font-variant:all-small-caps] whitespace-nowrap">
+            Remix This Qreation
+          </p>
+
+          <p className="relative rubik font-extrabold text-[var(--accent)] text-4xl sm:text-5xl text-center tracking-[0] leading-[43.2px]">
+            Make it your own!
+          </p>
+
+          <p className="md:w-[700px] w-full md:h-[350px] bg-red-500">
             
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={copyRemixLink}
-                className="flex items-center space-x-2 px-3 py-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-              >
-                <Copy className="h-4 w-4" />
-                <span className="hidden sm:inline">Copy Link</span>
-              </button>
-              
-              <a
-                href="/"
-                className="flex items-center space-x-2 px-3 py-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-              >
-                <ExternalLink className="h-4 w-4" />
-                <span className="hidden sm:inline">QRKi Home</span>
-              </a>
+          </p>
+
+          <div className="flex flex-row items-center space-x-6 text-sm text-[var(--text-secondary)]">
+            <div className="flex flex-row items-center gap-2"> <Clock size={16}/> Created {formatDate(remixData.created_at)}</div>
+            <div className="flex flex-row items-center gap-2">
+              <Eye size={16}/> <span className="font-medium">{`${remixData.view_count || 0} views`}</span>
             </div>
           </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        <div className="grid md:grid-cols-2 gap-8 items-center">
-          {/* Left: Info */}
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
-                QR Wallpaper Design
-              </h2>
-              <p className="text-[var(--text-secondary)] text-lg">
-                A custom QR code wallpaper design ready to be remixed and made your own!
-              </p>
-            </div>
-
-            <div className="flex items-center space-x-6 text-sm text-[var(--text-secondary)]">
-              <div>
-                <span className="font-medium">{remixData.view_count || 0}</span> views
-              </div>
-              <div>
-                Created {formatDate(remixData.created_at)}
-              </div>
-            </div>
-
-            <div className="bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-lg p-6 space-y-4">
-              <h3 className="font-semibold text-[var(--text-primary)]">
-                🎨 Ready to Remix?
-              </h3>
-              <p className="text-[var(--text-secondary)] text-sm">
-                This design will be loaded into the QRKi studio where you can customize colors, 
-                position, size, and more. Make it uniquely yours!
-              </p>
-              
-              <button
-                onClick={handleStartRemixing}
-                disabled={isLoading}
-                className="w-full bg-[var(--accent)] hover:bg-[var(--accent)]/90 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Loading...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Start Remixing</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Right: Preview */}
-          <div className="space-y-4">
-            <div className="aspect-[9/16] bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl p-8 flex items-center justify-center">
-              <div className="text-center space-y-4">
-                <div className="w-16 h-16 bg-[var(--accent)]/20 rounded-lg flex items-center justify-center mx-auto">
-                  <div className="w-8 h-8 bg-[var(--accent)] rounded" />
-                </div>
-                <div className="space-y-2">
-                  <div className="h-3 bg-[var(--bg-main)] rounded w-24 mx-auto" />
-                  <div className="h-2 bg-[var(--bg-main)] rounded w-16 mx-auto" />
-                </div>
-              </div>
-            </div>
-            
-            <p className="text-center text-xs text-[var(--text-secondary)]">
-              Live preview coming in a future update
-            </p>
-          </div>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-[var(--border-color)] mt-16">
-        <div className="max-w-4xl mx-auto px-4 py-6 text-center text-sm text-[var(--text-secondary)]">
-          <p>Create your own QR wallpapers at <a href="/" className="text-[var(--accent)] hover:underline">QRKi.com</a></p>
-        </div>
-      </footer>
-    </div>
+          <button
+            className="inline-flex flex-col justify-center py-[12px] px-[18px] bg-[#03bec0] rounded-[60px] border border-solid border-[#817e6ba8] items-center gap-2.5 relative flex-[0_0_auto] hover:bg-[#02a8aa] transition-colors duration-200"
+            onClick={handleStartRemixing}
+            disabled={isLoading}
+            aria-label="Start creating from scratch"
+          >
+            <span className="relative w-fit font-normal text-black text-lg sm:text-xl text-center tracking-wide leading-[normal] whitespace-nowrap uppercase">
+              Let's Do This
+            </span>
+          </button>
+        </section>
+      </div>
   );
 };
 

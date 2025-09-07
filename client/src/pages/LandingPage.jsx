@@ -130,7 +130,7 @@ const LandingPage = () => {
 
       <footer className="flex w-full items-center justify-center py-4 px-6 bg-[#001d28] border-t border-[var(--border-color)]">
         <p className="text-sm text-white opacity-60">
-          © 2024 QRKI. Made with ❤️ for better connections.
+          © 2025 QRKI. Made with ❤️ for better connections.
         </p>
       </footer>
     </main>
