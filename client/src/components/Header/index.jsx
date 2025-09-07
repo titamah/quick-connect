@@ -13,40 +13,32 @@ function Header() {
 
   return (
     <header className="sticky top-0 z-5000 flex w-full h-15 max-md:h-10">
-      <nav className={`w-full px-5 flex items-center justify-between !h-full bg-[var(--bg-main)] opacity-100 z-100 border-b border-[var(--border-color)]/50`}>
+      <nav
+        className={`w-full px-5 flex items-center justify-between !h-full ${location.pathname === "/" ? "bg-[var(--accent)] " : "bg-[var(--bg-main)]"} opacity-100 z-100 border-b border-[var(--border-color)]/50`}
+      >
         <div className="flex items-center">
           <Link
             to="/"
-            className="text-4xl font-black text-[var(--accent)] hover:opacity-80 transition-opacity"
+            className="text-4xl font-black hover:opacity-80 transition-opacity"
             aria-label="Brand"
           >
-            <h1 className="!font-[var(--font-rubik-mono)]">
-            QRKI
-            </h1>
+            <h1 className={`!font-[var(--font-rubik-mono)] ${
+                location.pathname === "/"
+                  ? " text-[var(--brand-yellow)] "
+                  : " text-[var(--accent)] "
+              }`}>QRKI</h1>
           </Link>
         </div>
-        
+
         {!isMobile ? (
           <div className="flex items-center px-2 space-x-6">
             <Link
               to="/start-design"
-              className={`font-medium focus:outline-none transition-colors text-lg ${
-                location.pathname === '/start-design' 
-                  ? 'text-[var(--accent)]' 
-                  : 'text-[var(--text-secondary)] hover:opacity-50'
-              }`}
+              className={`inline-flex items-center justify-center bg-[var(--brand-green)] gap-2.5 py-2 px-4 relative flex-[0_0_auto] rounded-[75px] border-[0.5px] border-solid border-neutral-900 hover:opacity-90 transition-opacity`}
             >
-              Studio
-            </Link>
-            <Link
-              to="/about"
-              className={`font-medium focus:outline-none transition-colors text-lg ${
-                location.pathname === '/about' 
-                  ? 'text-[var(--accent)]' 
-                  : 'text-[var(--text-secondary)] hover:opacity-50'
-              }`}
-            >
-              About
+              <span className="relative w-fit font-normal text-neutral-900 text-md sm:text-lg tracking-[0] leading-[normal] whitespace-nowrap">
+                START QREATING
+              </span>
             </Link>
           </div>
         ) : (
@@ -91,23 +83,12 @@ function Header() {
                     to="/start-design"
                     onClick={() => setIsMenuOpen(false)}
                     className={`block px-4 py-2 text-sm transition-colors ${
-                      location.pathname === '/start-design'
-                        ? 'text-[var(--accent)] bg-[var(--hover-bg)]'
-                        : 'text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover-bg)]'
+                      location.pathname === "/start-design"
+                        ? "text-[var(--accent)] bg-[var(--hover-bg)]"
+                        : "text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover-bg)]"
                     }`}
                   >
                     Studio
-                  </Link>
-                  <Link
-                    to="/about"
-                    onClick={() => setIsMenuOpen(false)}
-                    className={`block px-4 py-2 text-sm transition-colors ${
-                      location.pathname === '/about'
-                        ? 'text-[var(--accent)] bg-[var(--hover-bg)]'
-                        : 'text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--hover-bg)]'
-                    }`}
-                  >
-                    About
                   </Link>
                 </div>
               </div>

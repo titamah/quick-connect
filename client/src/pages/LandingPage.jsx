@@ -1,9 +1,14 @@
 import React from 'react';
 import { useDevice } from '../contexts/DeviceContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const LandingPage = () => {
   const { isMobile } = useDevice();
+  const navigate = useNavigate();
+
+  const handleStartQreating = () => {
+    navigate('/start-design');
+  };
   
   const howItWorksSteps = [
     {
@@ -50,7 +55,10 @@ const LandingPage = () => {
             QR codes that are actually you - no unlock needed, just connection.
           </p>
 
-          <button className="inline-flex items-center justify-center gap-2.5 p-[12px] relative flex-[0_0_auto] bg-[var(--brand-green)] rounded-[75px] border-[0.5px] border-solid border-neutral-900 hover:opacity-90 transition-opacity">
+          <button 
+            className="inline-flex items-center justify-center gap-2.5 p-[12px] relative flex-[0_0_auto] bg-[var(--brand-green)] rounded-[75px] border-[0.5px] border-solid border-neutral-900 hover:opacity-90 transition-opacity"
+            onClick={handleStartQreating}
+          >
             <span className="relative w-fit font-normal text-neutral-900 text-md sm:text-lg tracking-[0] leading-[normal] whitespace-nowrap">
               START QREATING
             </span>
@@ -79,11 +87,11 @@ const LandingPage = () => {
                   : step.id === 3
                   ? "justify-end"
                   : ""
-              } gap-[10px] sm:gap-[15px] p-5 pr-6 sm:p-7.5 sm:pr-9 relative flex-1 self-stretch grow ${
+              } gap-[10px] sm:gap-[15px] p-5 pr-6 sm:p-6.5 sm:pr-8 relative flex-1 self-stretch grow ${
                 step.bgColor
               }`}
             >
-              <text className="relative self-stretch mt-[-1.00px] rubik font-black text-[#001d28] text-2xl sm:text-4xl">
+              <text className="relative self-stretch mt-[-1.00px] rubik font-black text-[#001d28] text-2xl sm:text-3xl">
                 {step.title}
               </text>
 
@@ -103,7 +111,10 @@ const LandingPage = () => {
             a black and white square.
           </p>
 
-          <button className="inline-flex items-center justify-center gap-2.5 p-[12px] relative flex-[0_0_auto] bg-[var(--brand-green)] rounded-[75px] border-[0.5px] border-solid border-neutral-900 hover:opacity-90 transition-opacity">
+          <button 
+            className="inline-flex items-center justify-center gap-2.5 p-[12px] relative flex-[0_0_auto] bg-[var(--brand-green)] rounded-[75px] border-[0.5px] border-solid border-neutral-900 hover:opacity-90 transition-opacity"
+            onClick={handleStartQreating}
+          >
             <span className="relative w-fit font-normal text-neutral-900 text-md sm:text-lg tracking-[0] leading-[normal] whitespace-nowrap">
               START QREATING
             </span>
@@ -116,6 +127,12 @@ const LandingPage = () => {
           src="/MockUp2.png"
         />
       </section>
+
+      <footer className="flex w-full items-center justify-center py-4 px-6 bg-[#001d28] border-t border-[var(--border-color)]">
+        <p className="text-sm text-white opacity-60">
+          © 2024 QRKI. Made with ❤️ for better connections.
+        </p>
+      </footer>
     </main>
   );
 };

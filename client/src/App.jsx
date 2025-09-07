@@ -14,7 +14,6 @@ import React from "react";
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const StartDesignPage = lazy(() => import("./pages/StartDesignPage"));
 const StudioPage = lazy(() => import("./pages/StudioPage"));
-const AboutPage = lazy(() => import("./pages/AboutPage"));
 const RemixPage = lazy(() => import("./pages/RemixPage"));
 
 function App() {
@@ -66,7 +65,6 @@ function App() {
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/start-design" element={<StartDesignPage />} />
                 <Route path="/studio" element={<StudioPage />} />
-                <Route path="/about" element={<AboutPage />} />
                 <Route path="/remix/:remixId" element={<RemixPage />} />
               </Routes>
             </Suspense>
