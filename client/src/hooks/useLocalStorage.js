@@ -1,5 +1,4 @@
 import { useState } from 'react';
-
 export const useLocalStorage = (key, initialValue) => {
   const [storedValue, setStoredValue] = useState(() => {
     try {
@@ -10,7 +9,6 @@ export const useLocalStorage = (key, initialValue) => {
       return initialValue;
     }
   });
-
   const setValue = (value) => {
     try {
       const valueToStore = value instanceof Function ? value(storedValue) : value;
@@ -20,6 +18,5 @@ export const useLocalStorage = (key, initialValue) => {
       console.error(`Error setting localStorage key "${key}":`, error);
     }
   };
-
   return [storedValue, setValue];
 };

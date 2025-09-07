@@ -2,7 +2,6 @@ import { useState, forwardRef, useEffect } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import { usePreview } from "../../contexts/PreviewContext";
 import { toast } from "react-toastify";
-
 const Exporter = forwardRef(({}, ref) => {
   const { device, updateDeviceInfo, takeSnapshot, isMobile } = useDevice();
   const { setExportState } = usePreview();
@@ -11,7 +10,6 @@ const Exporter = forwardRef(({}, ref) => {
     size: 0.5,
     quality: 0.5,
   });
-
   function dataURLtoBlob(dataURL) {
     if (!dataURL) throw new Error("Invalid data URL");
     const arr = dataURL.split(",");
@@ -28,7 +26,6 @@ const Exporter = forwardRef(({}, ref) => {
     }
     return new Blob([u8arr], { type: mime });
   }
-
   function downloadBlob(blob, filename) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -36,35 +33,27 @@ const Exporter = forwardRef(({}, ref) => {
     link.href = url;
     link.style.display = "none";
     document.body.appendChild(link);
-
     setTimeout(() => {
       link.click();
       document.body.removeChild(link);
       setTimeout(() => URL.revokeObjectURL(url), 100);
     }, 0);
   }
-
   const exportImage = () => {
     setExportState(false);
-
     setTimeout(() => {
       try {
         const mimeType = downloadSettings.isPng ? "image/png" : "image/jpeg";
         const extension = downloadSettings.isPng ? ".png" : ".jpg";
-
         const dataURL = ref.current.toDataURL({
           mimeType,
           pixelRatio: downloadSettings.size,
           quality: downloadSettings.quality,
         });
-
         if (!dataURL) throw new Error("Failed to generate image data");
-
         const blob = dataURLtoBlob(dataURL);
         const filename = device.name + extension;
-
         downloadBlob(blob, filename);
-
         toast.success("Download complete", {
           position: "bottom-right",
           autoClose: 2000,
@@ -80,13 +69,10 @@ const Exporter = forwardRef(({}, ref) => {
       }
     }, 0);
   };
-
   const [name, setName] = useState(device.name);
-
   useEffect(() => {
     setName(device.name);
   }, [device.name]);
-
   return (
     <div className="flex flex-col gap-y-3.5 p-3.5">
       <h2 className={`${isMobile ? "hidden" : ""}`}> Save Wallpaper</h2>
@@ -175,7 +161,6 @@ const Exporter = forwardRef(({}, ref) => {
   [&::-webkit-slider-thumb]:duration-150
   [&::-webkit-slider-thumb]:ease-in-out
   dark:[&::-webkit-slider-thumb]:bg-neutral-700
-
   [&::-moz-range-thumb]:w-2.5
   [&::-moz-range-thumb]:h-2.5
   [&::-moz-range-thumb]:appearance-none
@@ -186,13 +171,11 @@ const Exporter = forwardRef(({}, ref) => {
   [&::-moz-range-thumb]:transition-all
   [&::-moz-range-thumb]:duration-150
   [&::-moz-range-thumb]:ease-in-out
-
   [&::-webkit-slider-runnable-track]:w-full
   [&::-webkit-slider-runnable-track]:h-2
   [&::-webkit-slider-runnable-track]:bg-gray-100
   [&::-webkit-slider-runnable-track]:rounded-full
   dark:[&::-webkit-slider-runnable-track]:bg-neutral-700
-
   [&::-moz-range-track]:w-full
   [&::-moz-range-track]:h-2
   [&::-moz-range-track]:bg-gray-100
@@ -241,7 +224,6 @@ const Exporter = forwardRef(({}, ref) => {
   [&::-webkit-slider-thumb]:duration-150
   [&::-webkit-slider-thumb]:ease-in-out
   dark:[&::-webkit-slider-thumb]:bg-neutral-700
-
   [&::-moz-range-thumb]:w-2.5
   [&::-moz-range-thumb]:h-2.5
   [&::-moz-range-thumb]:appearance-none
@@ -252,13 +234,11 @@ const Exporter = forwardRef(({}, ref) => {
   [&::-moz-range-thumb]:transition-all
   [&::-moz-range-thumb]:duration-150
   [&::-moz-range-thumb]:ease-in-out
-
   [&::-webkit-slider-runnable-track]:w-full
   [&::-webkit-slider-runnable-track]:h-2
   [&::-webkit-slider-runnable-track]:bg-gray-100
   [&::-webkit-slider-runnable-track]:rounded-full
   dark:[&::-webkit-slider-runnable-track]:bg-neutral-700
-
   [&::-moz-range-track]:w-full
   [&::-moz-range-track]:h-2
   [&::-moz-range-track]:bg-gray-100
@@ -289,5 +269,4 @@ const Exporter = forwardRef(({}, ref) => {
     </div>
   );
 });
-
 export default Exporter;

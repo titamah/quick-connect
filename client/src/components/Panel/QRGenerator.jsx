@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-
 import { useDevice } from "../../contexts/DeviceContext";
 import CustomColorInput from "./CustomColorInput";
 import QRSizeInput from "./QRSizeInput";
@@ -8,13 +7,10 @@ import AngleInput from "./AngleInput";
 import Slider from "../Slider";
 import chroma from "chroma-js";
 import { useThrottledCallback } from "../../hooks/useDebounce";
-
 function QRGenerator(panelSize) {
   const { device, updateQRConfig, qrConfig, takeSnapshot, isMobile } = useDevice();
   const qrCodeRef = useRef(null);
-
   const [frozenPreset, setFrozenPreset] = useState(null);
-
   const handleColorPickerOpen = (currentColor) => {
     if (currentColor) {
       let normalizedColor = currentColor;
@@ -28,7 +24,6 @@ function QRGenerator(panelSize) {
       } else if (!currentColor.startsWith("#")) {
         normalizedColor = `#${currentColor}`;
       }
-
       const normalizedExclude = normalizedColor.toLowerCase();
       const paletteWithoutCurrent = device.palette.filter(
         (color) => color.toLowerCase() !== normalizedExclude
@@ -38,15 +33,12 @@ function QRGenerator(panelSize) {
       setFrozenPreset([...device.palette]);
     }
   };
-
   const handleColorPickerClose = () => {
     setFrozenPreset(null);
   };
-
   const getPaletteForColor = (currentColor) => {
     const paletteToUse = frozenPreset || device.palette;
     if (!currentColor) return paletteToUse;
-
     let normalizedColor = currentColor;
     if (currentColor.startsWith("rgb")) {
       const match = currentColor.match(/\d+/g);
@@ -58,13 +50,11 @@ function QRGenerator(panelSize) {
     } else if (!currentColor.startsWith("#")) {
       normalizedColor = `#${currentColor}`;
     }
-
     const normalizedExclude = normalizedColor.toLowerCase();
     return paletteToUse.filter(
       (color) => color.toLowerCase() !== normalizedExclude
     );
   };
-
   useEffect(() => {
     const svgElement = qrCodeRef.current?.querySelector("svg");
     if (svgElement && qrCodeRef.current) {
@@ -78,29 +68,22 @@ function QRGenerator(panelSize) {
       qrCodeRef.current.style.height = `${currWidth}px`;
     }
   }, [panelSize]);
-
   const currentQRCustomRef = useRef(qrConfig.custom);
   currentQRCustomRef.current = qrConfig.custom;
-
   function combineHexWithOpacity(color, opacity) {
     if (!color || opacity === undefined) {
       return "#000000";
     }
-
     const hex = color.slice(0, 7);
     let safeOpacity = Math.min(100, Math.max(0, opacity));
-
     if (safeOpacity === 100) {
       return hex;
     }
-
     const alpha = Math.round((safeOpacity / 100) * 255)
       .toString(16)
       .padStart(2, "0");
-
     return hex + alpha;
   }
-
   const throttledUpdateBorderSize = useThrottledCallback((size) => {
     updateQRConfig({
       custom: {
@@ -109,7 +92,6 @@ function QRGenerator(panelSize) {
       },
     });
   }, 16);
-
   const throttledUpdateCornerRadius = useThrottledCallback((radius) => {
     updateQRConfig({
       custom: {
@@ -118,13 +100,10 @@ function QRGenerator(panelSize) {
       },
     });
   }, 16);
-
   const [url, setUrl] = useState(qrConfig.url);
-
   useEffect(() => {
     setUrl(qrConfig.url);
   }, [qrConfig.url]);
-
   return (
     <div id={`qr-input-box`} className={`${isMobile ? "rounded-t-2xl" : ""}`}>
       <h2 className={`${isMobile ? "hidden" : ""} p-3.5`}>Customize QR Code</h2>
@@ -319,5 +298,4 @@ function QRGenerator(panelSize) {
     </div>
   );
 }
-
 export default QRGenerator;

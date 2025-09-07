@@ -9,26 +9,20 @@ import UndoRedoButton from "./UndoRedoButton";
 import ShareButton from "./ShareButton";
 import useWindowSize from "../../hooks/useWindowSize";
 import { useStageCalculations } from "../../hooks/useStageCalculations";
-
 function Canvas({ isOpen, panelSize, wallpaperRef }) {
   const { device, isMobile } = useDevice();
   const previewRef = useRef(null);
   const canvasRef = useRef(null);
   const backgroundLayerRef = useRef(null);
   const windowSize = useWindowSize();
-
   const [isLoading, setIsLoading] = useState(true);
   const [isZoomEnabled, setIsZoomEnabled] = useState(false);
-
   const memoizedSetIsZoomEnabled = useCallback(setIsZoomEnabled, []);
-
   const scale = useStageCalculations(device.size, panelSize, isOpen);
-  
   const previewSize = useMemo(() => ({
     x: device.size.x * scale,
     y: device.size.y * scale,
   }), [device.size.x, device.size.y, scale]);
-
   const updatePanelSize = useCallback(() => {
     if (!isMobile) {
       document.documentElement.style.setProperty("--panel-height", "0px");
@@ -44,7 +38,6 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
       );
     }
   }, [panelSize.width, panelSize.height]);
-
   const setupZoomBehavior = useCallback(() => {
     const canvasElement = select(canvasRef.current);
     const previewElement = select(previewRef.current);
@@ -56,13 +49,11 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
           `translate(${event.transform.x}px, ${event.transform.y}px) scale(${event.transform.k})`
         );
       });
-
     if (isZoomEnabled) {
       canvasElement.call(zoomBehavior);
     } else {
       canvasElement.on(".zoom", null);
     }
-
     canvasElement.on("dblclick.zoom", null);
     canvasElement.on("dblclick", () => {
       canvasElement
@@ -70,21 +61,17 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
         .duration(750)
         .call(zoomBehavior.transform, zoomIdentity);
     });
-
     return canvasElement;
   }, [isZoomEnabled]);
-
   const handleResize = useCallback(() => {
     updatePanelSize();
     const canvasElement = select(canvasRef.current);
     const zoomBehavior = zoom().scaleExtent([0.25, 15]);
-
     canvasElement
       .transition()
       .duration(350)
       .call(zoomBehavior.transform, zoomIdentity);
   }, [updatePanelSize]);
-
   const handleOutsideClick = useCallback(
     (event) => {
       try {
@@ -102,44 +89,30 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
     },
     [isZoomEnabled]
   );
-
   const getBackgroundImage = useCallback(async () => {
     if (!backgroundLayerRef?.current) {
       throw new Error("Background layer reference not available");
     }
-
     if (!wallpaperRef?.current) {
       throw new Error("Wallpaper stage reference not available");
     }
-
     try {
       const stage = wallpaperRef.current;
       const backgroundLayer = backgroundLayerRef.current;
-
       console.log("Using direct background layer reference:", backgroundLayer);
-
-      // Create a temporary stage with just the background
       const tempStage = new Konva.Stage({
         container: document.createElement('div'),
         width: stage.width(),
         height: stage.height(),
       });
-
-      // Clone the background layer
       const clonedLayer = backgroundLayer.clone();
       tempStage.add(clonedLayer);
-
-      // Generate the image
       const dataURL = tempStage.toDataURL({
         mimeType: 'image/png',
         quality: 0.8,
         pixelRatio: 1,
       });
-
-      // Clean up
       tempStage.destroy();
-
-      // Convert to Image object
       return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => resolve(img);
@@ -151,36 +124,28 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
       throw error;
     }
   }, [wallpaperRef, backgroundLayerRef]);
-
   useEffect(() => {
     updatePanelSize();
     setIsLoading(false);
   }, [updatePanelSize]);
-
   useEffect(() => {
     const canvasElement = setupZoomBehavior();
-
     window.addEventListener("resize", handleResize);
-
     updatePanelSize();
-
     return () => {
       window.removeEventListener("resize", handleResize);
       canvasElement.on(".zoom", null);
       canvasElement.on("dblclick", null);
     };
   }, [setupZoomBehavior, handleResize, updatePanelSize]);
-
   useEffect(() => {
     if (previewRef.current) {
       document.addEventListener("click", handleOutsideClick);
-
       return () => {
         document.removeEventListener("click", handleOutsideClick);
       };
     }
   }, [handleOutsideClick]);
-
   const canvasStyles = useMemo(
     () => ({
       width: isMobile ? "100%" : isOpen ? "calc(100% - var(--panel-width))" : "100%",
@@ -188,7 +153,6 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
     }),
     [isOpen, isMobile]
   );
-
   const previewStyles = useMemo(
     () => ({
       transition: "all duration-150 ease-linear",
@@ -197,7 +161,6 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
     }),
     [isZoomEnabled]
   );
-
   const figureStyles = useMemo(
     () => ({
       position: "relative",
@@ -211,7 +174,6 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
     }),
     [previewSize.x, previewSize.y]
   );
-
   return (
     <div
       className="w-screen h-[calc(100.5%-40px)] top-[39px] right-0 absolute
@@ -285,5 +247,4 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
     </div>
   );
 }
-
 export default Canvas;

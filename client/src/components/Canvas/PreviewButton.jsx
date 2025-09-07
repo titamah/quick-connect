@@ -2,11 +2,9 @@ import { forwardRef } from "react";
 import { Eye, EyeClosed } from "lucide-react";
 import { usePreview } from "../../contexts/PreviewContext";
 import { useDevice } from "../../contexts/DeviceContext";
-
 const PreviewButton = forwardRef(({}) => {
   const { isPreviewVisible, togglePreview, setHovered } = usePreview();
   const { isMobile } = useDevice();
-
   return (
     <div className={`w-fit place-items-end absolute right-5 ${isMobile ? "top-2.5" : "top-8.5"}  z-100`}>
       <button
@@ -23,5 +21,4 @@ const PreviewButton = forwardRef(({}) => {
     </div>
   );
 });
-
 export default PreviewButton;

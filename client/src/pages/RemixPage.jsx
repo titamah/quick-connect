@@ -8,17 +8,14 @@ import {
   Clock,
 } from "lucide-react";
 import { toast } from "react-toastify";
-
 const RemixPage = () => {
   const { remixId } = useParams();
   const navigate = useNavigate();
   const { loadTemplateData, takeSnapshot } = useDevice();
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [remixData, setRemixData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-
   useEffect(() => {
     const loadRemix = async () => {
       if (!remixId) {
@@ -26,18 +23,14 @@ const RemixPage = () => {
         setLoading(false);
         return;
       }
-
       try {
         setLoading(true);
         setError(null);
-
-
         const { default: remixService } = await import(
           "../services/remixService"
         );
         const data = await remixService.getRemix(remixId);
         setRemixData(data);
-
       } catch (err) {
         console.error("❌ Failed to load remix:", err);
         setError(err.message || "Failed to load remix");
@@ -45,13 +38,10 @@ const RemixPage = () => {
         setLoading(false);
       }
     };
-
     loadRemix();
   }, [remixId]);
-
   const convertRemixToTemplate = (remixData) => {
     const { device_state } = remixData;
-
     const templateData = {
       deviceInfo: {
         name: "Remixed QR Wallpaper",
@@ -116,26 +106,19 @@ const RemixPage = () => {
         crop: null,
       },
     };
-
     return templateData;
   };
-
   const handleStartRemixing = async () => {
     if (!remixData) return;
-  
     try {
       setIsLoading(true);
-  
       const templateData = convertRemixToTemplate(remixData);
-  
       if (templateData.background.style === 'image' && templateData.background.bg) {
         try {
-          
           const response = await fetch(templateData.background.bg);
           const blob = await response.blob();
           const filename = templateData.background.bg.split('/').pop() || 'remix-background.webp';
           const file = new File([blob], filename, { type: blob.type });
-  
           const reader = new FileReader();
           reader.onload = () => {
             templateData.uploadInfo = {
@@ -150,15 +133,12 @@ const RemixPage = () => {
                 unit: '%'
               }
             };
-  
             loadTemplateData(templateData);
             takeSnapshot("Loaded remix design");
-            
             console.log("✅ Background image loaded for editing");
             navigate("/studio");
           };
           reader.readAsDataURL(file);
-  
         } catch (imageError) {
           console.warn("⚠️ Failed to load background image for editing:", imageError);
           loadTemplateData(templateData);
@@ -170,12 +150,10 @@ const RemixPage = () => {
         takeSnapshot("Loaded remix design");
         navigate("/studio");
       }
-  
       toast.success("Remix loaded! Start customizing your design.", {
         position: "bottom-right",
         autoClose: 3000,
       });
-  
     } catch (err) {
       console.error("❌ Failed to start remixing:", err);
       toast.error("Failed to load remix. Please try again.", {
@@ -186,18 +164,15 @@ const RemixPage = () => {
       setIsLoading(false);
     }
   };
-
   const getDaysUntilExpiry = (expiresAt) => {
     const now = new Date();
     const expiry = new Date(expiresAt);
     const diffTime = expiry.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
     if (diffDays <= 0) return "Expired";
     if (diffDays === 1) return "Expires in 1 day";
     return `Expires in ${diffDays} days`;
   };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center">
@@ -208,7 +183,6 @@ const RemixPage = () => {
       </div>
     );
   }
-
   if (error) {
     return (
       <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center p-4">
@@ -224,7 +198,6 @@ const RemixPage = () => {
                 : error}
             </p>
           </div>
-
           <div className="space-y-3">
             <button
               onClick={() => navigate("/")}
@@ -243,7 +216,6 @@ const RemixPage = () => {
       </div>
     );
   }
-
   return (
     <div className="flex flex-col h-fit min-h-[calc(100dvh-40px)] md:min-h-[calc(100dvh-60px)] items-center justify-center relative p-10 bg-[var(--bg-secondary)]">
       <section className="  h-fit p-10 sm:p-20 flex flex-col items-center justify-center gap-8 sm:gap-10 relative self-stretch max-w-[850px] w-fit m-auto bg-[var(--bg-main)] rounded-[30px] sm:rounded-[45px] border-[0.5px] border-solid border-[var(--border-color)] ">
@@ -272,7 +244,6 @@ const RemixPage = () => {
             </div>
           </div>
         </div>
-
         <div className="flex flex-row items-center space-x-6 text-sm text-[var(--text-secondary)]">
         <div className="flex flex-row items-center gap-2"> <Clock size={16}/>{getDaysUntilExpiry(remixData.expires_at)}</div>
           <div className="flex flex-row items-center gap-2"> <Eye size={16} />{`${remixData.view_count || 0} views`}</div> 
@@ -291,5 +262,4 @@ const RemixPage = () => {
     </div>
   );
 };
-
 export default RemixPage;

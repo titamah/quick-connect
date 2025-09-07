@@ -18,83 +18,60 @@ import {
   getRemainingGenerations, 
   getGenerationCount 
 } from "../../utils/generationLimit";
-
 function ImageGenerator({
   setOriginalFile,
   generatedInfo,
   updateGeneratedInfo,
 }) {
   const { device, generationHistory, setGenerationHistory } = useDevice();
-
   const [prompt, setPrompt] = useState("");
   const [selectedVibe, setSelectedVibe] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
   useEffect(() => {
     const today = new Date().toDateString();
     const lastCleanup = localStorage.getItem('QRKI_HISTORY_CLEANUP');
-    
-    // If it's a new day, clean up old generation history
     if (lastCleanup !== today) {
       console.log('🧹 New day detected - cleaning up old generation history');
-      
-      // Clean up all old blob URLs from previous days
       generationHistory.forEach(img => {
         if (img.url && img.url.startsWith('blob:')) {
           try {
             URL.revokeObjectURL(img.url);
           } catch (e) {
-            // URL might already be revoked, ignore
           }
         }
       });
-      
-      // Clear the history for the new day
       setGenerationHistory([]);
-      
-      // Mark cleanup as done for today
       localStorage.setItem('QRKI_HISTORY_CLEANUP', today);
     }
-  }, []); // Only run on component mount
-  
-  // Then keep your history management simple:
+  }, []); 
   const addToHistory = (newImage) => {
     setGenerationHistory((prev) => [...prev.slice(-4), newImage]);
   };
-
   const abortControllerRef = useRef(null);
-
-  // Get current generation count from localStorage
   const generationCount = getGenerationCount();
-
-  // Navigation functions
   const navigateToPrevious = () => {
     if (currentImageIndex > 0) {
       const newIndex = currentImageIndex - 1;
       const image = generationHistory[newIndex];
       setCurrentImageIndex(newIndex);
       setCurrentImage(image);
-      // Restore prompt and vibe for better UX
       setPrompt(image.prompt || "");
       setSelectedVibe(image.vibe || "");
     }
   };
-
   const navigateToNext = () => {
     if (currentImageIndex < generationHistory.length - 1) {
       const newIndex = currentImageIndex + 1;
       const image = generationHistory[newIndex];
       setCurrentImageIndex(newIndex);
       setCurrentImage(image);
-      // Restore prompt and vibe for better UX
       setPrompt(image.prompt || "");
       setSelectedVibe(image.vibe || "");
     }
   };
-
   const vibes = [
     { id: "professional", name: "Professional" },
     { id: "creative", name: "Creative" },
@@ -102,11 +79,8 @@ function ImageGenerator({
     { id: "minimalist", name: "Minimalist" },
     { id: "nature", name: "Nature" },
   ];
-
   const buildPrompt = (userPrompt, vibe) => {
     let basePrompt = userPrompt || "abstract background";
-
-    // Add vibe-specific modifiers
     const vibeModifiers = {
       professional: "professional, clean, corporate, minimal, elegant",
       creative: "creative, artistic, dynamic, colorful, expressive",
@@ -114,42 +88,29 @@ function ImageGenerator({
       nature: "natural, organic, nature-inspired, earthy, serene",
       abstract: "abstract, geometric, flowing, modern, artistic",
     };
-
     if (vibe && vibeModifiers[vibe]) {
       basePrompt += `, ${vibeModifiers[vibe]}`;
     }
-
-    // Add wallpaper-specific terms
     basePrompt +=
       ", wallpaper background, high quality, smooth gradients, mobile wallpaper, vertical orientation";
-
     return basePrompt;
   };
-
   const generateImage = async () => {
     if (!API_CONFIG.FAL_API_KEY) {
       setError("AI generation not configured. Add your Fal API key.");
       return;
     }
-
-    // Check generation limit
     if (!canGenerate()) {
       setError(
         "You've reached your daily limit of 5 generations. Try again tomorrow!"
       );
       return;
     }
-
     setIsGenerating(true);
     setError(null);
-
-    // Create abort controller for cancellation
     abortControllerRef.current = new AbortController();
-
     try {
       const finalPrompt = buildPrompt(prompt, selectedVibe);
-
-      // Fal uses different API structure
       const response = await fetch(
         `${API_CONFIG.FAL_BASE_URL}/${API_CONFIG.FAL_MODEL}`,
         {
@@ -163,31 +124,20 @@ function ImageGenerator({
             negative_prompt:
               "text, letters, words, logos, watermarks, people, faces, low quality, blurry, horizontal, blank, empty",
             image_size: { width: device.size.x, height: device.size.y },
-            // num_inference_steps: 25,
-            // guidance_scale: 7.5,
-            // num_images: 1,
-            // enable_safety_checker: false,
             seed: Math.floor(Math.random() * 1000000),
           }),
           signal: abortControllerRef.current.signal,
         }
       );
-
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.detail || "Generation failed");
       }
-
       const data = await response.json();
-
-      // Fal returns direct image URLs
       const imageUrl = data.images[0].url;
-
-      // Fetch the actual image to create a blob
       const imageResponse = await fetch(imageUrl);
       const blob = await imageResponse.blob();
       const localImageUrl = URL.createObjectURL(blob);
-
       const newImage = {
         id: Date.now(),
         url: localImageUrl,
@@ -196,14 +146,10 @@ function ImageGenerator({
         vibe: selectedVibe,
         timestamp: Date.now(),
       };
-
       setCurrentImage(newImage);
-
-      // Add to history and record generation
       addToHistory( newImage );
-      setCurrentImageIndex(generationHistory.length); // New image is at the end
-      recordGeneration(); // Record in localStorage
-
+      setCurrentImageIndex(generationHistory.length); 
+      recordGeneration(); 
     } catch (err) {
       if (err.name === "AbortError") {
         console.log("Generation cancelled");
@@ -216,43 +162,37 @@ function ImageGenerator({
       abortControllerRef.current = null;
     }
   };
-
   const cancelGeneration = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
   };
-
   const useImage = (image) => {
-    // Convert blob to File for your existing workflow
     const file = new File([image.blob], `ai-generated-${image.id}.png`, {
       type: "image/png",
     });
     setOriginalFile(file);
   };
-
   const selectFromHistory = (image) => {
     setCurrentImage(image);
     setShowHistory(false);
   };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!isGenerating) {
       generateImage();
     }
   };
-
   return (
     <>
       <div className="pointer-events-auto relative p-1 h-full w-full mb-[1.5px] rounded-sm border border-[5px] bg-[var(--bg-main)] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)] flex flex-col gap-1.5 relative">
-        {/* Loading State */}
+        {}
         {isGenerating && (
           <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center py-8 text-center z-10">
             <Loader2 className="animate-spin mb-2" size={48} />
           </div>
         )}
-        {/* Generation Counter */}
+        {}
                  {!currentImage && (
            <div className="absolute bottom-0 right-0 w-full h-fit text-end">
              {getRemainingGenerations() > 0 ? (
@@ -266,11 +206,10 @@ function ImageGenerator({
              )}
            </div>
          )}
-
         {!currentImage && (
           <>
             <h3 className="px-0.5 ">Prompt</h3>
-            {/* Search Input */}
+            {}
             <form onSubmit={handleSubmit} className="">
               <textarea
                 value={prompt}
@@ -289,11 +228,10 @@ function ImageGenerator({
             </form>
           </>
         )}
-
         {!currentImage && (
           <>
             <h3>Styles</h3>
-            {/* Vibe Buttons */}
+            {}
             <div className="flex flex-wrap gap-1 mb-2">
               {vibes.map((vibe) => (
                 <button
@@ -314,8 +252,7 @@ function ImageGenerator({
             </div>
           </>
         )}
-
-        {/* Generated Image */}
+        {}
         {currentImage && (
           <div className="space-y-2 h-full">
             <div className="relative group h-[190px]">
@@ -323,10 +260,8 @@ function ImageGenerator({
                 src={currentImage.url}
                 alt="Generated background"
                 className="w-full h-full object-contain rounded-md"
-                // onClick={() => useImage(currentImage)}
               />
-
-                             {/* Navigation Arrows */}
+                             {}
                {generationHistory.length > 1 && (
                 <>
                   <button
@@ -351,8 +286,7 @@ function ImageGenerator({
                   </button>
                 </>
               )}
-
-              {/* Generation Counter */}
+              {}
                              <div className="absolute top-0 left-0 bg-[var(--contrast-sheer)] text-white text-xs p-2 py-1 rounded-full opacity-80">
                  {currentImageIndex + 1} / {generationHistory.length}
                </div>
@@ -360,8 +294,7 @@ function ImageGenerator({
           </div>
         )}
       </div>
-
-      {/* Generate/Cancel Button */}
+      {}
       {!currentImage && (
         <span className="flex gap-2 items-center mt-5 ">
           <button
@@ -390,7 +323,6 @@ function ImageGenerator({
                 const latestImage = generationHistory[generationHistory.length - 1];
                 setCurrentImage(latestImage);
                 setCurrentImageIndex(generationHistory.length - 1);
-                // Restore prompt and vibe for better UX
                 setPrompt(latestImage.prompt || "");
                 setSelectedVibe(latestImage.vibe || "");
               }}
@@ -402,7 +334,7 @@ function ImageGenerator({
           )}
         </span>
       )}
-      {/* Use This Image Button */}
+      {}
       {currentImage && (
         <span className="flex gap-2 items-center mt-5 ">
           <button
@@ -425,7 +357,6 @@ function ImageGenerator({
               </>
             )}
           </button>
-
           <button
             onClick={() => generateImage()}
                          disabled={!canGenerate()}
@@ -434,7 +365,6 @@ function ImageGenerator({
           >
             <RotateCcw size={16} />
           </button>
-
           <button
             onClick={() => setCurrentImage(null)}
             className="bg-neutral-500 h-fit hover:opacity-80 text-white text-sm p-1.5 rounded-md transition-all cursor-pointer"
@@ -444,7 +374,7 @@ function ImageGenerator({
           </button>
         </span>
       )}
-      {/* Error State */}
+      {}
       {error && (
         <div className="relative p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
           <p className="text-xs text-red-600 dark:text-red-400 pr-6">{error}</p>
@@ -459,5 +389,4 @@ function ImageGenerator({
     </>
   );
 }
-
 export default ImageGenerator;

@@ -1,16 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
 import { useDevice } from "../../contexts/DeviceContext";
 import { useState } from "react";
-
 function Header() {
   const location = useLocation();
   const { isMobile } = useDevice();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
-
   return (
     <header className="sticky top-0 z-5000 flex w-full h-15 max-md:h-10">
       <nav
@@ -29,7 +26,6 @@ function Header() {
               }`}>QRKI</h1>
           </Link>
         </div>
-
         {!isMobile ? (
           <div className="flex items-center px-2 space-x-6">
             <Link
@@ -43,7 +39,7 @@ function Header() {
           </div>
         ) : (
           <div className="relative">
-            {/* Hamburger Button */}
+            {}
             <button
               onClick={toggleMenu}
               className="py-2 text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
@@ -56,7 +52,6 @@ function Header() {
                 viewBox="0 0 24 24"
               >
                 {isMenuOpen ? (
-                  // X icon when menu is open
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -64,7 +59,6 @@ function Header() {
                     d="M6 18L18 6M6 6l12 12"
                   />
                 ) : (
-                  // Hamburger icon when menu is closed
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -74,8 +68,7 @@ function Header() {
                 )}
               </svg>
             </button>
-
-            {/* Mobile Menu Dropdown */}
+            {}
             {isMenuOpen && (
               <div className="absolute top-full right-0 mt-1 w-48 bg-[var(--bg-main)] border border-[var(--border-color)] rounded-lg shadow-lg z-50">
                 <div className="py-2">
@@ -99,5 +92,4 @@ function Header() {
     </header>
   );
 }
-
 export default Header;

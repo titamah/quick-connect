@@ -2,7 +2,6 @@ import ColorPicker from "antd/es/color-picker/ColorPicker.js";
 import { useState, useRef, useEffect } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import chroma from "chroma-js";
-
 export default function CustomColorInput({
   value,
   hasOpacity,
@@ -15,36 +14,28 @@ export default function CustomColorInput({
   const { takeSnapshot, isMobile } = useDevice();
   const hexInputRef = useRef(null);
   const alphaInputRef = useRef(null);
-
   const [localHex, setLocalHex] = useState(value.slice(0, 7).toUpperCase());
   const [localAlpha, setLocalAlpha] = useState(
     Math.round(chroma(value).alpha() * 100)
   );
-
   useEffect(() => {
     setLocalHex(value.slice(0, 7).toUpperCase());
     setLocalAlpha(Math.round(chroma(value).alpha() * 100));
   }, [value]);
-
   const [needsSnapshot, setNeedsSnapshot] = useState(false);
   const timeoutRef = useRef(null);
-
   const handleColorChange = (color) => {
     setLocalHex(color.toHexString().slice(0, 7).toUpperCase());
-
     if (needsSnapshot) {
       takeSnapshot();
       setNeedsSnapshot(false);
     }
-
     onChange(color);
-
     clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       setNeedsSnapshot(true);
     }, 500);
   };
-
   const handleOpenChange = (open) => {
     if (open) {
       setNeedsSnapshot(true);
@@ -55,7 +46,6 @@ export default function CustomColorInput({
       onColorPickerClose?.();
     }
   };
-
   const handleHexBlur = () => {
     console.log("BLURRRRRRR");
     let hex = localHex.slice(0, 7).toUpperCase();
@@ -67,25 +57,20 @@ export default function CustomColorInput({
       submitColor(hex, localAlpha);
     }
   };
-
   const handleHexEnter = (e) => {
     if (e.key === "Enter") {
       handleHexBlur();
     }
   };
-
   const handleAlphaBlur = () => {
     submitColor(localHex, localAlpha);
   };
-
   const isPressing = useRef(false);
-
   const handleAlphaKeyDown = (e) => {
     console.log("🔍 BEFORE keydown:", {
       key: e.key,
       isPressing: isPressing.current,
     });
-
     if (e.key === "Enter") {
       e.preventDefault();
       alphaInputRef.current.blur();
@@ -103,13 +88,11 @@ export default function CustomColorInput({
       );
     }
   };
-
   const handleAlphaKeyUp = () => {
     console.log("🔍 BEFORE keyup, isPressing:", isPressing.current);
     isPressing.current = false;
     console.log("🔍 AFTER keyup, isPressing:", isPressing.current);
   };
-
   return (
     <div className="flex items-center border bg-black/5 dark:bg-black/15 px-1 text-[var(--text-secondary)] min-w-0 w-full h-[24px] rounded border-[var(--border-color)]/75">
       <ColorPicker
@@ -141,7 +124,6 @@ export default function CustomColorInput({
       {hasOpacity && (
         <>
           <div className="w-px h-5 bg-[var(--border-color)]" />
-
           <div className="flex items-center px-2 font-light text-xs">
             <input
               ref={alphaInputRef}

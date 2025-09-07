@@ -4,27 +4,21 @@ import "./styles.css";
 import { Grip } from "lucide-react";
 import chroma from "chroma-js";
 import { useDevice } from "../../contexts/DeviceContext";
-
 const ColorSelector = ({ panelSize }) => {
   const { device, background, updateBackground, takeSnapshot, isMobile } =
     useDevice();
   const pickerRef = useRef(null);
   const inputRef = useRef(null);
-
   const [inputText, setInputText] = useState(background.color);
-
   const [needsSnapshot, setNeedsSnapshot] = useState(false);
   const timeoutRef = useRef(null);
-
   useEffect(() => {
     setInputText(background.color.toUpperCase());
     console.log(device.palette);
   }, [background.color]);
-
   useEffect(() => {
     const pickerElement = pickerRef.current;
     if (!pickerElement) return;
-
     const colorPicker = pickerElement.querySelector(
       ".react-colorful__saturation"
     );
@@ -40,33 +34,26 @@ const ColorSelector = ({ panelSize }) => {
       ];
       colorPicker.classList.add(...classesToAdd);
     }
-
     const handleMouseDown = () => {
       setNeedsSnapshot(true);
     };
-
     const handleMouseUp = () => {
       setNeedsSnapshot(false);
       clearTimeout(timeoutRef.current);
     };
-
     const handleMouseLeave = () => {
       setNeedsSnapshot(false);
       clearTimeout(timeoutRef.current);
     };
-
     pickerElement.addEventListener("mousedown", handleMouseDown);
     pickerElement.addEventListener("mouseup", handleMouseUp);
     pickerElement.addEventListener("mouseleave", handleMouseLeave);
-
-    // Add touch event listeners for mobile support
     pickerElement.addEventListener("touchstart", handleTouchStart, {
       passive: true,
     });
     pickerElement.addEventListener("touchend", handleTouchEnd, {
       passive: true,
     });
-
     return () => {
       pickerElement.removeEventListener("mousedown", handleMouseDown);
       pickerElement.removeEventListener("mouseup", handleMouseUp);
@@ -76,12 +63,10 @@ const ColorSelector = ({ panelSize }) => {
       clearTimeout(timeoutRef.current);
     };
   }, []);
-
   const colorBoxes = useMemo(() => {
     const activeColors = device.palette.filter(
       (color) => chroma.valid(color) && color !== background.color
     );
-
     if (activeColors.length === 0) {
       return null;
     } else if (isMobile) {
@@ -120,19 +105,15 @@ const ColorSelector = ({ panelSize }) => {
       ));
     }
   }, [device.palette, background.color, panelSize?.width]);
-
   const handleColorChange = useCallback(
     (newColor) => {
       if (!chroma.valid(newColor)) return;
-
       if (needsSnapshot) {
         takeSnapshot("Change solid color");
         setNeedsSnapshot(false);
       }
-
       setInputText(newColor.toUpperCase());
       updateBackground({ color: newColor });
-
       clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => {
         setNeedsSnapshot(true);
@@ -140,31 +121,24 @@ const ColorSelector = ({ panelSize }) => {
     },
     [needsSnapshot, takeSnapshot]
   );
-
   const handleInputChange = useCallback((e) => {
     let newValue = e.target.value.toUpperCase();
-
     if (newValue && !newValue?.startsWith("#")) {
       newValue = "#" + newValue;
     }
-
     newValue = newValue.replace(/[^#0-9A-F]/gi, "");
     setInputText(newValue);
   }, []);
-
   const handleInputBlur = useCallback(() => {
     takeSnapshot("Change color");
-
     const input = inputText.slice(0, 7);
     const newColor =
       chroma.valid(input) && inputText.length == 7
         ? inputText.toUpperCase()
         : "#FFFFFF";
-
     setInputText(newColor);
     updateBackground({ color: newColor });
   }, [inputText, background.color]);
-
   const handleInputKeyDown = useCallback(
     (e) => {
       if (e.key === "Enter") {
@@ -173,24 +147,19 @@ const ColorSelector = ({ panelSize }) => {
     },
     [inputText, background.color]
   );
-
   const toggleGrain = useCallback(() => {
     takeSnapshot("Toggle grain");
     updateBackground({ grain: !background.grain });
   }, [background.grain, updateBackground]);
-
-  // Touch event handlers for mobile support
   const handleTouchStart = () => {
     console.log("📱 Touch start detected on color picker");
     setNeedsSnapshot(true);
   };
-
   const handleTouchEnd = () => {
     console.log("📱 Touch end detected on color picker");
     setNeedsSnapshot(false);
     clearTimeout(timeoutRef.current);
   };
-
   return (
     <div
       id="ColorSelectPanel"
@@ -234,5 +203,4 @@ const ColorSelector = ({ panelSize }) => {
     </div>
   );
 };
-
 export default ColorSelector;

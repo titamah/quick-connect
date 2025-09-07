@@ -3,22 +3,18 @@ import { useDevice } from "../../contexts/DeviceContext";
 import ImageInput from "./ImageInput";
 import ColorSelector from "./ColorSelector";
 import GradientSelector from "./GradientSelector";
-
 const BACKGROUND_TYPES = [
   { id: 1, label: "Solid", style: "solid", component: ColorSelector },
   { id: 2, label: "Gradient", style: "gradient", component: GradientSelector },
   { id: 3, label: "Image", style: "image", component: ImageInput },
 ];
-
 function CustomBackgroundSelector({ panelSize }) {
   const { background, updateBackground, takeSnapshot, isMobile } = useDevice();
-
   const activeTab = useMemo(() => {
     return (
       BACKGROUND_TYPES.find((type) => type.style === background.style)?.id || 1
     );
   }, [background.style]);
-
   const handleTabChange = (tabId, style) => {
     takeSnapshot(
       `Switch to ${
@@ -27,7 +23,6 @@ function CustomBackgroundSelector({ panelSize }) {
     );
     updateBackground({ style });
   };
-
   const renderTabButton = ({ id, label, style }) => (
     <button
       key={id}
@@ -54,11 +49,9 @@ function CustomBackgroundSelector({ panelSize }) {
       </h5>
     </button>
   );
-
   const ActiveComponent = BACKGROUND_TYPES.find(
     (type) => type.id === activeTab
   )?.component;
-
   return (
     <div
       role="tabpanel"
@@ -81,5 +74,4 @@ function CustomBackgroundSelector({ panelSize }) {
     </div>
   );
 }
-
 export default CustomBackgroundSelector;

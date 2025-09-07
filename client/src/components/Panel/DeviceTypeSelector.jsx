@@ -2,16 +2,13 @@ import { useState, useMemo } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import { Plus } from "lucide-react";
 import "./styles.css";
-
 function DeviceTypeSelector() {
   const { device, updateDeviceInfo, takeSnapshot, isMobile } = useDevice();
   const [showCustomSizeInput, setShowCustomSizeInput] = useState(false);
   const [customWidth, setCustomWidth] = useState("");
   const [customHeight, setCustomHeight] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-
   const devicesSizes = [
-    // === IPHONE (Current Gen) ===
     {
       name: "iPhone 16 Pro Max",
       size: { x: 1320, y: 2868 },
@@ -28,8 +25,6 @@ function DeviceTypeSelector() {
       size: { x: 1179, y: 2556 },
       category: "iPhone",
     },
-
-    // === IPHONE (Previous Gen - Still Relevant) ===
     {
       name: "iPhone 15 Pro Max",
       size: { x: 1290, y: 2796 },
@@ -51,8 +46,6 @@ function DeviceTypeSelector() {
       size: { x: 1080, y: 2340 },
       category: "iPhone",
     },
-
-    // === SAMSUNG GALAXY S ===
     {
       name: "Samsung Galaxy S25 Ultra",
       size: { x: 1440, y: 3120 },
@@ -78,8 +71,6 @@ function DeviceTypeSelector() {
       size: { x: 1080, y: 2340 },
       category: "Samsung",
     },
-
-    // === SAMSUNG FOLDABLES ===
     {
       name: "Samsung Galaxy Z Fold 6 / 5 (Inner)",
       size: { x: 1856, y: 2160 },
@@ -95,8 +86,6 @@ function DeviceTypeSelector() {
       size: { x: 1080, y: 2640 },
       category: "Samsung",
     },
-
-    // === GOOGLE PIXEL ===
     {
       name: "Google Pixel 9 Pro XL / 8 Pro / 7 Pro",
       size: { x: 1344, y: 2992 },
@@ -132,8 +121,6 @@ function DeviceTypeSelector() {
       size: { x: 1080, y: 2092 },
       category: "Google Pixel",
     },
-
-    // === ANDROID PHONES ===
     {
       name: "OnePlus 13 / 12",
       size: { x: 1440, y: 3216 },
@@ -169,8 +156,6 @@ function DeviceTypeSelector() {
       size: { x: 1080, y: 2400 },
       category: "Android",
     },
-
-    // === IPADS ===
     { name: 'iPad Pro 13" (M4)', size: { x: 2064, y: 2752 }, category: "iPad" },
     { name: 'iPad Pro 12.9"', size: { x: 2048, y: 2732 }, category: "iPad" },
     { name: 'iPad Air 13"', size: { x: 2048, y: 2732 }, category: "iPad" },
@@ -180,8 +165,6 @@ function DeviceTypeSelector() {
     { name: 'iPad 10.9"', size: { x: 1640, y: 2360 }, category: "iPad" },
     { name: 'iPad 10.2"', size: { x: 1620, y: 2160 }, category: "iPad" },
     { name: 'iPad Mini 8.3"', size: { x: 1488, y: 2266 }, category: "iPad" },
-
-    // === ANDROID TABLETS ===
     {
       name: "Samsung Galaxy Tab S10 Ultra / S9 Ultra",
       size: { x: 1848, y: 2960 },
@@ -203,8 +186,6 @@ function DeviceTypeSelector() {
       category: "Tablet",
     },
     { name: "OnePlus Pad", size: { x: 1600, y: 2560 }, category: "Tablet" },
-
-    // === DESKTOP MONITORS ===
     { name: "Desktop 4K", size: { x: 3840, y: 2160 }, category: "Desktop" },
     { name: "Desktop QHD", size: { x: 2560, y: 1440 }, category: "Desktop" },
     {
@@ -213,8 +194,6 @@ function DeviceTypeSelector() {
       category: "Desktop",
     },
     { name: "Desktop HD", size: { x: 1366, y: 768 }, category: "Desktop" },
-
-    // === LAPTOPS ===
     { name: 'MacBook Pro 16"', size: { x: 3456, y: 2234 }, category: "Laptop" },
     { name: 'MacBook Pro 14"', size: { x: 3024, y: 1964 }, category: "Laptop" },
     { name: 'MacBook Air 15"', size: { x: 2880, y: 1864 }, category: "Laptop" },
@@ -235,7 +214,6 @@ function DeviceTypeSelector() {
       category: "Laptop",
     },
   ];
-
   const updateDevice = (deviceInfo) => {
     updateDeviceInfo({
       type: deviceInfo.name,
@@ -244,11 +222,9 @@ function DeviceTypeSelector() {
     setShowCustomSizeInput(false);
     setTimeout(() => takeSnapshot("Device changed"), 0);
   };
-
   const handleCustomSizeSubmit = () => {
     const width = parseInt(customWidth);
     const height = parseInt(customHeight);
-
     if (width > 0 && height > 0) {
       const customDevice = {
         name: `Custom Dimensions`,
@@ -259,23 +235,19 @@ function DeviceTypeSelector() {
       setCustomHeight("");
     }
   };
-
   const handleCustomSizeCancel = () => {
     setShowCustomSizeInput(false);
     setCustomWidth("");
     setCustomHeight("");
   };
-
   const filteredDevices = useMemo(() => {
     if (!searchQuery.trim()) return devicesSizes;
-
     return devicesSizes.filter(
       (device) =>
         device.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         device.category.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [searchQuery]);
-
   const devicesByCategory = useMemo(() => {
     return filteredDevices.reduce((acc, device) => {
       if (!acc[device.category]) {
@@ -285,7 +257,6 @@ function DeviceTypeSelector() {
       return acc;
     }, {});
   }, [filteredDevices]);
-
   const categoryOrder = [
     "iPhone",
     "Samsung",
@@ -296,7 +267,6 @@ function DeviceTypeSelector() {
     "Desktop",
     "Laptop",
   ];
-
   return (
     <div
       className={`h-full flex flex-col overflow-hidden ${
@@ -318,7 +288,6 @@ function DeviceTypeSelector() {
           </span>
         </div>
       </div>
-
       <div
         className={` flex-shrink-0 flex justify-between items-center ${
           isMobile ? "py-0.5 px-3 mb-1 hidden" : "px-3.5"
@@ -333,7 +302,6 @@ function DeviceTypeSelector() {
           />
         )}
       </div>
-
       <div
         className={`flex-shrink-0 flex w-full justify-between gap-x-3 ${isMobile ? "pb-2.5 px-2" : "pb-2 px-2"}`}
       >
@@ -382,7 +350,6 @@ function DeviceTypeSelector() {
             />
           )}
       </div>
-
       {showCustomSizeInput && (
         <div
           className={`flex-shrink-0 border border-[var(--border-color)]/50 rounded-lg  bg-black/5 dark:bg-black/15 ${
@@ -435,13 +402,11 @@ function DeviceTypeSelector() {
           </div>
         </div>
       )}
-
       <div className="flex-1 overflow-y-scroll min-h-0">
         <div className="space-y-4 h-full">
           {categoryOrder.map((category) => {
             const devices = devicesByCategory[category];
             if (!devices || devices.length === 0) return null;
-
             return (
               <div key={category}>
                 <h3 className="border-b border-[var(--border-color)]/50 pb-1 px-3.5">
@@ -481,5 +446,4 @@ function DeviceTypeSelector() {
     </div>
   );
 }
-
 export default DeviceTypeSelector;

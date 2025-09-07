@@ -1,14 +1,11 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-
 function Dropdown({ options = [], value, onChange }) {
   const [open, setOpen] = useState(false);
-
   const handleSelect = (option) => {
     onChange(option);
     setOpen(false);
   };
-
   return (
     <div className="relative inline-block text-left w-[85px]">
       <button
@@ -19,7 +16,6 @@ function Dropdown({ options = [], value, onChange }) {
         <span>{value.charAt(0).toUpperCase() + value.slice(1)}</span>
         <ChevronDown size={16} />
       </button>
-
       {open && (
         <div className="absolute z-10 mt-1 w-full bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 rounded-sm shadow-lg">
           {options.map((option) => (
@@ -36,5 +32,4 @@ function Dropdown({ options = [], value, onChange }) {
     </div>
   );
 }
-
 export default Dropdown;

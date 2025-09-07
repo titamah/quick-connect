@@ -5,29 +5,20 @@ import Dropdown from "./Dropdown";
 import PositionInput from "./PositionInput";
 import AngleInput from "./AngleInput";
 import chroma from "chroma-js";
-
 import { BetweenVerticalEnd, ArrowLeftRight, Grip } from "lucide-react";
 import "./styles.css";
-
 function GradientSelector() {
   const { device, updateBackground, takeSnapshot } = useDevice();
   const gradientBar = useRef(null);
-
   const [frozenPreset, setFrozenPreset] = useState(null);
-
-  // Separate processed stops for sorting display/CSS without affecting dragging
   const [processedStops, setProcessedStops] = useState([]);
-
   const updateGrain = useCallback(
     (grain) => {
       updateBackground({ grain });
     },
     [updateBackground]
   );
-
   const [gradientCSS, setGradientCSS] = useState(null);
-
-  // Update processed stops whenever gradient stops change
   useEffect(() => {
     const updatedStops = [];
     for (let i = 0; i < device.gradient.stops.length; i += 2) {
@@ -36,11 +27,9 @@ function GradientSelector() {
         color: device.gradient.stops[i + 1],
       });
     }
-    // Sort for display/CSS purposes only
     updatedStops.sort((a, b) => a.percent - b.percent);
     setProcessedStops(updatedStops);
   }, [device.gradient.stops]);
-
   const updateCSS = () => {
     let css = "";
     if (device.gradient.type === "radial") {
@@ -50,38 +39,30 @@ function GradientSelector() {
     } else {
       css = `linear-gradient(${device.gradient.angle}deg,`;
     }
-
-    // Use processedStops for CSS generation (sorted)
     const stopsCSS = processedStops.map(({ percent, color }) => `${color} ${percent}%`);
     css += stopsCSS.join(", ") + ")";
     setGradientCSS(css);
   };
-
   useEffect(() => {
     updateCSS();
   }, [processedStops, device.gradient.type, device.gradient.angle, device.gradient.pos]);
-
   const handleClick = (e) => {
     const rect = gradientBar.current.getBoundingClientRect();
     const clickX = (e.clientX || e.touches?.[0]?.clientX || 0) - rect.left;
     const percent = clickX / rect.width;
     let currentStops = [...device.gradient.stops];
-
     if (currentStops.length < 2) {
       const newStop = [parseFloat(percent.toFixed(2)), chroma.random().css()];
       currentStops.push(...newStop);
     } else {
       const newStop = [parseFloat(percent.toFixed(2)), "???"];
       currentStops.push(...newStop);
-
       const sortedStops = [];
       for (let i = 0; i < currentStops.length; i += 2) {
         sortedStops.push([currentStops[i], currentStops[i + 1]]);
       }
       sortedStops.sort((a, b) => a[0] - b[0]);
-
       const addedStopIndex = sortedStops.findIndex((stop) => stop[1] === "???");
-
       if (addedStopIndex > 0 && addedStopIndex < sortedStops.length - 1) {
         const preStop = sortedStops[addedStopIndex - 1];
         const postStop = sortedStops[addedStopIndex + 1];
@@ -98,10 +79,8 @@ function GradientSelector() {
         sortedStops[addedStopIndex][1] =
           sortedStops[sortedStops.length - 2]?.[1] || chroma.random().css();
       }
-
       currentStops = sortedStops.flat();
     }
-
     updateBackground({
       gradient: {
         ...device.gradient,
@@ -109,7 +88,6 @@ function GradientSelector() {
       },
     });
   };
-
   const handleColorPickerOpen = (stopIndex) => {
     const currentStopColor = device.gradient.stops[stopIndex * 2 + 1];
     if (currentStopColor) {
@@ -119,10 +97,8 @@ function GradientSelector() {
             ?.map((num) => parseInt(num).toString(16).padStart(2, "0"))
             .join("")
         : currentStopColor.replace("#", "");
-
       const fullHexColor = hexColor ? `#${hexColor}` : currentStopColor;
       const normalizedExclude = fullHexColor.toLowerCase();
-
       const paletteWithoutCurrent = device.palette.filter(
         (color) => color.toLowerCase() !== normalizedExclude
       );
@@ -131,35 +107,28 @@ function GradientSelector() {
       setFrozenPreset([...device.palette]);
     }
   };
-
   const handleColorPickerClose = () => {
     setFrozenPreset(null);
   };
-
   const getPresetForGradientStop = (stopIndex) => {
     const currentStopColor = device.gradient.stops[stopIndex * 2 + 1];
     if (!currentStopColor) return frozenPreset || device.palette;
-
     const hexColor = currentStopColor.startsWith("rgb")
       ? currentStopColor
           .match(/\d+/g)
           ?.map((num) => parseInt(num).toString(16).padStart(2, "0"))
           .join("")
       : currentStopColor.replace("#", "");
-
     const fullHexColor = hexColor ? `#${hexColor}` : currentStopColor;
     const normalizedExclude = fullHexColor.toLowerCase();
-
     const paletteToUse = frozenPreset || device.palette;
     return paletteToUse.filter(
       (color) => color.toLowerCase() !== normalizedExclude
     );
   };
-
   const handleMenuClick = (e) => {
     takeSnapshot("Toggle gradient type");
     const newType = device.gradient.type === "linear" ? "radial" : "linear";
-
     updateBackground({
       gradient: {
         ...device.gradient,
@@ -167,10 +136,8 @@ function GradientSelector() {
       },
     });
   };
-
   const menuOptions =
     device.gradient.type === "linear" ? ["Radial"] : ["Linear"];
-
   return (
     <div className="dark:text-white w-full">
       <div className="flex flex-row items-center justify-between w-full mb-2">
@@ -197,13 +164,11 @@ function GradientSelector() {
               const stopsCount = device.gradient.stops.length / 2;
               const stopsInterval = 1 / (stopsCount - 1);
               let val = -stopsInterval;
-
               const newStops = [];
               for (let i = 0; i < device.gradient.stops.length; i += 2) {
                 val += stopsInterval;
                 newStops.push(val, device.gradient.stops[i + 1]);
               }
-
               updateBackground({
                 gradient: {
                   ...device.gradient,
@@ -217,24 +182,17 @@ function GradientSelector() {
             size={20}
             onClick={() => {
               takeSnapshot("Reverse gradient");
-
-              // Convert 1D array to pairs for easier manipulation
               const pairs = [];
               for (let i = 0; i < device.gradient.stops.length; i += 2) {
                 const percent = device.gradient.stops[i];
                 const color = device.gradient.stops[i + 1];
                 pairs.push([percent, color]);
               }
-
-              // Reverse the order of pairs and flip the percentages
               const reversedPairs = pairs.reverse().map(([percent, color]) => [1 - percent, color]);
-
-              // Convert back to 1D array
               const newStops = [];
               reversedPairs.forEach(([percent, color]) => {
                 newStops.push(percent, color);
               });
-
               updateBackground({
                 gradient: {
                   ...device.gradient,
@@ -274,7 +232,7 @@ function GradientSelector() {
               }
               return stopsArray.map(({ index, percent, color }) => (
                 <Slider
-                  key={index} // Use stable index since we're not reordering the original array
+                  key={index} 
                   id={`gradient-slider-${index}`}
                   index={index}
                   stacked
@@ -305,8 +263,6 @@ function GradientSelector() {
                     const newPercent = Number(e.target.value) / 100;
                     const newStops = [...device.gradient.stops];
                     newStops[index * 2] = newPercent;
-
-                    // Real-time update without sorting - allows free dragging
                     updateBackground({
                       gradient: {
                         ...device.gradient,
@@ -315,7 +271,6 @@ function GradientSelector() {
                     });
                   }}
                   onBlur={() => {
-                    // No additional action needed - processedStops handles sorting for display
                     updateBackground({
                       gradient: {
                         ...device.gradient,
@@ -326,7 +281,6 @@ function GradientSelector() {
                   changeColor={(e) => {
                     const newStops = [...device.gradient.stops];
                     newStops[index * 2 + 1] = e.toHexString();
-
                     updateBackground({
                       gradient: {
                         ...device.gradient,
@@ -384,5 +338,4 @@ function GradientSelector() {
     </div>
   );
 }
-
 export default GradientSelector;

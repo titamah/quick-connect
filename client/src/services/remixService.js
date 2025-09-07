@@ -1,31 +1,22 @@
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   console.error("Missing Supabase environment variables");
 }
-
 const API_BASE = `${SUPABASE_URL}/rest/v1`;
 const STORAGE_BASE = `${SUPABASE_URL}/storage/v1`;
-
-// Common headers for Supabase requests
 const getHeaders = (method = "GET") => ({
   apikey: SUPABASE_ANON_KEY,
   Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
   "Content-Type": "application/json",
   Prefer: method === "POST" ? "return=representation" : undefined,
 });
-
-// Storage headers for file uploads
 const getStorageHeaders = () => ({
   apikey: SUPABASE_ANON_KEY,
   Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
 });
-
-// Simple client-side rate limiting
 let lastRequestTime = 0;
-const RATE_LIMIT_MS = 5000; // 5 seconds between requests
-
+const RATE_LIMIT_MS = 5000; 
 const checkRateLimit = () => {
   const now = Date.now();
   if (now - lastRequestTime < RATE_LIMIT_MS) {
@@ -38,13 +29,9 @@ const checkRateLimit = () => {
   }
   lastRequestTime = now;
 };
-
-// Generate unique filename
 const generateFileName = () => {
   return `remix-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.webp`;
 };
-
-// Resize and compress image
 const processImage = async (
   file,
   maxWidth = 1290,
@@ -55,28 +42,19 @@ const processImage = async (
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     const img = new Image();
-
     img.onload = () => {
       try {
-        // Calculate new dimensions (maintain aspect ratio)
         let { width, height } = img;
-
         if (width > maxWidth || height > maxHeight) {
           const widthRatio = maxWidth / width;
           const heightRatio = maxHeight / height;
           const ratio = Math.min(widthRatio, heightRatio);
-
           width = Math.round(width * ratio);
           height = Math.round(height * ratio);
         }
-
-        // Set canvas size
         canvas.width = width;
         canvas.height = height;
-
-        // Draw and compress
         ctx.drawImage(img, 0, 0, width, height);
-
         canvas.toBlob(
           (blob) => {
             if (blob) {
@@ -97,34 +75,23 @@ const processImage = async (
         reject(error);
       }
     };
-
     img.onerror = () => reject(new Error("Failed to load image"));
-
-    // Create object URL from file
     img.src = URL.createObjectURL(file);
   });
 };
-
-// Validate device state
 const validateDeviceState = (deviceState) => {
   if (!deviceState || typeof deviceState !== "object") {
     throw new Error("Invalid device state");
   }
-
-  // Check required fields
   if (!deviceState.qr || !deviceState.bg) {
     throw new Error("Missing required fields in device state");
   }
-
-  // Size check (50KB limit)
   const jsonString = JSON.stringify(deviceState);
   if (jsonString.length > 51200) {
     throw new Error("Device state too large (max 50KB)");
   }
-
   return true;
 };
-
 const generateCuteId = () => {
   const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
   let result = "";
@@ -133,15 +100,12 @@ const generateCuteId = () => {
   }
   return result;
 };
-
-// Check if ID already exists
 const checkIdExists = async (id) => {
   try {
     const response = await fetch(`${API_BASE}/remixes?id=eq.${id}&select=id`, {
       method: "GET",
       headers: getHeaders(),
     });
-
     if (response.ok) {
       const data = await response.json();
       return data.length > 0;
@@ -152,36 +116,24 @@ const checkIdExists = async (id) => {
     return false;
   }
 };
-
-// Generate unique cute ID (with collision detection)
 const generateUniqueId = async () => {
   let attempts = 0;
   const maxAttempts = 10;
-
   while (attempts < maxAttempts) {
     const id = generateCuteId();
     const exists = await checkIdExists(id);
-
     if (!exists) {
       console.log("✅ Generated unique cute ID:", id);
       return id;
     }
-
     attempts++;
     console.warn(
       `⚠️ ID collision detected (${id}), retrying... (${attempts}/${maxAttempts})`
     );
   }
-
   throw new Error("Failed to generate unique ID after multiple attempts");
 };
-
 export const remixService = {
-  /**
-   * Upload image to Supabase Storage
-   * @param {File|Blob} imageFile - The image file to upload
-   * @returns {Promise<string>} - The public URL of uploaded image
-   */
   async uploadImage(imageFile) {
     try {
       console.log(
@@ -189,14 +141,8 @@ export const remixService = {
         imageFile.name,
         `${Math.round(imageFile.size / 1024)}KB`
       );
-
-      // Process image (resize + compress)
       const processedBlob = await processImage(imageFile);
-
-      // Generate unique filename
       const fileName = generateFileName();
-
-      // Upload to Supabase Storage
       const response = await fetch(
         `${STORAGE_BASE}/object/remix-images/${fileName}`,
         {
@@ -205,16 +151,12 @@ export const remixService = {
           body: processedBlob,
         }
       );
-
       if (!response.ok) {
         const errorText = await response.text();
         console.error("❌ Image upload failed:", response.status, errorText);
         throw new Error(`Failed to upload image: ${response.status}`);
       }
-
-      // Construct public URL
       const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/remix-images/${fileName}`;
-
       console.log("✅ Image uploaded successfully:", publicUrl);
       return publicUrl;
     } catch (error) {
@@ -222,18 +164,10 @@ export const remixService = {
       throw error;
     }
   },
-  
-  /**
-   * Upload image to Supabase Storage
-   * @param {File|Blob} thumbnailBlob - The thumbnail file to upload
-   * @returns {Promise<string>} - The public URL of uploaded image
-   */
   async uploadThumbnail(thumbnailBlob) {
     try {
       console.log('🖼️ Starting thumbnail upload...', `${Math.round(thumbnailBlob.size/1024)}KB`);
-  
       const fileName = `thumb-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.webp`;
-      
       const response = await fetch(
         `${STORAGE_BASE}/object/remix-images/${fileName}`,
         {
@@ -242,13 +176,11 @@ export const remixService = {
           body: thumbnailBlob
         }
       );
-  
       if (!response.ok) {
         const errorText = await response.text();
         console.error('❌ Thumbnail upload failed:', response.status, errorText);
         throw new Error(`Failed to upload thumbnail: ${response.status}`);
       }
-  
       const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/remix-images/${fileName}`;
       console.log('✅ Thumbnail uploaded successfully:', publicUrl);
       return publicUrl;
@@ -257,33 +189,17 @@ export const remixService = {
       throw error;
     }
   },
-  
-
-  /**
-   * Create a new remix with cute ID
-   * @param {Object} deviceState - The device state to save
-   * @param {File|null} backgroundImageFile - Optional background image file
-   * @returns {Promise<string>} - The remix ID
-   */
   async createRemix(deviceState, backgroundImageFile = null, thumbnailUrl = null) {
     try {
       checkRateLimit();
-
-      // Generate unique cute ID first
       const cuteId = await generateUniqueId();
-
-      // Clone device state to avoid mutation
       const processedDeviceState = JSON.parse(JSON.stringify(deviceState));
-
-      // If there's a background image, upload it FIRST before validation
       if (backgroundImageFile && processedDeviceState.bg.type === "image") {
         console.log("🖼️ Uploading background image for remix...");
         const imageUrl = await this.uploadImage(backgroundImageFile);
         processedDeviceState.bg.activeTypeValue = imageUrl;
         console.log("✅ Background image uploaded, URL stored in device state");
       }
-
-      // Remove any remaining base64 data if image upload failed or wasn't provided
       if (
         processedDeviceState.bg.type === "image" &&
         processedDeviceState.bg.activeTypeValue &&
@@ -294,32 +210,25 @@ export const remixService = {
         );
         processedDeviceState.bg.activeTypeValue = "";
       }
-
-      // NOW validate after image is uploaded and base64 is removed
       validateDeviceState(processedDeviceState);
-
       console.log("🚀 Creating remix with cute ID:", cuteId);
-
       const response = await fetch(`${API_BASE}/remixes`, {
         method: "POST",
         headers: getHeaders("POST"),
         body: JSON.stringify({
             id: cuteId,
             device_state: processedDeviceState,
-            thumbnail_url: thumbnailUrl  // 🚀 ADD THIS LINE
+            thumbnail_url: thumbnailUrl  
           })
       });
-
       if (!response.ok) {
         const errorText = await response.text();
         console.error("❌ Create remix failed:", response.status, errorText);
-
         if (response.status === 413) {
           throw new Error("Design too large to share");
         }
         throw new Error(`Failed to create remix: ${response.status}`);
       }
-
       const data = await response.json();
       const remixId = data[0].id;
       console.log("✅ Remix created successfully with cute ID:", remixId);
@@ -329,20 +238,12 @@ export const remixService = {
       throw error;
     }
   },
-
-  /**
-   * Get a remix by ID
-   * @param {string} remixId - The remix ID
-   * @returns {Promise<Object>} - The remix data
-   */
   async getRemix(remixId) {
     try {
       if (!remixId || typeof remixId !== "string") {
         throw new Error("Invalid remix ID");
       }
-
       console.log("🔍 Fetching remix:", remixId);
-
       const response = await fetch(
         `${API_BASE}/remixes?id=eq.${remixId}&select=*`,
         {
@@ -350,38 +251,25 @@ export const remixService = {
           headers: getHeaders(),
         }
       );
-
       if (!response.ok) {
         const errorText = await response.text();
         console.error("❌ Get remix failed:", response.status, errorText);
         throw new Error(`Failed to fetch remix: ${response.status}`);
       }
-
       const data = await response.json();
-
       if (!data || data.length === 0) {
         throw new Error("Remix not found or has expired");
       }
-
       console.log("✅ Remix loaded successfully:", remixId);
-
-      // Increment view count (fire and forget)
       this.incrementViews(remixId).catch(() => {});
-
       return data[0];
     } catch (error) {
       console.error("Error fetching remix:", error);
       throw error;
     }
   },
-
-  /**
-   * Increment view count
-   * @param {string} remixId - The remix ID
-   */
   async incrementViews(remixId) {
     try {
-      // First get current view count
       const response = await fetch(
         `${API_BASE}/remixes?id=eq.${remixId}&select=view_count`,
         {
@@ -389,13 +277,10 @@ export const remixService = {
           headers: getHeaders(),
         }
       );
-
       if (response.ok) {
         const data = await response.json();
         if (data && data.length > 0) {
           const currentCount = data[0].view_count || 0;
-
-          // Update with incremented count
           await fetch(`${API_BASE}/remixes?id=eq.${remixId}`, {
             method: "PATCH",
             headers: getHeaders(),
@@ -403,7 +288,6 @@ export const remixService = {
               view_count: currentCount + 1,
             }),
           });
-
           console.log("📈 View count incremented for:", remixId);
         }
       }
@@ -411,17 +295,12 @@ export const remixService = {
       console.warn("Failed to increment views:", error);
     }
   },
-
-  /**
-   * Test the service connection
-   */
   async testConnection() {
     try {
       const response = await fetch(`${API_BASE}/remixes?limit=1`, {
         method: "GET",
         headers: getHeaders(),
       });
-
       if (response.ok) {
         console.log("✅ Remix service connection works!");
         return true;
@@ -435,5 +314,4 @@ export const remixService = {
     }
   },
 };
-
 export default remixService;

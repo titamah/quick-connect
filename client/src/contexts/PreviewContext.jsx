@@ -1,7 +1,5 @@
 import { createContext, useContext, useState } from 'react';
-
 const PreviewContext = createContext();
-
 export const usePreview = () => {
   const context = useContext(PreviewContext);
   if (!context) {
@@ -9,24 +7,19 @@ export const usePreview = () => {
   }
   return context;
 };
-
 export const PreviewProvider = ({ children }) => {
   const [isExporting, setIsExporting] = useState(false);
   const [isPreviewVisible, setIsPreviewVisible] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-
   const setExportState = (exporting) => {
     setIsExporting(exporting);
   };
-
   const togglePreview = () => {
     setIsPreviewVisible(!isPreviewVisible);
   };
-
   const setHovered = (hovered) => {
     setIsHovered(hovered);
   };
-
   const value = {
     isExporting,
     setExportState,
@@ -36,7 +29,6 @@ export const PreviewProvider = ({ children }) => {
     setHovered,
     setIsPreviewVisible,
   };
-
   return (
     <PreviewContext.Provider value={value}>
       {children}

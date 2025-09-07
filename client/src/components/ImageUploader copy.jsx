@@ -8,7 +8,6 @@ import ColorThief from "colorthief";
 import Dropdown from "../Panel/Dropdown";
 import ImageLibrary from "../Panel/ImageLibrary";
 import { Resizable } from "react-resizable";
-
 function ImageUploader() {
   const {
     device,
@@ -22,23 +21,17 @@ function ImageUploader() {
     updateGeneratedInfo,
     isMobile,
   } = useDevice();
-
   const [activeSource, setActiveSource] = useState("Upload");
   const activeInfo = activeSource === "Upload" ? uploadInfo : generatedInfo;
   const menuOptions = activeSource !== "Upload" ? ["Upload"] : ["Library"];
-
   const [modalOpen, setModalOpen] = useState(false);
   const [crop, setCrop] = useState();
-
   const fileTypes = ["JPEG", "PNG", "GIF", "SVG", "JPG", "WEBP"];
-
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
-
   function handleChange(file) {
     file.preventDefault();
     if (file.dataTransfer.items.length > 1) return;
-
     const items = file.dataTransfer.items || file.dataTransfer.files;
     for (const item of items) {
       const currFile = item.kind === "file" ? item.getAsFile?.() || item : item;
@@ -55,7 +48,6 @@ function ImageUploader() {
       }
     }
   }
-
   const initCrop = (e) => {
     if (!crop) {
       const { naturalWidth: width, naturalHeight: height } = e.currentTarget;
@@ -72,14 +64,11 @@ function ImageUploader() {
       setCrop(initialCrop);
     }
   };
-
   const [height, setHeight] = useState(236);
   const [minMax, setMinMax] = useState([236, Infinity]);
-
   const changeSource = (e) => {
     setActiveSource(e);
   };
-
   useEffect(() => {
     if (activeSource == "Library") {
       setMinMax([236, Infinity]);
@@ -89,7 +78,6 @@ function ImageUploader() {
       setHeight(180.5);
     }
   }, [activeSource]);
-
   useEffect(() => {
     if (activeInfo.originalImageData) {
       const newMinMax = [180.5, 180.5];
@@ -102,18 +90,14 @@ function ImageUploader() {
       setHeight(newMinMax[0]);
     }
   }, [activeInfo.originalImageData, activeSource]);
-
   const cropImage = async () => {
     takeSnapshot("Crop image");
-
     const croppedBlob = await getCroppedImg(activeInfo.originalImageData, crop);
-
     const croppedDataUrl = await new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
       reader.readAsDataURL(croppedBlob);
     });
-
     if (activeSource === "Upload") {
       updateUploadInfo({
         crop: crop,
@@ -125,47 +109,38 @@ function ImageUploader() {
         croppedImageData: croppedDataUrl,
       });
     }
-
     updateBackground({
       style: "image",
       bg: croppedDataUrl,
     });
-
     closeModal();
   };
-
   useEffect(() => {
     if (activeInfo.crop && !crop) {
       setCrop(activeInfo.crop);
     }
   }, [activeInfo.crop, crop]);
-
   useEffect(() => {
     const img = new Image();
     img.crossOrigin = "Anonymous";
     img.src = activeInfo.originalImageData;
-
     img.onload = () => {
       const colorThiefInstance = new ColorThief();
       const paletteArray = colorThiefInstance.getPalette(img, 4);
-
       const rgbPalette = paletteArray.map((color) => {
         const hex =
           "#" + color.map((v) => v.toString(16).padStart(2, "0")).join("");
         return hex;
       });
-
       updateImagePalette(rgbPalette);
       console.log("New color palette:", rgbPalette);
       console.log("device palette:", device.palette);
     };
   }, [activeInfo.originalImageData]);
-
   const deleteFile = () => {
     takeSnapshot("Delete image");
     updateBackground({ bg: "" });
     updateImagePalette([]);
-
     if (activeSource === "Upload") {
       updateUploadInfo({
         originalImageData: null,
@@ -181,28 +156,24 @@ function ImageUploader() {
         crop: null,
       });
     }
-
     closeModal();
   };
-
   const setOriginalFile = (file) => {
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        // Since this is for Library/AI images, use generatedInfo
         updateGeneratedInfo({
-          filename: `ai-generated-${Date.now()}.png`, // Generated filename for AI images
+          filename: `ai-generated-${Date.now()}.png`, 
           originalImageData: reader.result,
-          croppedImageData: null, // Will be set after cropping
-          crop: null // Will be set after cropping
+          croppedImageData: null, 
+          crop: null 
         });
-        openModal(); // Opens the crop modal
+        openModal(); 
       };
       reader.readAsDataURL(file);
     }
     console.log(generatedInfo);
   };
-
   return (
     <>
       <Modal
@@ -348,25 +319,20 @@ function ImageUploader() {
     </>
   );
 }
-
 export default ImageUploader;
-
 function getCroppedImg(imageSrc, crop) {
   return new Promise((resolve) => {
     const image = new Image();
     image.src = imageSrc;
     image.crossOrigin = "anonymous";
-
     image.onload = () => {
       const canvas = document.createElement("canvas");
       const x = (image.naturalWidth * crop.x) / 100;
       const y = (image.naturalHeight * crop.y) / 100;
       const width = (image.naturalWidth * crop.width) / 100;
       const height = (image.naturalHeight * crop.height) / 100;
-
       canvas.width = width;
       canvas.height = height;
-
       const ctx = canvas.getContext("2d");
       ctx.drawImage(
         image,
@@ -379,7 +345,6 @@ function getCroppedImg(imageSrc, crop) {
         canvas.width,
         canvas.height
       );
-
       canvas.toBlob((blob) => resolve(blob), "image/jpeg");
     };
   });

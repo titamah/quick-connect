@@ -1,6 +1,3 @@
-// Template designs for the StartDesignPage
-// These match the device state structure and provide different starting points
-
 export const templates = [
   {
     id: "template_1",
@@ -24,7 +21,7 @@ export const templates = [
       grain: false,
     },
     qrConfig: {
-      url: "https://example.com",
+      url: "https:
       custom: {
         primaryColor: "#000000",
         secondaryColor: "#FFFFFF",
@@ -83,7 +80,7 @@ export const templates = [
       grain: false,
     },
     qrConfig: {
-      url: "https://mywebsite.com",
+      url: "https:
       custom: {
         primaryColor: "#FFFFFF",
         secondaryColor: "#000000",
@@ -133,7 +130,7 @@ export const templates = [
       grain: true,
     },
     qrConfig: {
-      url: "https://darkmode.com",
+      url: "https:
       custom: {
         primaryColor: "#00FF88",
         secondaryColor: "#1A1A1A",
@@ -183,7 +180,7 @@ export const templates = [
       grain: true,
     },
     qrConfig: {
-      url: "https://darkmode.com",
+      url: "https:
       custom: {
         primaryColor: "#00FF88",
         secondaryColor: "#1A1A1A",
@@ -233,7 +230,7 @@ export const templates = [
       grain: true,
     },
     qrConfig: {
-      url: "https://darkmode.com",
+      url: "https:
       custom: {
         primaryColor: "#00FF88",
         secondaryColor: "#1A1A1A",
@@ -262,13 +259,9 @@ export const templates = [
     },
   },
 ];
-
-// Helper function to get a template by ID
 export const getTemplateById = (id) => {
   return templates.find(template => template.id === id);
 };
-
-// Helper function to get all templates
 export const getAllTemplates = () => {
   return templates;
 };

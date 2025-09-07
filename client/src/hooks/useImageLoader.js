@@ -1,22 +1,17 @@
 import { useState, useEffect, useMemo } from "react";
 import { useImageCache } from "./useImageCache";
-
 export const useImageLoader = (background, deviceSize) => {
   const [patternImage, setPatternImage] = useState(null);
   const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const { loadImage } = useImageCache();
-
   useEffect(() => {
     if (background.style !== "image" || !background.bg) {
       setPatternImage(null);
       setIsImageLoaded(false);
       return;
     }
-
-    // Create abort controller for this effect
     const controller = new AbortController();
-
     loadImage(background.bg, { 
       crossOrigin: "anonymous",
       signal: controller.signal 
@@ -30,19 +25,15 @@ export const useImageLoader = (background, deviceSize) => {
         setIsImageLoaded(true);
       })
       .catch((error) => {
-        // Don't log error if we intentionally cancelled it
         if (error.name !== 'AbortError') {
           console.error("Failed to load image:", background.bg, error);
         }
         setIsImageLoaded(false);
       });
-
-    // Cleanup: cancel the operation when effect reruns or unmounts
     return () => {
       controller.abort();
     };
   }, [background.style, background.bg, loadImage]);
-
   const imageSize = useMemo(() => {
     if (!naturalSize.width || !naturalSize.height || !deviceSize) {
       return {
@@ -53,17 +44,13 @@ export const useImageLoader = (background, deviceSize) => {
         offsetY: 0,
       };
     }
-
     const scaleX = deviceSize.x / naturalSize.width;
     const scaleY = deviceSize.y / naturalSize.height;
     const scale = Math.max(scaleX, scaleY);
-
     const scaledWidth = naturalSize.width * scale;
     const scaledHeight = naturalSize.height * scale;
-
     const offsetX = (deviceSize.x - scaledWidth) / 2;
     const offsetY = (deviceSize.y - scaledHeight) / 2;
-
     return {
       scaleFactors: { x: scale, y: scale },
       scaledWidth,
@@ -72,7 +59,6 @@ export const useImageLoader = (background, deviceSize) => {
       offsetY,
     };
   }, [naturalSize, deviceSize]);
-
   return {
     patternImage,
     imageSize,

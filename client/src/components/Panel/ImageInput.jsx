@@ -8,7 +8,6 @@ import ColorThief from "colorthief";
 import Dropdown from "../Panel/Dropdown";
 import ImageGenerator from "../Panel/ImageGenerator";
 import ImageUploader from "../Panel/ImageUploader";
-
 function ImageInput() {
   const {
     device,
@@ -24,24 +23,18 @@ function ImageInput() {
     setActiveImageSource,
     isMobile,
   } = useDevice();
-
   const activeSource = activeImageSource;
   const setActiveSource = setActiveImageSource;
   const activeInfo = activeSource === "Upload" ? uploadInfo : generatedInfo;
   const menuOptions = activeSource !== "Upload" ? ["Upload"] : ["AI"];
-
   const [modalOpen, setModalOpen] = useState(false);
   const [crop, setCrop] = useState();
-
   const fileTypes = ["JPEG", "PNG", "GIF", "SVG", "JPG", "WEBP"];
-
   const openModal = () => setModalOpen(true);
   const closeModal = () => setModalOpen(false);
-
   function handleChange(file) {
     file.preventDefault();
     if (file.dataTransfer.items.length > 1) return;
-
     const items = file.dataTransfer.items || file.dataTransfer.files;
     for (const item of items) {
       const currFile = item.kind === "file" ? item.getAsFile?.() || item : item;
@@ -58,10 +51,8 @@ function ImageInput() {
       }
     }
   }
-
   const initCrop = (e) => {
     if (!crop) {
-      // Small delay to ensure modal is fully rendered
       setTimeout(() => {
         const { naturalWidth: width, naturalHeight: height } = e.currentTarget;
         const initialCrop = centerCrop(
@@ -78,22 +69,17 @@ function ImageInput() {
       }, 100);
     }
   };
-
   const [height, setHeight] = useState(236);
   const [minMax, setMinMax] = useState([236, Infinity]);
-
   const changeSource = (e) => {
     setActiveSource(e);
     takeSnapshot("Change source");
-
     const newActiveInfo = e === "Upload" ? uploadInfo : generatedInfo;
     updateBackground({
       style: "image",
       bg: newActiveInfo.croppedImageData,
     });
   };
-
-
   useEffect(() => {
     if (activeInfo.originalImageData) {
       const newMinMax = [180.5, 180.5];
@@ -106,18 +92,14 @@ function ImageInput() {
       setHeight(newMinMax[0]);
     }
   }, [activeInfo.originalImageData, activeSource]);
-
   const cropImage = async () => {
     takeSnapshot("Crop image");
-
     const croppedBlob = await getCroppedImg(activeInfo.originalImageData, crop);
-
     const croppedDataUrl = await new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
       reader.readAsDataURL(croppedBlob);
     });
-
     if (activeSource === "Upload") {
       updateUploadInfo({
         crop: crop,
@@ -129,47 +111,38 @@ function ImageInput() {
         croppedImageData: croppedDataUrl,
       });
     }
-
     updateBackground({
       style: "image",
       bg: croppedDataUrl,
     });
-
     closeModal();
   };
-
   useEffect(() => {
     if (activeInfo.crop && !crop) {
       setCrop(activeInfo.crop);
     }
   }, [activeInfo.crop, crop]);
-
   useEffect(() => {
     const img = new Image();
     img.crossOrigin = "Anonymous";
     img.src = activeInfo.originalImageData;
-
     img.onload = () => {
       const colorThiefInstance = new ColorThief();
       const paletteArray = colorThiefInstance.getPalette(img, 4);
-
       const rgbPalette = paletteArray.map((color) => {
         const hex =
           "#" + color.map((v) => v.toString(16).padStart(2, "0")).join("");
         return hex;
       });
-
       updateImagePalette(rgbPalette);
       console.log("New color palette:", rgbPalette);
       console.log("device palette:", device.palette);
     };
   }, [activeInfo.originalImageData]);
-
   const deleteFile = () => {
     takeSnapshot("Delete image");
     updateBackground({ bg: "" });
     updateImagePalette([]);
-
     if (activeSource === "Upload") {
       updateUploadInfo({
         originalImageData: null,
@@ -185,10 +158,8 @@ function ImageInput() {
         crop: null,
       });
     }
-
     closeModal();
   };
-
   const setOriginalFile = (file) => {
     if (file) {
       const reader = new FileReader();
@@ -212,7 +183,6 @@ function ImageInput() {
     }
     console.log(generatedInfo);
   };
-
   return (
     <>
       <Modal
@@ -240,7 +210,6 @@ function ImageInput() {
       >
         <ReactCrop
           style={{
-            // maxWidth: "75%",
             maxHeight: "85%",
           }}
           crop={crop}
@@ -257,7 +226,6 @@ function ImageInput() {
           />
         </ReactCrop>
       </Modal>
-
       <div className="dark:text-white w-full">
         <div className="flex flex-row items-center justify-between w-full mb-2">
           <Dropdown
@@ -277,11 +245,7 @@ function ImageInput() {
             />
           </span>
         </div>
-        {/* <div
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => e.preventDefault()}
-            className={`${isMobile ? "h-[200px]" : "h-[200px]"} w-fill mb-[1.5px] rounded-sm border border-[5px] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)]`}
-          > */}
+        {}
         {activeInfo.originalImageData ? (
           <div
             onDragOver={(e) => e.preventDefault()}
@@ -356,29 +320,24 @@ function ImageInput() {
           </div>{" "}
         </div>
       )}
-      {/* </div> */}
+      {}
     </>
   );
 }
-
 export default ImageInput;
-
 function getCroppedImg(imageSrc, crop) {
   return new Promise((resolve) => {
     const image = new Image();
     image.src = imageSrc;
     image.crossOrigin = "anonymous";
-
     image.onload = () => {
       const canvas = document.createElement("canvas");
       const x = (image.naturalWidth * crop.x) / 100;
       const y = (image.naturalHeight * crop.y) / 100;
       const width = (image.naturalWidth * crop.width) / 100;
       const height = (image.naturalHeight * crop.height) / 100;
-
       canvas.width = width;
       canvas.height = height;
-
       const ctx = canvas.getContext("2d");
       ctx.drawImage(
         image,
@@ -391,7 +350,6 @@ function getCroppedImg(imageSrc, crop) {
         canvas.width,
         canvas.height
       );
-
       canvas.toBlob((blob) => resolve(blob), "image/jpeg");
     };
   });

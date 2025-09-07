@@ -11,10 +11,7 @@ import {
 import { useDevice } from "../../contexts/DeviceContext";
 import { toast } from "react-toastify";
 import chroma from "chroma-js";
-
-// 🚀 Lazy load Thumbnail only when needed
 const Thumbnail = React.lazy(() => import("./Thumbnail.jsx"));
-
 const ShareButton = ({
   wallpaperRef,
   getBackgroundImage,
@@ -29,13 +26,8 @@ const ShareButton = ({
   const [activeState, setActiveState] = useState(null);
   const [linkError, setLinkError] = useState(null);
   const thumbnailRef = useRef(null);
-
-  // 🚀 Only track thumbnail render state when menu is open
   const [shouldRenderThumbnail, setShouldRenderThumbnail] = useState(false);
-
   const buttonRef = useRef(null);
-
-  // 🚀 Memoize device state schema creation
   const createDeviceStateSchema = useCallback(() => {
     const schema = {
       qr: {
@@ -64,22 +56,16 @@ const ShareButton = ({
             : null,
       },
     };
-
     console.log("📋 Created device state schema:", schema);
     return schema;
   }, [qrConfig, background]);
-
-  // 🚀 Only generate thumbnail data when menu opens
   useEffect(() => {
     if (isMenuOpen && !shouldRenderThumbnail) {
       const generateThumbnailData = async () => {
         setIsGeneratingThumbnail(true);
         setShouldRenderThumbnail(true);
-
         try {
           console.log("🖼️ Generating thumbnail data...");
-
-          // Generate background image (if not image type or if we have an actual image)
           let bgImage = null;
           if (background.style !== "image" || background.bg) {
             try {
@@ -90,23 +76,17 @@ const ShareButton = ({
               setBackgroundImage(null);
             }
           }
-
-          // Create device state schema
           setActiveState(createDeviceStateSchema());
         } catch (error) {
           console.error("❌ Failed to generate thumbnail data:", error);
-          // Still set active state even if background generation fails
           setActiveState(createDeviceStateSchema());
         } finally {
           setIsGeneratingThumbnail(false);
         }
       };
-
-      // Small delay to ensure smooth menu animation
       const timeoutId = setTimeout(generateThumbnailData, 100);
       return () => clearTimeout(timeoutId);
     } else if (!isMenuOpen) {
-      // 🚀 Clean up when menu closes
       setBackgroundImage(null);
       setActiveState(null);
       setRemixLink(null);
@@ -120,55 +100,41 @@ const ShareButton = ({
     background.bg,
     createDeviceStateSchema,
   ]);
-
-  // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (buttonRef.current && !buttonRef.current.contains(event.target)) {
         setIsMenuOpen(false);
       }
     };
-
     if (isMenuOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
-
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isMenuOpen]);
-
   const dataURLtoFile = (dataURL, filename) => {
     if (!dataURL || !dataURL.startsWith("data:")) {
       return null;
     }
-
     const arr = dataURL.split(",");
     const mime = arr[0].match(/:(.*?);/)[1];
     const bstr = atob(arr[1]);
     let n = bstr.length;
     const u8arr = new Uint8Array(n);
-
     while (n--) {
       u8arr[n] = bstr.charCodeAt(n);
     }
-
     return new File([u8arr], filename, { type: mime });
   };
-
   const generateRemixLink = async () => {
-    if (remixLink) return remixLink; // Already generated
+    if (remixLink) return remixLink; 
     setIsGeneratingLink(true);
     try {
-      // Import remixService dynamically to keep bundle size down
       const { default: remixService } = await import(
         "../../services/remixService"
       );
-
-      // Create device state for sharing
       const deviceStateSchema = createDeviceStateSchema();
-
-
     let thumbnailUrl = null;
     if (thumbnailRef.current?.exportAsBlob) {
       try {
@@ -181,8 +147,6 @@ const ShareButton = ({
       }
     }
     console.log("🖼️ Thumbnail URL:", thumbnailUrl);
-
-      // Extract background image file if it exists
       let backgroundImageFile = null;
       if (
         background.style === "image" &&
@@ -200,52 +164,42 @@ const ShareButton = ({
           `${Math.round(backgroundImageFile.size / 1024)}KB`
         );
       }
-
       console.log("🔗 Creating remix link with schema:", deviceStateSchema);
       console.log(
         "📎 Background image file:",
         backgroundImageFile ? "Yes" : "None"
       );
-
-      // Create the remix (with optional background image)
       const remixId = await remixService.createRemix(
         deviceStateSchema,
         backgroundImageFile,
         thumbnailUrl
       );
       const link = `${window.location.origin}/remix/${remixId}`;
-
       setRemixLink(link);
       console.log("✅ Remix link created:", link);
       return link;
     } catch (error) {
       console.error("Failed to create remix link:", error);
-
-      // Show user-friendly error message
       let errorMessage = "Failed to create share link. Please try again.";
       if (error.message.includes("wait")) {
-        errorMessage = error.message; // Rate limit message
+        errorMessage = error.message; 
       } else if (error.message.includes("too large")) {
         errorMessage = "Design is too complex to share. Try simplifying it.";
       } else if (error.message.includes("upload")) {
         errorMessage = "Failed to upload background image. Please try again.";
       }
-
       toast.error(errorMessage, {
         position: "bottom-right",
         autoClose: 4000,
       });
-
       return null;
     } finally {
       setIsGeneratingLink(false);
     }
   };
-
   const handleShareClick = () => {
     setIsMenuOpen(!isMenuOpen);
   };
-
   const handleShareOption = async (platform) => {
     const link = await generateRemixLink();
     if (!link) {
@@ -255,34 +209,28 @@ const ShareButton = ({
       });
       return;
     }
-
     setIsMenuOpen(false);
-
     const shareText = "Check out my QReation! Remix it yourself";
     const fullShareText = `${shareText} ${link}`;
-
     switch (platform) {
       case "twitter":
-        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+        const twitterUrl = `https:
           fullShareText
         )}`;
         window.open(twitterUrl, "_blank", "width=600,height=400");
         break;
-
       case "facebook":
-        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+        const facebookUrl = `https:
           link
         )}&quote=${encodeURIComponent(shareText)}`;
         window.open(facebookUrl, "_blank", "width=600,height=400");
         break;
-
       case "linkedin":
-        const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
+        const linkedinUrl = `https:
           link
         )}&summary=${encodeURIComponent(shareText)}`;
         window.open(linkedinUrl, "_blank", "width=600,height=400");
         break;
-
       case "copy-link":
         try {
           await navigator.clipboard.writeText(fullShareText);
@@ -291,7 +239,6 @@ const ShareButton = ({
             autoClose: 2000,
           });
         } catch (err) {
-          // Fallback for older browsers
           const textArea = document.createElement("textarea");
           textArea.value = fullShareText;
           document.body.appendChild(textArea);
@@ -304,7 +251,6 @@ const ShareButton = ({
           });
         }
         break;
-
       case "native":
         if (navigator.share) {
           try {
@@ -320,21 +266,19 @@ const ShareButton = ({
           handleShareOption("copy-link");
         }
         break;
-
       default:
         console.log(`Sharing to ${platform}`);
     }
   };
-
   return (
     <div className="fixed bottom-6 right-6 z-50" ref={buttonRef}>
-      {/* Share Menu */}
+      {}
       {isMenuOpen && (
         <div className="absolute bottom-13 right-0 mb-2 bg-[var(--bg-main)] border border-[var(--border-color)] rounded-lg shadow-lg w-[350px] max-w-[90vw]">
           <h3 className="text-sm font-medium text-[var(--text-primary)] px-4 py-3">
             Share your Qreation
           </h3>
-          {/* 🚀 Loading overlay - only show when actually generating */}
+          {}
           {isGeneratingThumbnail && (
             <div className="relative">
               <div className="absolute inset-0 bg-[var(--bg-main)] bg-opacity-90 flex items-center justify-center z-10 rounded-lg">
@@ -348,8 +292,7 @@ const ShareButton = ({
               <div className="h-40 bg-[var(--bg-secondary)] rounded-md mx-3.5 mb-3.5 opacity-30"></div>
             </div>
           )}
-
-          {/* 🚀 Thumbnail - Only render when menu is open and data is ready */}
+          {}
           {!isGeneratingThumbnail && shouldRenderThumbnail && activeState && (
             <React.Suspense
               fallback={
@@ -370,16 +313,14 @@ const ShareButton = ({
               />
             </React.Suspense>
           )}
-
-          {/* Link generation status */}
+          {}
           {isGeneratingLink && (
             <div className="px-4 py-2 text-sm text-[var(--text-secondary)] flex items-center gap-2">
               <div className="animate-spin size-4 border-2 border-current border-t-transparent text-[var(--accent)] rounded-full"></div>
               Generating share link...
             </div>
           )}
-
-          {/* Error message */}
+          {}
           {linkError && (
             <div className="mx-4 mb-3 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
               <p className="text-xs text-red-600 dark:text-red-400">
@@ -387,9 +328,7 @@ const ShareButton = ({
               </p>
             </div>
           )}
-
           <div className="border-t border-[var(--border-color)] my-1"></div>
-
           <div className="flex flex-row-wrap w-full space-y-0.5 px-2 pt-1 pb-3">
             <button
               onClick={() => handleShareOption("copy-link")}
@@ -405,7 +344,6 @@ const ShareButton = ({
                 <span className="text-[10px] text-center">Copy Link</span>
               </div>
             </button>
-
             <button
               onClick={() => handleShareOption("twitter")}
               disabled={isGeneratingLink}
@@ -420,7 +358,6 @@ const ShareButton = ({
                 <span className="text-[10px] text-center">Twitter</span>
               </div>
             </button>
-
             <button
               onClick={() => handleShareOption("facebook")}
               disabled={isGeneratingLink}
@@ -435,7 +372,6 @@ const ShareButton = ({
                 <span className="text-[10px] text-center">Facebook</span>
               </div>
             </button>
-
             <button
               onClick={() => handleShareOption("linkedin")}
               disabled={isGeneratingLink}
@@ -450,7 +386,6 @@ const ShareButton = ({
                 <span className="text-[10px] text-center">LinkedIn</span>
               </div>
             </button>
-
             <button
               onClick={() => handleShareOption("native")}
               disabled={isGeneratingLink}
@@ -470,8 +405,7 @@ const ShareButton = ({
           </div>
         </div>
       )}
-
-      {/* Share Button */}
+      {}
       <button
         onClick={handleShareClick}
         className="w-12 h-12 bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center group"
@@ -482,5 +416,4 @@ const ShareButton = ({
     </div>
   );
 };
-
 export default ShareButton;

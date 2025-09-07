@@ -1,10 +1,8 @@
 import React from "react";
 import { Upload } from "lucide-react";
 import { useDevice } from "../../contexts/DeviceContext";
-
 function ImageUploader({ handleChange, fileTypes, updateUploadInfo, openModal }) {
   const { isMobile } = useDevice();
-
   return (
 <>
     <div
@@ -47,7 +45,6 @@ function ImageUploader({ handleChange, fileTypes, updateUploadInfo, openModal })
       </span>
     </div>
     </div>
-
     <div className=" mt-4 space-y-2">
           <h4 className=""> File Name </h4>
           <div className="w-fill h-[24px]  px-1.5 py-[2.5px] border border-[var(--border-color)]/50 rounded-sm bg-black/5 dark:bg-black/15 flex items-center justify-between">
@@ -59,5 +56,4 @@ function ImageUploader({ handleChange, fileTypes, updateUploadInfo, openModal })
     </>
   );
 }
-
 export default ImageUploader;

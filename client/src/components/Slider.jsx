@@ -1,7 +1,6 @@
 import ColorPicker from "antd/es/color-picker/ColorPicker.js";
 import React, { useState, useRef, useEffect } from "react";
 import { useDevice } from "../contexts/DeviceContext";
-
 const Slider = ({
   id,
   presets,
@@ -25,7 +24,6 @@ const Slider = ({
   const [drag, setDrag] = useState(false);
   const containerRef = useRef(null);
   const sliderRef = useRef(null);
-
   const updateThumbPosition = () => {
     if (!sliderRef.current) return;
     const slider = sliderRef.current;
@@ -33,11 +31,9 @@ const Slider = ({
     const thumbOffset = percent * slider.offsetWidth;
     setThumbLeft(thumbOffset);
   };
-
   useEffect(() => {
     updateThumbPosition();
   }, [value]);
-
   useEffect(() => {
     const arrow = containerRef.current.querySelector(".ant-popover-arrow");
     if (arrow) {
@@ -48,27 +44,21 @@ const Slider = ({
       popUp.style.pointerEvents = "all";
     }
   }, [openPicker, thumbLeft]);
-
   const [needsSnapshot, setNeedsSnapshot] = useState(false);
   const timeoutRef = useRef(null);
-
   const handleColorChange = (color) => {
     if (needsSnapshot) {
       takeSnapshot();
       setNeedsSnapshot(false);
     }
-
     changeColor(color);
-
     clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       setNeedsSnapshot(true);
     }, 500);
   };
-
   const handleOpenChange = (open) => {
     setOpenPicker(open && !drag);
-
     if (open && !drag) {
       setNeedsSnapshot(true);
       onColorPickerOpen?.();
@@ -78,7 +68,6 @@ const Slider = ({
       onColorPickerClose?.();
     }
   };
-
   const formatTooltipValue = (val) => {
     if (max <= 1) {
       return `${Math.round(val * 100)}%`;
@@ -86,7 +75,6 @@ const Slider = ({
       return `${Math.round(val)}%`;
     }
   };
-
   return (
     <div
       className={`${
@@ -156,7 +144,6 @@ const Slider = ({
                 console.log("📱 Touch start detected on stacked slider", { stacked, openPicker });
                 takeSnapshot();
                 setDrag(false);
-                // For stacked sliders, we need to manually trigger the color picker
                 if (stacked) {
                   console.log("🎨 Attempting to open color picker for stacked slider");
                   setOpenPicker(true);
@@ -205,5 +192,4 @@ const Slider = ({
     </div>
   );
 };
-
 export default Slider;

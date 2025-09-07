@@ -21,11 +21,8 @@ import { usePreview } from "../../contexts/PreviewContext";
 import { useImageLoader } from "../../hooks/useImageLoader";
 import { useStageCalculations } from "../../hooks/useStageCalculations";
 import { useImageCache } from "../../hooks/useImageCache";
-
 const PERFORMANCE_MONITORING = process.env.NODE_ENV === "development";
-
 const SNAP_TOLERANCE = 25;
-
 const Wallpaper = forwardRef(
   ({ panelSize, isOpen, locked, setIsZoomEnabled, backgroundLayerRef }, ref) => {
     const {
@@ -37,18 +34,14 @@ const Wallpaper = forwardRef(
       takeSnapshot,
     } = useDevice();
     const { isExporting, isPreviewVisible, isHovered } = usePreview();
-
     const showPhoneUI = isPreviewVisible || isHovered;
-
     const stageScale = useStageCalculations(deviceInfo.size, panelSize, isOpen);
     const { patternImage, imageSize } = useImageLoader(
       background,
       deviceInfo.size
     );
     const { loadImage } = useImageCache();
-
     const [qrImg, setQRImg] = useState(null);
-
     const [cachedSVGPaths, setCachedSVGPaths] = useState(null);
     const [lastURL, setLastURL] = useState(qrConfig.url);
     const [qrPos, setQRPos] = useState(() => {
@@ -57,44 +50,32 @@ const Wallpaper = forwardRef(
         y: deviceInfo.size.y * qrConfig.positionPercentages.y,
       };
     });
-
     const [grainImage, setGrainImage] = useState(null);
     const grainLoadedRef = useRef(false);
-
     const [transparentImage, setTransparentImage] = useState(null);
     const transparentLoadedRef = useRef(false);
-
     const [isTransforming, setIsTransforming] = useState(false);
-
-
     const qrSize = useMemo(() => {
       const minDimension = Math.min(deviceInfo.size.x, deviceInfo.size.y);
       const scale = Math.max(0.1, Math.min(1, qrConfig.scale || 0.5));
       return minDimension * scale;
     }, [deviceInfo.size.x, deviceInfo.size.y, qrConfig.scale]);
-
     const primaryColor = qrConfig.custom?.primaryColor || "#000";
     const secondaryColor = qrConfig.custom?.secondaryColor || "#fff";
-
     const actualBorderSize = useMemo(
       () => qrSize * (qrConfig.custom.borderSizeRatio / 100),
       [qrSize, qrConfig.custom.borderSizeRatio]
     );
-
     const actualCornerRadius = useMemo(() => {
       const maxRadius = (qrSize + actualBorderSize) / 2;
       return maxRadius * (qrConfig.custom.cornerRadiusRatio / 100);
     }, [qrSize, actualBorderSize, qrConfig.custom.cornerRadiusRatio]);
-
     const qrRef = useRef(null);
-
     const extractSVGPaths = useCallback((svgElement) => {
       if (!svgElement) return null;
-
       try {
         const paths = svgElement.querySelectorAll("path");
         const pathData = [];
-
         paths.forEach((path, index) => {
           const fill = path.getAttribute("fill");
           pathData.push({
@@ -105,7 +86,6 @@ const Wallpaper = forwardRef(
           });
           console.log(`📊 Path ${index}: fill="${fill}"`);
         });
-
         console.log("📊 Extracted SVG paths:", pathData.length);
         console.log(
           "🔍 Path details:",
@@ -121,20 +101,16 @@ const Wallpaper = forwardRef(
         return null;
       }
     }, []);
-
     const updateSVGColors = useCallback(
       (primaryColor, secondaryColor) => {
         const svg = qrRef.current?.querySelector("svg");
         if (!svg || !cachedSVGPaths) return;
-
         try {
           const paths = svg.querySelectorAll("path");
           console.log("🔍 Updating colors for", paths.length, "paths");
-
           paths.forEach((path, index) => {
             const originalFill = cachedSVGPaths[index]?.originalFill;
             console.log(`Path ${index}: originalFill="${originalFill}"`);
-
             if (index === 0) {
               path.setAttribute("fill", secondaryColor);
               console.log(
@@ -145,7 +121,6 @@ const Wallpaper = forwardRef(
               console.log(`  → Set to primary (QR pattern): ${primaryColor}`);
             }
           });
-
           console.log("🎨 Updated SVG colors:", {
             primaryColor,
             secondaryColor,
@@ -156,44 +131,34 @@ const Wallpaper = forwardRef(
       },
       [cachedSVGPaths]
     );
-
     const transformerRef = useRef(null);
     const shapeRef = useRef(null);
     const [isDraggable, setIsDraggable] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [isCenterX, setIsCenterX] = useState(true);
     const [isCenterY, setIsCenterY] = useState(false);
-
-    // Replace the backgroundProps useMemo with this fixed version:
-
 const backgroundProps = useMemo(() => {
-  // For image mode, only use imageSize if we actually have an image loaded
   const useImageSize = background.style === "image" && background.bg && patternImage;
-  
   const baseProps = {
     width: useImageSize ? imageSize.scaledWidth : deviceInfo.size.x,
     height: useImageSize ? imageSize.scaledHeight : deviceInfo.size.y,
     x: useImageSize ? imageSize.offsetX : 0,
     y: useImageSize ? imageSize.offsetY : 0,
   };
-
   switch (background.style) {
     case "solid":
       return { ...baseProps, fill: background.color };
-
     case "gradient":
       if (background.gradient.type === "linear") {
         const angleRad = ((background.gradient.angle - 90) * Math.PI) / 180;
         const dx = Math.cos(angleRad);
         const dy = Math.sin(angleRad);
-
         const cx = deviceInfo.size.x / 2;
         const cy = deviceInfo.size.y / 2;
         const gradientLength =
           (Math.abs(dx) * deviceInfo.size.x +
             Math.abs(dy) * deviceInfo.size.y) /
           2;
-
         return {
           ...baseProps,
           fillLinearGradientColorStops: background.gradient.stops,
@@ -223,9 +188,7 @@ const backgroundProps = useMemo(() => {
             Math.max(deviceInfo.size.x, deviceInfo.size.y) / 1.5,
         };
       }
-
     case "image":
-      // If we have an actual uploaded/generated image, use it with proper scaling
       if (background.bg && patternImage) {
         return {
           ...baseProps,
@@ -235,7 +198,6 @@ const backgroundProps = useMemo(() => {
           fillPriority: "pattern",
         };
       }
-      // If no actual image but we have transparent pattern and not exporting, use it
       else if (transparentImage && !isExporting) {
         return {
           ...baseProps,
@@ -244,19 +206,16 @@ const backgroundProps = useMemo(() => {
           fillPriority: "pattern",
         };
       }
-      // Fallback for image mode when no pattern is available yet
       else {
         return {
           ...baseProps,
-          fill: "#f0f0f0", // Light gray placeholder
+          fill: "#f0f0f0", 
         };
       }
-
     default:
       return baseProps;
   }
 }, [background, deviceInfo.size, imageSize, patternImage, isExporting, transparentImage]);
-
     const handleDragMove = useCallback(
       (e) => {
         const group = e.target;
@@ -264,21 +223,16 @@ const backgroundProps = useMemo(() => {
         const stage = layer.getStage();
         const stageWidth = stage.width();
         const stageHeight = stage.height();
-
         const qrHalfSize = qrSize / 2;
         const minX = qrHalfSize;
         const maxX = stageWidth - qrHalfSize;
         const minY = qrHalfSize;
         const maxY = stageHeight - qrHalfSize;
-
         const rawX = Math.max(minX, Math.min(maxX, group.x()));
         const rawY = Math.max(minY, Math.min(maxY, group.y()));
-
         let targetX, targetY;
-
         const centerSnapX = stageWidth / 2;
         const centerSnapY = stageHeight / 2;
-
         if (Math.abs(rawX - centerSnapX) < SNAP_TOLERANCE) {
           setIsCenterX(true);
           targetX = centerSnapX;
@@ -286,7 +240,6 @@ const backgroundProps = useMemo(() => {
           setIsCenterX(false);
           targetX = rawX;
         }
-
         if (Math.abs(rawY - centerSnapY) < SNAP_TOLERANCE) {
           setIsCenterY(true);
           targetY = centerSnapY;
@@ -294,16 +247,13 @@ const backgroundProps = useMemo(() => {
           setIsCenterY(false);
           targetY = rawY;
         }
-
         group.x(targetX);
         group.y(targetY);
-
         const newQRPos = {
           x: targetX,
           y: targetY,
         };
         setQRPos(newQRPos);
-
         const newPercentages = {
           x: newQRPos.x / deviceInfo.size.x,
           y: newQRPos.y / deviceInfo.size.y,
@@ -312,38 +262,32 @@ const backgroundProps = useMemo(() => {
       },
       [qrSize, SNAP_TOLERANCE, deviceInfo.size, updateQRPositionPercentages]
     );
-
     useEffect(() => {
       if (PERFORMANCE_MONITORING) {
         console.log("🔄 QR URL Generation Effect triggered by:", {
           url: qrConfig.url,
         });
       }
-
       const generateQRCode = () => {
         const startTime =
           PERFORMANCE_MONITORING && window.performance
             ? window.performance.now()
             : 0;
-
         const svg = qrRef.current?.querySelector("svg");
         if (!svg) {
           console.log("QR SVG not found");
           return;
         }
-
         if (qrConfig.url !== lastURL || !cachedSVGPaths) {
           console.log("🔄 URL changed or initial load, extracting SVG paths");
           const newPaths = extractSVGPaths(svg);
           setCachedSVGPaths(newPaths);
           setLastURL(qrConfig.url);
-
           try {
             const svgData = new XMLSerializer().serializeToString(svg);
             const dataUrl =
               "data:image/svg+xml;base64," +
               btoa(unescape(encodeURIComponent(svgData)));
-
             const qrImage = new Image();
             qrImage.onload = () => {
               if (PERFORMANCE_MONITORING && window.performance) {
@@ -365,17 +309,13 @@ const backgroundProps = useMemo(() => {
           }
         }
       };
-
       const timeoutId = setTimeout(generateQRCode, 100);
       return () => clearTimeout(timeoutId);
     }, [qrConfig.url, lastURL, extractSVGPaths]);
-
     useEffect(() => {
       if (!cachedSVGPaths) return;
-
       console.log("🎨 Color update effect triggered");
       updateSVGColors(primaryColor, secondaryColor);
-
       const svg = qrRef.current?.querySelector("svg");
       if (svg) {
         try {
@@ -383,7 +323,6 @@ const backgroundProps = useMemo(() => {
           const dataUrl =
             "data:image/svg+xml;base64," +
             btoa(unescape(encodeURIComponent(svgData)));
-
           const qrImage = new Image();
           qrImage.onload = () => {
             setQRImg(qrImage);
@@ -397,13 +336,11 @@ const backgroundProps = useMemo(() => {
         }
       }
     }, [primaryColor, secondaryColor, cachedSVGPaths, updateSVGColors]);
-
     useEffect(() => {
       const minDimension = Math.min(deviceInfo.size.x, deviceInfo.size.y);
       const scale = Math.max(0.1, Math.min(1, qrConfig.scale || 0.5));
       const newQRSize = minDimension * scale;
       const maxBorderSize = newQRSize * 0.1;
-
       if (qrConfig.custom.borderSize > maxBorderSize) {
         updateQRConfig({
           custom: {
@@ -417,13 +354,10 @@ const backgroundProps = useMemo(() => {
         });
       }
     }, [deviceInfo.size.x, deviceInfo.size.y, qrConfig.scale]);
-
     useEffect(() => {
       if (!grainLoadedRef.current) {
         grainLoadedRef.current = true;
-    
         const controller = new AbortController();
-    
         loadImage("/grain.jpeg", { 
           crossOrigin: "anonymous",
           signal: controller.signal 
@@ -443,13 +377,10 @@ const backgroundProps = useMemo(() => {
           });
       }
     }, [loadImage]);
-
     useEffect(() => {
       if (!transparentLoadedRef.current) {
         transparentLoadedRef.current = true;
-    
         const controller = new AbortController();
-    
         loadImage("/transparent.png", { 
           crossOrigin: "anonymous",
           signal: controller.signal 
@@ -469,24 +400,19 @@ const backgroundProps = useMemo(() => {
           });
       }
     }, [loadImage]);
-
     useEffect(() => {
       setIsDraggable(locked);
     }, [locked]);
-
     useEffect(() => {
       setQRPos({
         x: deviceInfo.size.x * qrConfig.positionPercentages.x,
         y: deviceInfo.size.y * qrConfig.positionPercentages.y,
       });
     }, [deviceInfo.size, qrConfig.positionPercentages]);
-
     useEffect(() => {
   if (!shapeRef.current || !transformerRef.current) return;
-
   const qrGroup = shapeRef.current;
   const transformer = transformerRef.current;
-
   const handleQRSelect = (e) => {
     setTimeout(() => {
       setIsDragging(false);
@@ -494,7 +420,6 @@ const backgroundProps = useMemo(() => {
       transformer.getLayer().batchDraw();
     }, 5);
   };
-
   const handleDragStart = (e) => {
     if (!isTransforming) {
       console.log("📸 Taking snapshot before drag");
@@ -506,8 +431,6 @@ const backgroundProps = useMemo(() => {
       transformer.getLayer().batchDraw();
     }, 5);
   };
-
-  // NEW: Handle transform start - take snapshot BEFORE any transformation
   const handleTransformStart = (e) => {
     if (!isTransforming) {
       console.log("📸 Taking snapshot before transform");
@@ -515,15 +438,11 @@ const backgroundProps = useMemo(() => {
       setIsTransforming(true);
     }
   };
-
   const handleTransformEnd = (e) => {
     setTimeout(() => {
       setIsTransforming(false);
       transformer.nodes([qrGroup]);
-
       const group = qrGroup;
-      
-      // Update position
       const newQRPos = {
         x: group.x(),
         y: group.y(),
@@ -533,41 +452,27 @@ const backgroundProps = useMemo(() => {
         y: newQRPos.y / deviceInfo.size.y,
       };
       updateQRPositionPercentages(newPercentages);
-
-      // Update rotation
       const newRotation = group.rotation();
       updateQRConfig({ rotation: newRotation });
-
-      // Update scale via size percentage
       const scaleX = group.scaleX();
       const scaleY = group.scaleY();
-      // Use average scale and apply to size percentage
       const avgScale = (scaleX + scaleY) / 2;
       const currentScale = qrConfig.scale || 0.5;
       const newScale = Math.max(0.1, Math.min(1, currentScale * avgScale));
-      
-      // Reset the group scale and update via size percentage instead
       group.scaleX(1);
       group.scaleY(1);
-      
       updateQRConfig({ 
         rotation: newRotation,
         scale: newScale 
       });
-
       transformer.getLayer().batchDraw();
     }, 5);
   };
-
-  // Attach all event listeners
   qrGroup.on("click dragend", handleQRSelect);
   qrGroup.on("dragstart", handleDragStart);
   qrGroup.on("tap", handleQRSelect);
-  
-  // NEW: Add transform event listeners
   transformer.on("transformstart", handleTransformStart);
   transformer.on("transformend", handleTransformEnd);
-
   const handleOutsideClick = (e) => {
     if (transformer.nodes().length > 0) {
       transformer.nodes([]);
@@ -575,14 +480,12 @@ const backgroundProps = useMemo(() => {
       transformer.getLayer().batchDraw();
     }
   };
-
   document
     .getElementById("Canvas")
     ?.addEventListener("mouseup", handleOutsideClick);
   document
     .getElementById("Canvas")
     ?.addEventListener("touchend", handleOutsideClick);
-
   return () => {
     qrGroup.off("click dragend", handleQRSelect);
     qrGroup.off("dragstart", handleDragStart);
@@ -597,37 +500,23 @@ const backgroundProps = useMemo(() => {
       ?.removeEventListener("touchend", handleOutsideClick);
   };
 }, [qrSize, deviceInfo.size, updateQRPositionPercentages, updateQRConfig, takeSnapshot, isTransforming, qrConfig.scale]);
-
-
     const phoneUIRef = useRef(null);
-
     useEffect(() => {
       if (!phoneUIRef.current) return;
-
-      // Only animate if the Layer is mounted
       const layer = phoneUIRef.current;
       const targetOpacity = showPhoneUI ? (isHovered || isDragging ? 0.5 : 1) : 0;
-
-      // If already at target, skip
       if (layer.opacity() === targetOpacity) return;
-
       const tween = new window.Konva.Tween({
         node: layer,
         duration: .1,
         opacity: targetOpacity,
         easing: window.Konva.Easings.EaseInOut,
       });
-
       tween.play();
-
-      // Clean up tween on unmount or change
       return () => {
         tween.destroy();
       };
     }, [showPhoneUI, isHovered, isDragging]);
-
-
-    
     return (
       <>
         <div
@@ -684,7 +573,6 @@ const backgroundProps = useMemo(() => {
                   setIsZoomEnabled(true);
                 }
               }
-
               transformerRef.current?.getLayer()?.batchDraw();
             }}
             onTouchStart={(e) => {
@@ -703,13 +591,11 @@ const backgroundProps = useMemo(() => {
                   setIsZoomEnabled(true);
                 }
               }
-
               transformerRef.current?.getLayer()?.batchDraw();
             }}
           >
             <Layer className="background-layer" ref={backgroundLayerRef}>
               <Rect {...backgroundProps} listening={false} />
-
               {background.grain && grainImage && (
                 <Rect
                   width={deviceInfo.size.x}
@@ -725,7 +611,6 @@ const backgroundProps = useMemo(() => {
                 />
               )}
             </Layer>
-
             <Layer
               onMouseUp={() => {
                 setTimeout(() => {
@@ -788,7 +673,6 @@ const backgroundProps = useMemo(() => {
                     actualCornerRadius,
                   ]}
                 />
-
                 <Rect
                   x={0}
                   y={0}
@@ -806,7 +690,6 @@ const backgroundProps = useMemo(() => {
                   width={qrSize}
                 />
               </Group>
-
               <Transformer
               centeredScaling={true}
                 borderStroke="red"
@@ -833,7 +716,6 @@ const backgroundProps = useMemo(() => {
                   }, 10);
                 }}
               />
-
               {isCenterX && isDragging && (
                 <Line
                   stroke="red"
@@ -848,7 +730,6 @@ const backgroundProps = useMemo(() => {
                   listening={false}
                 />
               )}
-
               {isCenterY && isDragging && (
                 <Line
                   stroke="red"
@@ -864,12 +745,10 @@ const backgroundProps = useMemo(() => {
                 />
               )}
             </Layer>
-
             {!isExporting && (
               <Layer
               ref={phoneUIRef}
               listening={false}
-              // opacity={showPhoneUI ? (isHovered || isDragging ? 0.5 : 1) : 0}
             >
               <Rect
                 x={deviceInfo.size.x / 2 - deviceInfo.size.x * 0.15}
@@ -879,7 +758,6 @@ const backgroundProps = useMemo(() => {
                 fill="black"
                 cornerRadius={deviceInfo.size.x * 0.15}
               />
-
               <Text
                 x={deviceInfo.size.x * 0.125}
                 y={deviceInfo.size.y * 0.0175}
@@ -889,7 +767,6 @@ const backgroundProps = useMemo(() => {
                 fill="white"
                 opacity={1}
               />
-
               <Group
                 x={deviceInfo.size.x * 0.725}
                 y={deviceInfo.size.y * 0.0175}
@@ -928,7 +805,6 @@ const backgroundProps = useMemo(() => {
                   opacity={1}
                 />
               </Group>
-
               <Group
                 x={deviceInfo.size.x * 0.805}
                 y={deviceInfo.size.y * 0.0175}
@@ -960,7 +836,6 @@ const backgroundProps = useMemo(() => {
                   cornerRadius={deviceInfo.size.x * 0.00175}
                 />
               </Group>
-
               <Text
                 x={0}
                 y={deviceInfo.size.y / 6}
@@ -975,7 +850,6 @@ const backgroundProps = useMemo(() => {
                 align="center"
                 listening={false}
               />
-
               <Group x={0} y={deviceInfo.size.y * 0.75} listening={false}>
                 <Rect
                   x={deviceInfo.size.x * 0.05}
@@ -1052,5 +926,4 @@ const backgroundProps = useMemo(() => {
     );
   }
 );
-
 export default Wallpaper;

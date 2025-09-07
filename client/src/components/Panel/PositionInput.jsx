@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
-
 const PositionInput = ({
   type = "qr",
   position,
@@ -10,7 +9,6 @@ const PositionInput = ({
   qrScale = 0.5,
 }) => {
   const { takeSnapshot } = useDevice();
-
   let minX = 0,
     maxX = 100,
     minY = 0,
@@ -24,7 +22,6 @@ const PositionInput = ({
     minY = qrSize / 2;
     maxY = deviceSize.y - qrSize / 2;
   }
-
   const [pos, setPos] = useState({
     x:
       type === "qr"
@@ -35,16 +32,13 @@ const PositionInput = ({
         ? Math.round(position.y * deviceSize.y)
         : Math.round(position.y * 100),
   });
-
   const [inputValues, setInputValues] = useState({
     x: pos.x.toString(),
     y: pos.y.toString(),
   });
-
   const intervalRef = useRef(null);
   const timeoutRef = useRef(null);
   const [isArrowKeyActive, setIsArrowKeyActive] = useState(false);
-
   useEffect(() => {
     const rawX =
       type === "qr"
@@ -54,19 +48,16 @@ const PositionInput = ({
       type === "qr"
         ? Math.round(position.y * deviceSize.y)
         : Math.round(position.y * 100);
-
     let constrainedX = rawX,
       constrainedY = rawY;
     if (type === "qr") {
       constrainedX = Math.max(minX, Math.min(maxX, rawX));
       constrainedY = Math.max(minY, Math.min(maxY, rawY));
     }
-
     setPos({
       x: constrainedX,
       y: constrainedY,
     });
-
     setInputValues({
       x: constrainedX.toString(),
       y: constrainedY.toString(),
@@ -83,10 +74,8 @@ const PositionInput = ({
     type,
     qrScale,
   ]);
-
   const updatePosition = (axis, increment) => {
     const newValue = pos[axis] + increment;
-
     let constrainedValue = newValue;
     if (type === "qr") {
       if (axis === "x") {
@@ -95,68 +84,55 @@ const PositionInput = ({
         constrainedValue = Math.max(minY, Math.min(maxY, newValue));
       }
     }
-
     const newPos = { ...pos, [axis]: constrainedValue };
     setPos(newPos);
-
     const newPosition = {
       x: type === "qr" ? newPos.x / deviceSize.x : newPos.x / 100,
       y: type === "qr" ? newPos.y / deviceSize.y : newPos.y / 100,
     };
     onUpdate(newPosition);
   };
-
   const handlePositionChange = (axis, value) => {
     setInputValues((prev) => ({
       ...prev,
       [axis]: value,
     }));
   };
-
   const handlePositionBlur = () => {
     const numX = parseInt(inputValues.x) || 0;
     const numY = parseInt(inputValues.y) || 0;
-
     let constrainedX = numX,
       constrainedY = numY;
     if (type === "qr") {
       constrainedX = Math.max(minX, Math.min(maxX, numX));
       constrainedY = Math.max(minY, Math.min(maxY, numY));
     }
-
     setPos({
       x: constrainedX,
       y: constrainedY,
     });
-
     setInputValues({
       x: constrainedX.toString(),
       y: constrainedY.toString(),
     });
-
     const newPosition = {
       x: type === "qr" ? constrainedX / deviceSize.x : constrainedX / 100,
       y: type === "qr" ? constrainedY / deviceSize.y : constrainedY / 100,
     };
-
     onUpdate(newPosition);
   };
-
   const handlePositionKeyDown = (e) => {
     if (e.key === "Enter") {
       handlePositionBlur();
       e.target.blur();
     } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
       e.preventDefault();
-
       if (!isArrowKeyActive) {
         setIsArrowKeyActive(true);
         takeSnapshot();
       }
-
       const axis = e.target.name === "x-input" ? "x" : "y";
       const increment = e.key === "ArrowUp" ? 1 : -1;
-
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
@@ -165,9 +141,7 @@ const PositionInput = ({
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
-
       updatePosition(axis, increment);
-
       timeoutRef.current = setTimeout(() => {
         intervalRef.current = setInterval(() => {
           updatePosition(axis, increment);
@@ -175,7 +149,6 @@ const PositionInput = ({
       }, 200);
     }
   };
-
   return (
     <div className="flex-shrink-1 h-[24px] px-1.5 py-[2.5px] border border-[var(--border-color)]/50 rounded-sm bg-black/5 dark:bg-black/15 w-full items-center justify-center">
       <div className="flex flex-row gap-2 min-w-0 w-full h-[16px] justify-between">
@@ -249,5 +222,4 @@ const PositionInput = ({
     </div>
   );
 };
-
 export default PositionInput;
