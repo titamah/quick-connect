@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import { zoom, zoomIdentity } from "d3-zoom";
 import { select } from "d3-selection";
-import Konva from "react-konva/lib/ReactKonvaCore";
+import Konva from "konva";
 import Wallpaper from "../Wallpaper/index";
 import PreviewButton from "./PreviewButton";
 import UndoRedoButton from "./UndoRedoButton";
