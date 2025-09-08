@@ -5,7 +5,7 @@ const LandingPage = () => {
   const { isMobile } = useDevice();
   const navigate = useNavigate();
   const handleStartQreating = () => {
-    navigate('/start-design');
+    navigate('/start-design/');
   };
   const howItWorksSteps = [
     {

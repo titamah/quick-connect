@@ -19,7 +19,7 @@ function StartDesignPage() {
           Your secret cooking blog? (we don't judge)
         </p>
         <button
-          className="inline-flex flex-col justify-center py-[12px] px-[18px] bg-[#03bec0] rounded-[60px] border border-solid border-[#817e6ba8] items-center gap-2.5 relative flex-[0_0_auto] hover:bg-[#02a8aa] transition-colors duration-200 "
+          className=" cursor-pointer inline-flex flex-col justify-center py-[12px] px-[18px] bg-[#03bec0] rounded-[60px] border border-solid border-[#817e6ba8] items-center gap-2.5 relative flex-[0_0_auto] hover:bg-[#02a8aa] transition-colors duration-200 "
           onClick={handleStartNewDesign}
           aria-label="Start creating from scratch"
         >

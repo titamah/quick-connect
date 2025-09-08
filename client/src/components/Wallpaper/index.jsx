@@ -331,6 +331,13 @@ const backgroundProps = useMemo(() => {
       }
     }, [primaryColor, secondaryColor, cachedSVGPaths, updateSVGColors]);
     
+    useEffect(() => {
+      return () => {
+        if (patternImage && patternImage.src && patternImage.src.startsWith('blob:')) {
+          URL.revokeObjectURL(patternImage.src);
+        }
+      };
+    }, [background.style, background.bg]);
 
     useEffect(() => {
       const minDimension = Math.min(deviceInfo.size.x, deviceInfo.size.y);
@@ -350,6 +357,7 @@ const backgroundProps = useMemo(() => {
         });
       }
     }, [deviceInfo.size.x, deviceInfo.size.y, qrConfig.scale]);
+
     useEffect(() => {
       if (!grainLoadedRef.current) {
         grainLoadedRef.current = true;
@@ -373,6 +381,7 @@ const backgroundProps = useMemo(() => {
           });
       }
     }, [loadImage]);
+
     useEffect(() => {
       if (!transparentLoadedRef.current) {
         transparentLoadedRef.current = true;
@@ -496,23 +505,7 @@ const backgroundProps = useMemo(() => {
       ?.removeEventListener("touchend", handleOutsideClick);
   };
 }, [qrSize, deviceInfo.size, updateQRPositionPercentages, updateQRConfig, takeSnapshot, isTransforming, qrConfig.scale]);
-    const phoneUIRef = useRef(null);
-    useEffect(() => {
-      if (!phoneUIRef.current) return;
-      const layer = phoneUIRef.current;
-      const targetOpacity = showPhoneUI ? (isHovered || isDragging ? 0.5 : 1) : 0;
-      if (layer.opacity() === targetOpacity) return;
-      const tween = new window.Konva.Tween({
-        node: layer,
-        duration: .1,
-        opacity: targetOpacity,
-        easing: window.Konva.Easings.EaseInOut,
-      });
-      tween.play();
-      return () => {
-        tween.destroy();
-      };
-    }, [showPhoneUI, isHovered, isDragging]);
+    
     return (
       <>
         <div
@@ -743,8 +736,8 @@ const backgroundProps = useMemo(() => {
             </Layer>
             {!isExporting && (
               <Layer
-              ref={phoneUIRef}
               listening={false}
+              opacity={showPhoneUI ? (isHovered || isDragging ? 0.5 : 1) : 0}
             >
               <Rect
                 x={deviceInfo.size.x / 2 - deviceInfo.size.x * 0.15}
