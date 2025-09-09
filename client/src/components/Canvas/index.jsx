@@ -175,6 +175,9 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
     setTimeout(() => setIsInteracting(false), 100);
   }, []);
   const handleResize = useCallback(() => {
+    // On mobile, window size never changes, so skip resize logic
+    if (window.innerWidth <= 768) return;
+    
     updatePanelSize();
     // Reset zoom on resize
     pendingTransformRef.current = { x: 0, y: 0, scale: 1 };
