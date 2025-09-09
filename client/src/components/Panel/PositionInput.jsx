@@ -151,12 +151,11 @@ const PositionInput = ({
   };
   return (
     <div className="flex-shrink-1 h-[24px] px-1.5 py-[2.5px] border border-[var(--border-color)]/50 rounded-sm bg-black/5 dark:bg-black/15 w-full items-center justify-center">
-      <div className="flex flex-row gap-2 min-w-0 w-full h-[16px] justify-between">
-        <span className="flex flex-row gap-1.5 items-center">
+      <div className="flex flex-row gap-2 min-w-0 w-full h-full justify-between">
+        <span className="flex flex-row gap-1.5 items-center h-full w-full">
           <span className="text-xs flex text-[var(--text-secondary)]/50">
             X
           </span>
-          <div className="relative flex-1 min-w-0">
             <input
               type="number"
               placeholder="X"
@@ -183,13 +182,11 @@ const PositionInput = ({
             <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-secondary)]/60">
               {units}
             </span>
-          </div>
         </span>
-        <span className="flex flex-row gap-1.5 items-center">
+        <span className="flex flex-row gap-1.5 items-center h-full w-full">
           <span className="text-xs flex text-[var(--text-secondary)]/50">
             Y
           </span>
-          <div className="relative flex-1 min-w-0">
             <input
               type="number"
               placeholder="Y"
@@ -216,7 +213,6 @@ const PositionInput = ({
             <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-secondary)]/60">
               {units}
             </span>
-          </div>
         </span>
       </div>
     </div>

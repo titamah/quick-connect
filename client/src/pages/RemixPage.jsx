@@ -217,8 +217,7 @@ const RemixPage = () => {
     );
   }
   return (
-    <div className="!overflow-y-hidden">
-    <div className="flex flex-col h-fit min-h-[calc(100dvh-40px)] md:min-h-[calc(100dvh-60px)] items-center justify-center relative p-10 bg-[var(--bg-secondary)]">
+    <div className="overlow-hidden flex flex-col h-fit min-h-[calc(100dvh-40px)] md:min-h-[calc(100dvh-60px)] items-center justify-center relative p-10 bg-[var(--bg-secondary)]">
       <section className="  h-fit p-10 sm:p-20 flex flex-col items-center justify-center gap-8 sm:gap-10 relative self-stretch max-w-[850px] w-fit m-auto bg-[var(--bg-main)] rounded-[30px] sm:rounded-[45px] border-[0.5px] border-solid border-[var(--border-color)] ">
         <p className="relative w-fit slab font-black text-3xl sm:text-4xl text-[var(--text-secondary)] text-center tracking-wider [font-variant:all-small-caps] whitespace-nowrap">
           Remix This Qreation
@@ -260,7 +259,6 @@ const RemixPage = () => {
           </span>
         </button>
       </section>
-    </div>
     </div>
   );
 };
