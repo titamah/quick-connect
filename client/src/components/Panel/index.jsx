@@ -60,17 +60,17 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
     },
     {
       key: "2",
-      label: <QrCode className={`size-7.5 m-2 w-full cursor-pointer ${activeTab === "2" ? "text-[var(--accent)]" : ""}`} onClick={() => setActiveTab("2")}/>,
+      label: <QrCode className={`size-7.5 m-2 w-full cursor-pointer ${activeTab === "2" ? "text-[var(--accent)]" : ""}`} onClick={() => {setActiveTab("2"); !isOpen && togglePanel()}}/>,
       children: <QRGenerator panelSize={panelSize} />,
     },
     {
       key: "3",
-      label: <Image className={`size-7.5 m-2 w-full cursor-pointer ${activeTab === "3" ? "text-[var(--accent)]" : ""}`} onClick={() => setActiveTab("3")}/>,
+      label: <Image className={`size-7.5 m-2 w-full cursor-pointer ${activeTab === "3" ? "text-[var(--accent)]" : ""}`} onClick={() => {setActiveTab("3"); !isOpen && togglePanel()}}/>,
       children: <CustomBackgroundSelector panelSize={panelSize} />,
     },
     {
       key: "4",
-      label: <Download className={`size-7.5 m-2 w-full cursor-pointer ${activeTab === "4" ? "text-[var(--accent)]" : ""}`} onClick={() => setActiveTab("4")}/>,
+      label: <Download className={`size-7.5 m-2 w-full cursor-pointer ${activeTab === "4" ? "text-[var(--accent)]" : ""}`} onClick={() => {setActiveTab("4"); !isOpen && togglePanel()}}/>,
       children: <Exporter ref={wallpaperRef} />,
     },
   ];
@@ -89,7 +89,6 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
       </div>
       
       <Resizable
-className=""
         width={panelSize.width}
         height={0}
         minConstraints={[350, 0]}

@@ -185,10 +185,8 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   return (
     <div
       className={`
-        ${!isMobile ? "h-[calc(100%-60px)]" : "h-[calc(100%-40px)]"}
-        w-screen 
+        ${!isMobile ? "h-[calc(100%-60px)] bottom-0 w-[calc(100%-64px)] right-0" : "h-[calc(100%-90px)] bottom-[50px] w-screen"} 
       absolute
-      bottom-0
       overflow-y-hidden
           bg-[var(--bg-main)]
           bg-[image:repeating-linear-gradient(315deg,var(--pattern-fg)_0,var(--pattern-fg)_1px,transparent_0,transparent_50%)] 

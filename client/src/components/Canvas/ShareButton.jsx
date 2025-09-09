@@ -271,7 +271,7 @@ const ShareButton = ({
     }
   };
   return (
-    <div className="fixed bottom-6 right-6 z-50" ref={buttonRef}>
+    <div className="absolute bottom-6 right-6 z-50" ref={buttonRef}>
       {}
       {isMenuOpen && (
         <div className="absolute bottom-13 right-0 mb-2 bg-[var(--bg-main)] border border-[var(--border-color)] rounded-lg shadow-lg w-[350px] max-w-[90vw]">
