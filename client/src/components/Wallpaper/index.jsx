@@ -254,13 +254,9 @@ const backgroundProps = useMemo(() => {
           y: targetY,
         };
         setQRPos(newQRPos);
-        const newPercentages = {
-          x: newQRPos.x / deviceInfo.size.x,
-          y: newQRPos.y / deviceInfo.size.y,
-        };
-        updateQRPositionPercentages(newPercentages);
+        // No percentage conversion during drag - only update pixels for smooth performance
       },
-      [qrSize, SNAP_TOLERANCE, deviceInfo.size, updateQRPositionPercentages]
+      [qrSize, SNAP_TOLERANCE, deviceInfo.size]
     );
 
     useEffect(() => {
@@ -428,6 +424,12 @@ const backgroundProps = useMemo(() => {
   const handleDragStart = (e) => {
     if (!isTransforming) {
       console.log("📸 Taking snapshot before drag");
+      // Convert pixels to percentages before snapshot
+      const currentPercentages = {
+        x: qrPos.x / deviceInfo.size.x,
+        y: qrPos.y / deviceInfo.size.y,
+      };
+      updateQRPositionPercentages(currentPercentages);
       takeSnapshot("Move QR Code");
     }
     setTimeout(() => {
@@ -439,6 +441,12 @@ const backgroundProps = useMemo(() => {
   const handleTransformStart = (e) => {
     if (!isTransforming) {
       console.log("📸 Taking snapshot before transform");
+      // Convert pixels to percentages before snapshot
+      const currentPercentages = {
+        x: qrPos.x / deviceInfo.size.x,
+        y: qrPos.y / deviceInfo.size.y,
+      };
+      updateQRPositionPercentages(currentPercentages);
       takeSnapshot("Transform QR Code");
       setIsTransforming(true);
     }
@@ -452,11 +460,7 @@ const backgroundProps = useMemo(() => {
         x: group.x(),
         y: group.y(),
       };
-      const newPercentages = {
-        x: newQRPos.x / deviceInfo.size.x,
-        y: newQRPos.y / deviceInfo.size.y,
-      };
-      updateQRPositionPercentages(newPercentages);
+      // No percentage conversion during drag - only update pixels for smooth performance
       const newRotation = group.rotation();
       updateQRConfig({ rotation: newRotation });
       const scaleX = group.scaleX();
@@ -504,7 +508,7 @@ const backgroundProps = useMemo(() => {
       .getElementById("Canvas")
       ?.removeEventListener("touchend", handleOutsideClick);
   };
-}, [qrSize, deviceInfo.size, updateQRPositionPercentages, updateQRConfig, takeSnapshot, isTransforming, qrConfig.scale]);
+}, [qrSize, deviceInfo.size, updateQRConfig, takeSnapshot, isTransforming, qrConfig.scale]);
     
     return (
       <>
@@ -547,6 +551,11 @@ const backgroundProps = useMemo(() => {
             }}
             ref={ref}
             perfectDrawEnabled={false}
+            shadowForStrokeEnabled={false}
+            hitGraphEnabled={false}
+            pixelRatio={1}
+            imageSmoothingEnabled={false}
+            willReadFrequently={false}
             onMouseDown={(e) => {
               if (e.target === e.target.getStage()) {
                 transformerRef.current?.nodes([]);
@@ -564,6 +573,7 @@ const backgroundProps = useMemo(() => {
                 }
               }
               transformerRef.current?.getLayer()?.batchDraw();
+              backgroundLayerRef.current?.batchDraw();
             }}
             onTouchStart={(e) => {
               if (e.target === e.target.getStage()) {
@@ -582,9 +592,16 @@ const backgroundProps = useMemo(() => {
                 }
               }
               transformerRef.current?.getLayer()?.batchDraw();
+              backgroundLayerRef.current?.batchDraw();
             }}
           >
-            <Layer className="background-layer" ref={backgroundLayerRef}>
+            <Layer
+              className="background-layer"
+              ref={backgroundLayerRef}
+              listening={false}
+              hitGraphEnabled={false}
+              shadowForStrokeEnabled={false}
+            >
               <Rect {...backgroundProps} listening={false} />
               {background.grain && grainImage && (
                 <Rect

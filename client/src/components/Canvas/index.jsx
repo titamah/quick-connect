@@ -26,8 +26,28 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   // Custom zoom/drag state
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
   const [isDragging, setIsDragging] = useState(false);
+  const [isInteracting, setIsInteracting] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [lastTouchDistance, setLastTouchDistance] = useState(0);
+  // rAF throttling and epsilon guards
+  const rafIdRef = useRef(null);
+  const pendingTransformRef = useRef({ x: 0, y: 0, scale: 1 });
+  const MOVE_EPS = 2; // pixels - more aggressive to reduce micro-updates
+  const SCALE_EPS = 0.01; // scale units - more aggressive
+
+  // Keep pending ref in sync with state
+  useEffect(() => {
+    pendingTransformRef.current = transform;
+  }, [transform]);
+
+  const scheduleTransformCommit = useCallback(() => {
+    if (rafIdRef.current != null) return;
+    rafIdRef.current = requestAnimationFrame(() => {
+      rafIdRef.current = null;
+      const next = pendingTransformRef.current;
+      setTransform(prev => (prev.x !== next.x || prev.y !== next.y || prev.scale !== next.scale ? next : prev));
+    });
+  }, []);
 
   const memoizedSetIsZoomEnabled = useCallback(setIsZoomEnabled, []);
   const scale = useStageCalculations(device.size, panelSize, isOpen);
@@ -58,39 +78,49 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   const handleMouseDown = useCallback((e) => {
     if (!isZoomEnabled) return;
     setIsDragging(true);
+    setIsInteracting(true);
     setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
   }, [isZoomEnabled, transform]);
 
   const handleMouseMove = useCallback((e) => {
     if (!isDragging || !isZoomEnabled) return;
-    setTransform(prev => ({
-      ...prev,
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y
-    }));
-  }, [isDragging, isZoomEnabled, dragStart]);
+    const current = pendingTransformRef.current;
+    let nextX = e.clientX - dragStart.x;
+    let nextY = e.clientY - dragStart.y;
+    
+    // Clamp translate to keep phone on canvas (rough bounds)
+    const maxTranslate = 200;
+    nextX = Math.min(Math.max(nextX, -maxTranslate), maxTranslate);
+    nextY = Math.min(Math.max(nextY, -maxTranslate), maxTranslate);
+    
+    if (Math.abs(nextX - current.x) < MOVE_EPS && Math.abs(nextY - current.y) < MOVE_EPS) return;
+    pendingTransformRef.current = { ...current, x: nextX, y: nextY };
+    scheduleTransformCommit();
+  }, [isDragging, isZoomEnabled, dragStart, scheduleTransformCommit]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
+    // Delay to prevent transition flicker
+    setTimeout(() => setIsInteracting(false), 100);
   }, []);
 
   const handleWheel = useCallback((e) => {
     if (!isZoomEnabled) return;
     e.preventDefault();
-    
-    const delta = e.deltaY * -0.01;
-    const newScale = Math.min(Math.max(0.25, transform.scale + delta), 15);
-    
-    setTransform(prev => ({
-      ...prev,
-      scale: newScale
-    }));
-  }, [isZoomEnabled, transform.scale]);
+    const current = pendingTransformRef.current;
+    const delta = e.deltaY * -0.005; // Reduced sensitivity
+    // clamp scale and prevent runaway translate by limiting x/y based on scale range
+    const newScale = Math.min(Math.max(0.25, current.scale + delta), 3);
+    if (Math.abs(newScale - current.scale) < SCALE_EPS) return;
+    pendingTransformRef.current = { ...current, scale: newScale };
+    scheduleTransformCommit();
+  }, [isZoomEnabled, scheduleTransformCommit]);
 
   const handleDoubleClick = useCallback(() => {
     // Reset to original position/scale with smooth transition
-    setTransform({ x: 0, y: 0, scale: 1 });
-  }, []);
+    pendingTransformRef.current = { x: 0, y: 0, scale: 1 };
+    scheduleTransformCommit();
+  }, [scheduleTransformCommit]);
 
   // Touch handlers for mobile
   const getTouchDistance = (touches) => {
@@ -101,6 +131,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
 
   const handleTouchStart = useCallback((e) => {
     if (!isZoomEnabled) return;
+    setIsInteracting(true);
     if (e.touches.length === 1) {
       setIsDragging(true);
       setDragStart({ x: e.touches[0].clientX - transform.x, y: e.touches[0].clientY - transform.y });
@@ -112,35 +143,43 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   const handleTouchMove = useCallback((e) => {
     if (!isZoomEnabled) return;
     e.preventDefault();
-    
+    const current = pendingTransformRef.current;
     if (e.touches.length === 1 && isDragging) {
-      setTransform(prev => ({
-        ...prev,
-        x: e.touches[0].clientX - dragStart.x,
-        y: e.touches[0].clientY - dragStart.y
-      }));
+      let nextX = e.touches[0].clientX - dragStart.x;
+      let nextY = e.touches[0].clientY - dragStart.y;
+      
+      // Clamp translate to keep phone on canvas (rough bounds)
+      const maxTranslate = 200;
+      nextX = Math.min(Math.max(nextX, -maxTranslate), maxTranslate);
+      nextY = Math.min(Math.max(nextY, -maxTranslate), maxTranslate);
+      
+      if (Math.abs(nextX - current.x) < MOVE_EPS && Math.abs(nextY - current.y) < MOVE_EPS) return;
+      pendingTransformRef.current = { ...current, x: nextX, y: nextY };
+      scheduleTransformCommit();
     } else if (e.touches.length === 2) {
       const distance = getTouchDistance(e.touches);
       const delta = (distance - lastTouchDistance) * 0.01;
-      const newScale = Math.min(Math.max(0.25, transform.scale + delta), 15);
-      
-      setTransform(prev => ({
-        ...prev,
-        scale: newScale
-      }));
+      const newScale = Math.min(Math.max(0.25, current.scale + delta), 3);
+      if (Math.abs(newScale - current.scale) >= SCALE_EPS) {
+        pendingTransformRef.current = { ...current, scale: newScale };
+        scheduleTransformCommit();
+      }
       setLastTouchDistance(distance);
     }
-  }, [isZoomEnabled, isDragging, dragStart, lastTouchDistance, transform.scale]);
+  }, [isZoomEnabled, isDragging, dragStart, lastTouchDistance, scheduleTransformCommit]);
 
   const handleTouchEnd = useCallback(() => {
     setIsDragging(false);
     setLastTouchDistance(0);
+    // Delay to prevent transition flicker
+    setTimeout(() => setIsInteracting(false), 100);
   }, []);
   const handleResize = useCallback(() => {
     updatePanelSize();
     // Reset zoom on resize
-    setTransform({ x: 0, y: 0, scale: 1 });
-  }, [updatePanelSize]);
+    pendingTransformRef.current = { x: 0, y: 0, scale: 1 };
+    scheduleTransformCommit();
+  }, [updatePanelSize, scheduleTransformCommit]);
   const handleOutsideClick = useCallback(
     (event) => {
       try {
@@ -218,6 +257,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
     
     return () => {
       window.removeEventListener("resize", handleResize);
+      if (rafIdRef.current != null) cancelAnimationFrame(rafIdRef.current);
       
       // Remove custom event listeners
       canvasElement.removeEventListener("mousedown", handleMouseDown);
@@ -251,15 +291,16 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   );
   const previewStyles = useMemo(
     () => ({
-      transition: transform.scale === 1 && transform.x === 0 && transform.y === 0 
+      transition: !isInteracting && transform.scale === 1 && transform.x === 0 && transform.y === 0 
         ? "all 0.75s ease-in-out" // Smooth transition when resetting
         : "none", // No transition during drag/zoom for responsiveness
       outline: isZoomEnabled ? "2px solid #7ED03B" : "none",
       outlineOffset: "30px",
       transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
       transformOrigin: "center center",
+      willChange: isInteracting ? "transform" : "auto", // Optimize for transforms during interaction
     }),
-    [isZoomEnabled, transform]
+    [isZoomEnabled, transform, isInteracting]
   );
   const figureStyles = useMemo(
     () => ({
