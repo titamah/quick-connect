@@ -7,7 +7,7 @@ import {
   Group,
   Text,
 } from "react-konva";
-import QRCode from "antd/es/qrcode/index.js";
+import { QRCodeSVG } from "qrcode.react";
 import React, {
   forwardRef,
   useEffect,
@@ -515,15 +515,16 @@ const backgroundProps = useMemo(() => {
             visibility: "hidden",
           }}
         >
-          <QRCode
-            ref={qrRef}
-            value={qrConfig.url || "www.qrki.xyz"}
-            type="svg"
-            bordered={false}
-            size={qrSize}
-            color={primaryColor}
-            bgColor={secondaryColor}
-          />
+          <div ref={qrRef}>
+            <QRCodeSVG
+              value={qrConfig.url || "www.qrki.xyz"}
+              size={qrSize}
+              fgColor={primaryColor}
+              bgColor={secondaryColor}
+              level="M"
+              includeMargin={false}
+            />
+          </div>
         </div>
         <div
           id="preview"
