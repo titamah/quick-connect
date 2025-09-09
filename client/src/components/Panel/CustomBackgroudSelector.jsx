@@ -1,8 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, Suspense, lazy } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
-import ImageInput from "./ImageInput";
+import LoadingSpinner from "../LoadingSpinner";
 import ColorSelector from "./ColorSelector";
-import GradientSelector from "./GradientSelector";
+
+// Lazy load heavy components
+const ImageInput = lazy(() => import("./ImageInput"));
+const GradientSelector = lazy(() => import("./GradientSelector"));
 const BACKGROUND_TYPES = [
   { id: 1, label: "Solid", style: "solid", component: ColorSelector },
   { id: 2, label: "Gradient", style: "gradient", component: GradientSelector },
@@ -69,7 +72,15 @@ function CustomBackgroundSelector({ panelSize }) {
         </nav>
       </div>
       <div className="px-3.5 py-2.5">
-        {ActiveComponent && <ActiveComponent panelSize={panelSize} />}
+        {ActiveComponent && (
+          <Suspense fallback={
+            <div className="flex items-center justify-center h-32">
+              <LoadingSpinner size="medium" variant="logo" />
+            </div>
+          }>
+            <ActiveComponent panelSize={panelSize} />
+          </Suspense>
+        )}
       </div>
     </div>
   );

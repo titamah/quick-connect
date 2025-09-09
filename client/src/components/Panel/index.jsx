@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { QrCode, Proportions, Image, Download } from "lucide-react";
+import { useState, useEffect, useRef, Suspense, lazy } from "react";
+import { QrCode, Proportions, Image, Download, Loader } from "lucide-react";
 import { Resizable } from "react-resizable";
 import QRGenerator from "./QRGenerator";
 import DeviceTypeSelector from "./DeviceTypeSelector";
@@ -7,6 +7,10 @@ import CustomBackgroundSelector from "./CustomBackgroudSelector";
 import Exporter from "./Exporter";
 import { useDevice } from "../../contexts/DeviceContext";
 import "./styles.css";
+
+// Lazy load heavy components
+const ImageInput = lazy(() => import("./ImageInput"));
+const GradientSelector = lazy(() => import("./GradientSelector"));
 
 function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
   const { isMobile } = useDevice();

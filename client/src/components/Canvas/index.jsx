@@ -1,12 +1,19 @@
-import { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback, Suspense, lazy } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 // Removed D3 - using custom zoom/drag implementation
 import Konva from "konva";
-import Wallpaper from "../Wallpaper/index";
+import { Loader } from "lucide-react";
 import PreviewButton from "./PreviewButton";
 import UndoRedoButton from "./UndoRedoButton";
-import ShareButton from "./ShareButton";
 import { useStageCalculations } from "../../hooks/useStageCalculations";
+import LoadingSpinner from "../LoadingSpinner";
+
+// Lazy load heavy components
+const Wallpaper = lazy(() => import("../Wallpaper/index"));
+const ShareButton = lazy(() => import("./ShareButton"));
+
+// Import skeleton
+import WallpaperSkeleton from "../WallpaperSkeleton";
 
 function Canvas({ isOpen, panelSize, wallpaperRef }) {
   const { device, isMobile } = useDevice();
@@ -300,11 +307,13 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
       >
         <PreviewButton />
         <UndoRedoButton />
-        <ShareButton
-          wallpaperRef={wallpaperRef}
-          getBackgroundImage={getBackgroundImage}
-          backgroundLayerRef={backgroundLayerRef}
-        />
+        <Suspense fallback={<LoadingSpinner size="small" variant="logo" />}>
+          <ShareButton
+            wallpaperRef={wallpaperRef}
+            getBackgroundImage={getBackgroundImage}
+            backgroundLayerRef={backgroundLayerRef}
+          />
+        </Suspense>
         <span
           ref={previewRef}
           className="transition-all duration-150 ease-linear"
@@ -329,14 +338,16 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
                 ></div>
               </div>
             ) : (
-              <Wallpaper
-                ref={wallpaperRef}
-                panelSize={panelSize}
-                isOpen={isOpen}
-                locked={!isZoomEnabled}
-                setIsZoomEnabled={memoizedSetIsZoomEnabled}
-                backgroundLayerRef={backgroundLayerRef}
-              />
+              <Suspense fallback={<WallpaperSkeleton previewSize={previewSize} />}>
+                <Wallpaper
+                  ref={wallpaperRef}
+                  panelSize={panelSize}
+                  isOpen={isOpen}
+                  locked={!isZoomEnabled}
+                  setIsZoomEnabled={memoizedSetIsZoomEnabled}
+                  backgroundLayerRef={backgroundLayerRef}
+                />
+              </Suspense>
             )}
           </figure>
         </span>

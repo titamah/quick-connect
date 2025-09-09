@@ -5,6 +5,7 @@ import { ToastProvider } from "./components/Toast";
 import { DeviceProvider } from "./contexts/DeviceContext";
 import { PreviewProvider } from "./contexts/PreviewContext";
 import Header from "./components/Header/index";
+import LoadingSpinner from "./components/LoadingSpinner";
 import React from "react";
 const LandingPage = lazy(() => import("./pages/LandingPage"));
 const StartDesignPage = lazy(() => import("./pages/StartDesignPage"));
@@ -19,12 +20,9 @@ function App() {
     mediaQuery.addEventListener("change", handler);
     return () => mediaQuery.removeEventListener("change", handler);
   }, []);
-  const LoadingSpinner = () => (
+  const AppLoadingSpinner = () => (
     <div className="min-h-screen bg-[var(--bg-main)] dark:bg-neutral-900 flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[var(--accent)] mx-auto mb-4"></div>
-        <p className="text-[var(--text-secondary)]">Loading...</p>
-      </div>
+      <LoadingSpinner size="xlarge" variant="logo" showText={true} text="Loading Quick Connect..." />
     </div>
   );
   return (
@@ -33,7 +31,7 @@ function App() {
         <PreviewProvider>
           <Router>
             <Header />
-            <Suspense fallback={<LoadingSpinner />}>
+            <Suspense fallback={<AppLoadingSpinner />}>
               <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/start-design" element={<StartDesignPage />} />
