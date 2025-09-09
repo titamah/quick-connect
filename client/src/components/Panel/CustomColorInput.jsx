@@ -1,4 +1,4 @@
-import ColorPicker from "antd/es/color-picker/ColorPicker.js";
+import ColorPicker from "../ColorPicker";
 import { useState, useRef, useEffect } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import chroma from "chroma-js";
@@ -25,7 +25,9 @@ export default function CustomColorInput({
   const [needsSnapshot, setNeedsSnapshot] = useState(false);
   const timeoutRef = useRef(null);
   const handleColorChange = (color) => {
-    setLocalHex(color.toHexString().slice(0, 7).toUpperCase());
+    // color is already a hex string from react-colorful
+    const hexString = typeof color === 'string' ? color : chroma(color).hex();
+    setLocalHex(hexString.slice(0, 7).toUpperCase());
     if (needsSnapshot) {
       takeSnapshot();
       setNeedsSnapshot(false);
@@ -97,19 +99,19 @@ export default function CustomColorInput({
     <div className="flex items-center border bg-black/5 dark:bg-black/15 px-1 text-[var(--text-secondary)] min-w-0 w-full h-[24px] rounded border-[var(--border-color)]/75">
       <ColorPicker
         value={value}
-        placement="bottomRight"
-        presets={[{ label: "Active Colors", colors: preset }]}
         onChange={handleColorChange}
-        format="hex"
-        size="small"
-        showText
         onOpenChange={handleOpenChange}
-      >
-        <div
-          className={`w-4 h-4 rounded-xs`}
-          style={{ backgroundColor: value.slice(0, 7) }}
-        />
-      </ColorPicker>
+        presets={preset || []}
+        hasAlpha={hasOpacity}
+        placement="bottomRight"
+        mode="popover"
+        trigger={
+          <div
+            className="w-4 h-4 rounded-xs cursor-pointer hover:scale-110 transition-transform"
+            style={{ backgroundColor: value.slice(0, 7) }}
+          />
+        }
+      />
       <input
         ref={hexInputRef}
         type="text"

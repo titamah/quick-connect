@@ -67,6 +67,7 @@ const StudioPage = () => {
 
   useEffect(() => {
     const requestFullscreen = () => {
+      if (!isMobile) return;
       if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen();
       } else if (document.documentElement.webkitRequestFullscreen) {

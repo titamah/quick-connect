@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
-import Modal from "antd/es/modal/index.js";
+import Modal from "../Modal";
 import { ReactCrop, makeAspectCrop, centerCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { Grip, Trash2, Upload, Pencil } from "lucide-react";
@@ -192,21 +192,6 @@ function ImageInput() {
         onCancel={closeModal}
         okText="Crop"
         cancelText="Cancel"
-        style={{
-          paddingLeft: "5vw",
-          paddingRight: "5vw",
-          paddingTop: "5vh",
-          paddingBottom: "5vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 1000,
-        }}
       >
         <ReactCrop
           style={{

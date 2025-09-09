@@ -1,4 +1,4 @@
-import ColorPicker from "antd/es/color-picker/ColorPicker.js";
+import ColorPicker from "./ColorPicker";
 import React, { useState, useRef, useEffect } from "react";
 import { useDevice } from "../contexts/DeviceContext";
 const Slider = ({
@@ -20,10 +20,10 @@ const Slider = ({
   const { takeSnapshot } = useDevice();
   const [showTooltip, setShowTooltip] = useState(false);
   const [thumbLeft, setThumbLeft] = useState(0);
-  const [openPicker, setOpenPicker] = useState(false);
   const [drag, setDrag] = useState(false);
   const containerRef = useRef(null);
   const sliderRef = useRef(null);
+  const colorPickerRef = useRef(null);
   const updateThumbPosition = () => {
     if (!sliderRef.current) return;
     const slider = sliderRef.current;
@@ -34,16 +34,6 @@ const Slider = ({
   useEffect(() => {
     updateThumbPosition();
   }, [value]);
-  useEffect(() => {
-    const arrow = containerRef.current.querySelector(".ant-popover-arrow");
-    if (arrow) {
-      arrow.style.left = `${thumbLeft * 0.95}px`;
-    }
-    const popUp = containerRef.current.querySelector(".ant-popover");
-    if (popUp) {
-      popUp.style.pointerEvents = "all";
-    }
-  }, [openPicker, thumbLeft]);
   const [needsSnapshot, setNeedsSnapshot] = useState(false);
   const timeoutRef = useRef(null);
   const handleColorChange = (color) => {
@@ -58,14 +48,20 @@ const Slider = ({
     }, 500);
   };
   const handleOpenChange = (open) => {
-    setOpenPicker(open && !drag);
-    if (open && !drag) {
+    if (open) {
       setNeedsSnapshot(true);
       onColorPickerOpen?.();
     } else {
       setNeedsSnapshot(false);
       clearTimeout(timeoutRef.current);
       onColorPickerClose?.();
+    }
+  };
+
+  // Function to trigger ColorPicker when click is detected (no drag)
+  const triggerColorPicker = () => {
+    if (!drag && colorPickerRef.current) {
+      colorPickerRef.current.open();
     }
   };
   const formatTooltipValue = (val) => {
@@ -80,17 +76,17 @@ const Slider = ({
       className={`${
         stacked ? "absolute pointer-events-none" : "pointer-events-auto"
       } w-full h-full`}
-      onMouseDown={() => setShowTooltip(true && !openPicker)}
+      onMouseDown={() => setShowTooltip(true)}
       onMouseUp={(e) => {
         setShowTooltip(false);
       }}
-      onTouchStart={() => setShowTooltip(true && !openPicker)}
+      onTouchStart={() => setShowTooltip(true)}
       onTouchEnd={(e) => {
         setShowTooltip(false);
       }}
       onKeyDownCapture={(e) => {
-        if (openPicker && e.key === "Backspace") {
-          deleteStop();
+        if (e.key === "Backspace") {
+          deleteStop?.();
         }
       }}
     >
@@ -108,21 +104,7 @@ const Slider = ({
       )}
       <div ref={containerRef} className={`relative`}>
         {stacked ? (
-          <ColorPicker
-            value={color}
-            open={openPicker}
-            mode="solid"
-            disabledAlpha
-            presets={presets}
-            onChange={handleColorChange}
-            onOpenChange={handleOpenChange}
-            getPopupContainer={() => containerRef.current}
-            popupStyle={{
-              position: "absolute",
-              inset: `auto auto ${thumbLeft} auto`,
-              transform: `translateX(${thumbLeft}px)`,
-            }}
-          >
+          <div className="relative">
             <input
               ref={sliderRef}
               id={id ? `${id}-input` : null}
@@ -138,26 +120,49 @@ const Slider = ({
                 takeSnapshot();
                 setDrag(false);
               }}
+              onMouseUp={() => {
+                // Use your original logic: trigger ColorPicker if no drag detected
+                setTimeout(() => {
+                  if (!drag) {
+                    triggerColorPicker();
+                  }
+                }, 50); // Small delay to ensure drag state is set
+              }}
               onChange={onChange}
               onBlur={onBlur}
               onTouchStart={() => {
-                console.log("📱 Touch start detected on stacked slider", { stacked, openPicker });
+                console.log("📱 Touch start detected on stacked slider", { stacked });
                 takeSnapshot();
                 setDrag(false);
-                if (stacked) {
-                  console.log("🎨 Attempting to open color picker for stacked slider");
-                  setOpenPicker(true);
-                  setNeedsSnapshot(true);
-                  onColorPickerOpen?.();
-                }
               }}
-              className={`appearance-none w-full absolute -translate-y-[2px] ${
-                stacked
-                  ? ""
-                  : "rounded-full relative mt-[7-px] h-[8px] bg-[var(--contrast-sheer)]"
-              }`}
+              onTouchEnd={() => {
+                // Same logic for touch
+                setTimeout(() => {
+                  if (!drag) {
+                    triggerColorPicker();
+                  }
+                }, 50);
+              }}
+              className="appearance-none w-full absolute -translate-y-[2px]"
             />
-          </ColorPicker>
+            
+            {/* ColorPicker without trigger - controlled remotely */}
+            <div style={{ display: 'none' }}>
+              <ColorPicker
+                ref={colorPickerRef}
+                value={color}
+                onChange={handleColorChange}
+                onOpenChange={handleOpenChange}
+                presets={presets}
+                mode="popover"
+                placement="top"
+                customPosition={{
+                  x: (sliderRef.current?.getBoundingClientRect().left || 0) + thumbLeft,
+                  y: sliderRef.current?.getBoundingClientRect().top || 0
+                }}
+              />
+            </div>
+          </div>
         ) : (
           <input
             ref={sliderRef}

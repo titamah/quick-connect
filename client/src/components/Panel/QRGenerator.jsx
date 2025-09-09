@@ -196,7 +196,8 @@ function QRGenerator(panelSize) {
             }
             onColorPickerClose={handleColorPickerClose}
             onChange={(c) => {
-              let color = chroma(c.toHexString());
+              // c is now a plain hex string from react-colorful, just like ColorSelector
+              let color = chroma(c);
               let hex = color.hex().slice(0, 7).toUpperCase();
               let alpha = Math.round(color.alpha() * 100);
               updateQRConfig({
@@ -239,7 +240,8 @@ function QRGenerator(panelSize) {
             }
             onColorPickerClose={handleColorPickerClose}
             onChange={(c) => {
-              let color = chroma(c.toHexString());
+              // c is now a plain hex string from react-colorful, just like ColorSelector
+              let color = chroma(c);
               let hex = color.hex().slice(0, 7).toUpperCase();
               let alpha = Math.round(color.alpha() * 100);
               updateQRConfig({
@@ -274,7 +276,8 @@ function QRGenerator(panelSize) {
             }
             onColorPickerClose={handleColorPickerClose}
             onChange={(c) => {
-              let color = chroma(c.toHexString());
+              // c is now a plain hex string from react-colorful, just like ColorSelector
+              let color = chroma(c);
               let hex = color.hex().slice(0, 7).toUpperCase();
               let alpha = Math.round(color.alpha() * 100);
               updateQRConfig({

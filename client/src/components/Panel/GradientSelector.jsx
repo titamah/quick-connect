@@ -279,8 +279,9 @@ function GradientSelector() {
                     });
                   }}
                   changeColor={(e) => {
+                    // e is now a plain hex string from react-colorful, just like ColorSelector
                     const newStops = [...device.gradient.stops];
-                    newStops[index * 2 + 1] = e.toHexString();
+                    newStops[index * 2 + 1] = e;
                     updateBackground({
                       gradient: {
                         ...device.gradient,
