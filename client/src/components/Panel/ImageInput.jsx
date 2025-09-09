@@ -8,6 +8,7 @@ import ColorThief from "colorthief";
 import Dropdown from "../Panel/Dropdown";
 import ImageGenerator from "../Panel/ImageGenerator";
 import ImageUploader from "../Panel/ImageUploader";
+import { useImageWorker, usePaletteWorker } from "../../hooks/useWorker";
 function ImageInput() {
   const {
     device,
@@ -23,6 +24,9 @@ function ImageInput() {
     setActiveImageSource,
     isMobile,
   } = useDevice();
+  
+  const { downscaleImage } = useImageWorker();
+  const { generatePalette } = usePaletteWorker();
   const activeSource = activeImageSource;
   const setActiveSource = setActiveImageSource;
   const activeInfo = activeSource === "Upload" ? uploadInfo : generatedInfo;
@@ -123,22 +127,50 @@ function ImageInput() {
     }
   }, [activeInfo.crop, crop]);
   useEffect(() => {
-    const img = new Image();
-    img.crossOrigin = "Anonymous";
-    img.src = activeInfo.originalImageData;
-    img.onload = () => {
-      const colorThiefInstance = new ColorThief();
-      const paletteArray = colorThiefInstance.getPalette(img, 4);
-      const rgbPalette = paletteArray.map((color) => {
-        const hex =
-          "#" + color.map((v) => v.toString(16).padStart(2, "0")).join("");
-        return hex;
-      });
-      updateImagePalette(rgbPalette);
-      console.log("New color palette:", rgbPalette);
-      console.log("device palette:", device.palette);
+    if (!activeInfo.originalImageData) return;
+    
+    const processImage = async () => {
+      try {
+        // Downscale image in worker for better performance
+        const downscaled = await downscaleImage(activeInfo.originalImageData, 400, 400, 0.8);
+        
+        // Generate palette in worker
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.src = downscaled.dataURL;
+        img.onload = () => {
+          const colorThiefInstance = new ColorThief();
+          const paletteArray = colorThiefInstance.getPalette(img, 4);
+          const rgbPalette = paletteArray.map((color) => {
+            const hex =
+              "#" + color.map((v) => v.toString(16).padStart(2, "0")).join("");
+            return hex;
+          });
+          updateImagePalette(rgbPalette);
+          console.log("New color palette:", rgbPalette);
+          console.log("device palette:", device.palette);
+        };
+      } catch (error) {
+        console.error("Image processing error:", error);
+        // Fallback to original processing
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.src = activeInfo.originalImageData;
+        img.onload = () => {
+          const colorThiefInstance = new ColorThief();
+          const paletteArray = colorThiefInstance.getPalette(img, 4);
+          const rgbPalette = paletteArray.map((color) => {
+            const hex =
+              "#" + color.map((v) => v.toString(16).padStart(2, "0")).join("");
+            return hex;
+          });
+          updateImagePalette(rgbPalette);
+        };
+      }
     };
-  }, [activeInfo.originalImageData]);
+    
+    processImage();
+  }, [activeInfo.originalImageData, downscaleImage, updateImagePalette, device.palette]);
   const deleteFile = () => {
     takeSnapshot("Delete image");
     updateBackground({ bg: "" });

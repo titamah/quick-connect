@@ -4,12 +4,12 @@
   box-shadow: inherit !important;
   height: 180.5px !important;
 }
-.react-colorful__hue {
+.react-colorful__hue, .react-colorful__alpha {
   border-radius: 4px !important;
   margin-top: 7.5px !important;
   height: 8px !important;
 }
-#solid > .react-colorful__hue{
+#solid > .react-colorful__hue {
   margin-left: 2px !important;
   margin-right: 2px !important;
 }

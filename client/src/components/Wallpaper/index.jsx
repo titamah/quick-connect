@@ -21,6 +21,7 @@ import { usePreview } from "../../contexts/PreviewContext";
 import { useImageLoader } from "../../hooks/useImageLoader";
 import { useStageCalculations } from "../../hooks/useStageCalculations";
 import { useImageCache } from "../../hooks/useImageCache";
+import { useThrottledCallback } from "../../hooks/useDebounce";
 const PERFORMANCE_MONITORING = process.env.NODE_ENV === "development";
 const SNAP_TOLERANCE = 25;
 const Wallpaper = forwardRef(
@@ -42,7 +43,6 @@ const Wallpaper = forwardRef(
     );
     const { loadImage } = useImageCache();
     const [qrImg, setQRImg] = useState(null);
-    const [cachedSVGPaths, setCachedSVGPaths] = useState(null);
     const [lastURL, setLastURL] = useState(qrConfig.url);
     const [qrPos, setQRPos] = useState(() => {
       return {
@@ -101,36 +101,6 @@ const Wallpaper = forwardRef(
         return null;
       }
     }, []);
-    const updateSVGColors = useCallback(
-      (primaryColor, secondaryColor) => {
-        const svg = qrRef.current?.querySelector("svg");
-        if (!svg || !cachedSVGPaths) return;
-        try {
-          const paths = svg.querySelectorAll("path");
-          console.log("🔍 Updating colors for", paths.length, "paths");
-          paths.forEach((path, index) => {
-            const originalFill = cachedSVGPaths[index]?.originalFill;
-            console.log(`Path ${index}: originalFill="${originalFill}"`);
-            if (index === 0) {
-              path.setAttribute("fill", secondaryColor);
-              console.log(
-                `  → Set to secondary (background): ${secondaryColor}`
-              );
-            } else {
-              path.setAttribute("fill", primaryColor);
-              console.log(`  → Set to primary (QR pattern): ${primaryColor}`);
-            }
-          });
-          console.log("🎨 Updated SVG colors:", {
-            primaryColor,
-            secondaryColor,
-          });
-        } catch (error) {
-          console.error("Error updating SVG colors:", error);
-        }
-      },
-      [cachedSVGPaths]
-    );
     const transformerRef = useRef(null);
     const shapeRef = useRef(null);
     const [isDraggable, setIsDraggable] = useState(false);
@@ -216,7 +186,7 @@ const backgroundProps = useMemo(() => {
       return baseProps;
   }
 }, [background, deviceInfo.size, imageSize, patternImage, isExporting, transparentImage]);
-    const handleDragMove = useCallback(
+    const handleDragMoveInternal = useCallback(
       (e) => {
         const group = e.target;
         const layer = group.getLayer();
@@ -259,6 +229,9 @@ const backgroundProps = useMemo(() => {
       [qrSize, SNAP_TOLERANCE, deviceInfo.size]
     );
 
+    // Throttled version for smooth dragging performance
+    const handleDragMove = useThrottledCallback(handleDragMoveInternal, 16); // ~60fps
+
     useEffect(() => {
       if (PERFORMANCE_MONITORING) {
         console.log("🔄 QR URL Generation Effect triggered by:", {
@@ -274,12 +247,11 @@ const backgroundProps = useMemo(() => {
           return;
         }
     
-        if (qrConfig.url !== lastURL || !cachedSVGPaths) {
-          console.log("🔄 URL changed or initial load, extracting SVG paths");
-          const newPaths = extractSVGPaths(svg);
-          setCachedSVGPaths(newPaths);
+        if (qrConfig.url !== lastURL) {
+          console.log("🔄 URL changed, generating QR image");
           setLastURL(qrConfig.url);
           
+          // Convert SVG to image for Konva (only when URL changes)
           try {
             const svgData = new XMLSerializer().serializeToString(svg);
             const dataUrl = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
@@ -303,29 +275,28 @@ const backgroundProps = useMemo(() => {
     
       const timeoutId = setTimeout(generateQRCode, 100);
       return () => clearTimeout(timeoutId);
-    }, [qrConfig.url, lastURL, extractSVGPaths]);
+    }, [qrConfig.url, lastURL]);
 
 
+    // Simple color update - update the canvas image when colors change
     useEffect(() => {
-      if (!cachedSVGPaths) return;
+      console.log("🎨 Color update triggered", { primaryColor, secondaryColor });
       
-      console.log("🎨 Fast color update - no regeneration needed");
-      updateSVGColors(primaryColor, secondaryColor);
-      
+      // Update the canvas image with new colors
       const svg = qrRef.current?.querySelector("svg");
-      if (svg) {
-        try {
-          const svgData = new XMLSerializer().serializeToString(svg);
-          const dataUrl = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
-          const qrImage = new Image();
-          qrImage.onload = () => setQRImg(qrImage);
-          qrImage.onerror = (error) => console.error("Failed to load QR code image:", error);
-          qrImage.src = dataUrl;
-        } catch (error) {
-          console.error("Error updating QR code image:", error);
-        }
+      if (!svg) return;
+      
+      try {
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const dataUrl = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+        const qrImage = new Image();
+        qrImage.onload = () => setQRImg(qrImage);
+        qrImage.onerror = (error) => console.error("Failed to load QR code image:", error);
+        qrImage.src = dataUrl;
+      } catch (error) {
+        console.error("Error updating QR code image:", error);
       }
-    }, [primaryColor, secondaryColor, cachedSVGPaths, updateSVGColors]);
+    }, [primaryColor, secondaryColor]);
     
     useEffect(() => {
       return () => {
@@ -521,6 +492,7 @@ const backgroundProps = useMemo(() => {
         >
           <div ref={qrRef}>
             <QRCodeSVG
+              key={`qr-${qrConfig.url}-${primaryColor}-${secondaryColor}`}
               value={qrConfig.url || "www.qrki.xyz"}
               size={qrSize}
               fgColor={primaryColor}
@@ -680,22 +652,21 @@ const backgroundProps = useMemo(() => {
                     actualCornerRadius,
                   ]}
                 />
-                <Rect
-                  x={0}
-                  y={0}
-                  fillPatternImage={qrImg}
-                  fillPatternRepeat="no-repeat"
-                  fillPatternScale={
-                    qrImg
-                      ? {
-                          x: qrSize / qrImg.width,
-                          y: qrSize / qrImg.height,
-                        }
-                      : { x: 1, y: 1 }
-                  }
-                  height={qrSize}
-                  width={qrSize}
-                />
+                {/* Render QR as image - simple approach */}
+                {qrImg && (
+                  <Rect
+                    x={0}
+                    y={0}
+                    fillPatternImage={qrImg}
+                    fillPatternRepeat="no-repeat"
+                    fillPatternScale={{
+                      x: qrSize / qrImg.width,
+                      y: qrSize / qrImg.height,
+                    }}
+                    height={qrSize}
+                    width={qrSize}
+                  />
+                )}
               </Group>
               <Transformer
               centeredScaling={true}
