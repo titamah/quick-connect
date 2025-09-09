@@ -1,10 +1,11 @@
 import { useState, forwardRef, useEffect } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import { usePreview } from "../../contexts/PreviewContext";
-import { toast } from "react-toastify";
+import { useToast } from "../Toast";
 const Exporter = forwardRef(({}, ref) => {
   const { device, updateDeviceInfo, takeSnapshot, isMobile } = useDevice();
   const { setExportState } = usePreview();
+  const { toast } = useToast();
   const [downloadSettings, setDownloadSettings] = useState({
     isPng: true,
     size: 0.5,

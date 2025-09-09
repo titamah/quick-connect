@@ -9,7 +9,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useDevice } from "../../contexts/DeviceContext";
-import { toast } from "react-toastify";
+import { useToast } from "../Toast";
 import chroma from "chroma-js";
 const Thumbnail = React.lazy(() => import("./Thumbnail.jsx"));
 const ShareButton = ({
@@ -18,6 +18,7 @@ const ShareButton = ({
   backgroundLayerRef,
 }) => {
   const { qrConfig, background } = useDevice();
+  const { toast } = useToast();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [remixLink, setRemixLink] = useState(null);
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);

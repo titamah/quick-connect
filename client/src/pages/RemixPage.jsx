@@ -7,11 +7,12 @@ import {
   Eye,
   Clock,
 } from "lucide-react";
-import { toast } from "react-toastify";
+import { useToast } from "../components/Toast";
 const RemixPage = () => {
   const { remixId } = useParams();
   const navigate = useNavigate();
   const { loadTemplateData, takeSnapshot } = useDevice();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [remixData, setRemixData] = useState(null);

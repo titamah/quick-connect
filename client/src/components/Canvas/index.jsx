@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
-import { zoom, zoomIdentity } from "d3-zoom";
-import { select } from "d3-selection";
+// Removed D3 - using custom zoom/drag implementation
 import Konva from "konva";
 import Wallpaper from "../Wallpaper/index";
 import PreviewButton from "./PreviewButton";
@@ -16,6 +15,12 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   const backgroundLayerRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isZoomEnabled, setIsZoomEnabled] = useState(false);
+  
+  // Custom zoom/drag state
+  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [lastTouchDistance, setLastTouchDistance] = useState(0);
 
   const memoizedSetIsZoomEnabled = useCallback(setIsZoomEnabled, []);
   const scale = useStageCalculations(device.size, panelSize, isOpen);
@@ -42,39 +47,92 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
       );
     }
   }, [panelSize.width, panelSize.height]);
-  const setupZoomBehavior = useCallback(() => {
-    const canvasElement = select(canvasRef.current);
-    const previewElement = select(previewRef.current);
-    const zoomBehavior = zoom()
-      .scaleExtent([0.25, 15])
-      .on("zoom", (event) => {
-        previewElement.style(
-          "transform",
-          `translate(${event.transform.x}px, ${event.transform.y}px) scale(${event.transform.k})`
-        );
-      });
-    if (isZoomEnabled) {
-      canvasElement.call(zoomBehavior);
-    } else {
-      canvasElement.on(".zoom", null);
+  // Custom zoom/drag handlers
+  const handleMouseDown = useCallback((e) => {
+    if (!isZoomEnabled) return;
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
+  }, [isZoomEnabled, transform]);
+
+  const handleMouseMove = useCallback((e) => {
+    if (!isDragging || !isZoomEnabled) return;
+    setTransform(prev => ({
+      ...prev,
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y
+    }));
+  }, [isDragging, isZoomEnabled, dragStart]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  const handleWheel = useCallback((e) => {
+    if (!isZoomEnabled) return;
+    e.preventDefault();
+    
+    const delta = e.deltaY * -0.01;
+    const newScale = Math.min(Math.max(0.25, transform.scale + delta), 15);
+    
+    setTransform(prev => ({
+      ...prev,
+      scale: newScale
+    }));
+  }, [isZoomEnabled, transform.scale]);
+
+  const handleDoubleClick = useCallback(() => {
+    // Reset to original position/scale with smooth transition
+    setTransform({ x: 0, y: 0, scale: 1 });
+  }, []);
+
+  // Touch handlers for mobile
+  const getTouchDistance = (touches) => {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  const handleTouchStart = useCallback((e) => {
+    if (!isZoomEnabled) return;
+    if (e.touches.length === 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.touches[0].clientX - transform.x, y: e.touches[0].clientY - transform.y });
+    } else if (e.touches.length === 2) {
+      setLastTouchDistance(getTouchDistance(e.touches));
     }
-    canvasElement.on("dblclick.zoom", null);
-    canvasElement.on("dblclick", () => {
-      canvasElement
-        .transition()
-        .duration(750)
-        .call(zoomBehavior.transform, zoomIdentity);
-    });
-    return canvasElement;
-  }, [isZoomEnabled]);
+  }, [isZoomEnabled, transform]);
+
+  const handleTouchMove = useCallback((e) => {
+    if (!isZoomEnabled) return;
+    e.preventDefault();
+    
+    if (e.touches.length === 1 && isDragging) {
+      setTransform(prev => ({
+        ...prev,
+        x: e.touches[0].clientX - dragStart.x,
+        y: e.touches[0].clientY - dragStart.y
+      }));
+    } else if (e.touches.length === 2) {
+      const distance = getTouchDistance(e.touches);
+      const delta = (distance - lastTouchDistance) * 0.01;
+      const newScale = Math.min(Math.max(0.25, transform.scale + delta), 15);
+      
+      setTransform(prev => ({
+        ...prev,
+        scale: newScale
+      }));
+      setLastTouchDistance(distance);
+    }
+  }, [isZoomEnabled, isDragging, dragStart, lastTouchDistance, transform.scale]);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsDragging(false);
+    setLastTouchDistance(0);
+  }, []);
   const handleResize = useCallback(() => {
     updatePanelSize();
-    const canvasElement = select(canvasRef.current);
-    const zoomBehavior = zoom().scaleExtent([0.25, 15]);
-    canvasElement
-      .transition()
-      .duration(350)
-      .call(zoomBehavior.transform, zoomIdentity);
+    // Reset zoom on resize
+    setTransform({ x: 0, y: 0, scale: 1 });
   }, [updatePanelSize]);
   const handleOutsideClick = useCallback(
     (event) => {
@@ -133,15 +191,38 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
     setIsLoading(false);
   }, [updatePanelSize]);
   useEffect(() => {
-    const canvasElement = setupZoomBehavior();
+    const canvasElement = canvasRef.current;
+    if (!canvasElement) return;
+
+    // Add custom event listeners
+    canvasElement.addEventListener("mousedown", handleMouseDown);
+    canvasElement.addEventListener("mousemove", handleMouseMove);
+    canvasElement.addEventListener("mouseup", handleMouseUp);
+    canvasElement.addEventListener("wheel", handleWheel, { passive: false });
+    canvasElement.addEventListener("dblclick", handleDoubleClick);
+    
+    // Touch events for mobile
+    canvasElement.addEventListener("touchstart", handleTouchStart, { passive: false });
+    canvasElement.addEventListener("touchmove", handleTouchMove, { passive: false });
+    canvasElement.addEventListener("touchend", handleTouchEnd);
+    
     window.addEventListener("resize", handleResize);
     updatePanelSize();
+    
     return () => {
       window.removeEventListener("resize", handleResize);
-      canvasElement.on(".zoom", null);
-      canvasElement.on("dblclick", null);
+      
+      // Remove custom event listeners
+      canvasElement.removeEventListener("mousedown", handleMouseDown);
+      canvasElement.removeEventListener("mousemove", handleMouseMove);
+      canvasElement.removeEventListener("mouseup", handleMouseUp);
+      canvasElement.removeEventListener("wheel", handleWheel);
+      canvasElement.removeEventListener("dblclick", handleDoubleClick);
+      canvasElement.removeEventListener("touchstart", handleTouchStart);
+      canvasElement.removeEventListener("touchmove", handleTouchMove);
+      canvasElement.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [setupZoomBehavior, handleResize, updatePanelSize]);
+  }, [handleMouseDown, handleMouseMove, handleMouseUp, handleWheel, handleDoubleClick, handleTouchStart, handleTouchMove, handleTouchEnd, handleResize, updatePanelSize]);
   useEffect(() => {
     if (previewRef.current) {
       document.addEventListener("click", handleOutsideClick);
@@ -163,11 +244,15 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   );
   const previewStyles = useMemo(
     () => ({
-      transition: "all duration-150 ease-linear",
+      transition: transform.scale === 1 && transform.x === 0 && transform.y === 0 
+        ? "all 0.75s ease-in-out" // Smooth transition when resetting
+        : "none", // No transition during drag/zoom for responsiveness
       outline: isZoomEnabled ? "2px solid #7ED03B" : "none",
       outlineOffset: "30px",
+      transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
+      transformOrigin: "center center",
     }),
-    [isZoomEnabled]
+    [isZoomEnabled, transform]
   );
   const figureStyles = useMemo(
     () => ({

@@ -1,7 +1,7 @@
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
-import { ToastContainer } from "react-toastify";
+import { ToastProvider } from "./components/Toast";
 import { DeviceProvider } from "./contexts/DeviceContext";
 import { PreviewProvider } from "./contexts/PreviewContext";
 import Header from "./components/Header/index";
@@ -28,10 +28,10 @@ function App() {
     </div>
   );
   return (
-    <DeviceProvider>
+    <ToastProvider>
+      <DeviceProvider>
         <PreviewProvider>
           <Router>
-            <ToastContainer />
             <Header />
             <Suspense fallback={<LoadingSpinner />}>
               <Routes>
@@ -43,7 +43,8 @@ function App() {
             </Suspense>
           </Router>
         </PreviewProvider>
-    </DeviceProvider>
+      </DeviceProvider>
+    </ToastProvider>
   );
 }
 export default App;
