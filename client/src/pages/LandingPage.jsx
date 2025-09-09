@@ -31,7 +31,8 @@ const LandingPage = () => {
     },
   ];
   return (
-    <main className="flex flex-col h-fit w-[100vw] overflow-x-hidden overflow-y-auto items-start relative bg-[var(--bg-main)]">
+    <div className={`overflow-y-scroll ${isMobile ? "h-[calc(100dvh-40px)]" : "h-[calc(100dvh-60px)]"}`}>
+    <main className="flex flex-col h-fit w-[100vw] overflow-x-hidden items-start relative bg-[var(--bg-main)]">
       <section className="flex z-2 flex-row flex-wrap h-fit min-h-[80vh] w-full items-center justify-center space-y-[15px] gap-[25px] px-[50px] pb-[50px] pt-[50px] relative self-stretch bg-[var(--brand-orange)] rounded-[0px_0px_50px_50px] sm:rounded-[0px_0px_90px_90px]">
         <img
           className={` ${isMobile ? "hidden" : ""} relative max-w-[450px] w-full !bg-pink-500`}
@@ -118,6 +119,7 @@ const LandingPage = () => {
         </p>
       </footer>
     </main>
+    </div>
   );
 };
 export default LandingPage;

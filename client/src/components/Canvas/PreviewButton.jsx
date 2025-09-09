@@ -6,7 +6,7 @@ const PreviewButton = forwardRef(({}) => {
   const { isPreviewVisible, togglePreview, setHovered } = usePreview();
   const { isMobile } = useDevice();
   return (
-    <div className={`w-fit place-items-end absolute right-5 ${isMobile ? "top-2.5" : "top-8.5"}  z-100`}>
+    <div className={`w-fit place-items-end absolute right-5 top-2.5  z-100`}>
       <button
         type="button"
         className={`h-fit inline-flex items-center text-sm py-1.75 px-2 gap-x-2 font-medium rounded-4xl text-white bg-[var(--accent)] hover:opacity-80 cursor-pointer transition-opacity duration-300 ease-in-out`}

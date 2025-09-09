@@ -2,8 +2,6 @@ import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { ToastContainer } from "react-toastify";
-import ConfigProvider from "antd/es/config-provider/index.js";
-import theme from "antd/es/theme/index.js";
 import { DeviceProvider } from "./contexts/DeviceContext";
 import { PreviewProvider } from "./contexts/PreviewContext";
 import Header from "./components/Header/index";
@@ -21,18 +19,6 @@ function App() {
     mediaQuery.addEventListener("change", handler);
     return () => mediaQuery.removeEventListener("change", handler);
   }, []);
-  const antdConfig = React.useMemo(() => ({
-    components: {
-      Tabs: {
-        horizontalItemPadding: 0,
-      },
-    },
-    token: {
-      colorPrimary: "#FC6524",
-      borderRadius: 4,
-    },
-    algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
-  }), [isDarkMode]);
   const LoadingSpinner = () => (
     <div className="min-h-screen bg-[var(--bg-main)] dark:bg-neutral-900 flex items-center justify-center">
       <div className="text-center">
@@ -42,8 +28,7 @@ function App() {
     </div>
   );
   return (
-    <ConfigProvider theme={antdConfig}>
-      <DeviceProvider>
+    <DeviceProvider>
         <PreviewProvider>
           <Router>
             <ToastContainer />
@@ -58,8 +43,7 @@ function App() {
             </Suspense>
           </Router>
         </PreviewProvider>
-      </DeviceProvider>
-    </ConfigProvider>
+    </DeviceProvider>
   );
 }
 export default App;

@@ -1,6 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-
-import Tabs from "antd/es/tabs/index.js";
 import { QrCode, Proportions, Image, Download } from "lucide-react";
 import { Resizable } from "react-resizable";
 import QRGenerator from "./QRGenerator";
@@ -18,9 +16,11 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
   const onResizeSide = (event, { size }) => {
     setPanelSize({ width: size.width, height: panelSize.height });
   };
+  
   const onResizeBottom = (event, { size }) => {
     setPanelSize({ width: panelSize.width, height: size.height });
   };
+  
   const [activeTab, setActiveTab] = useState("1");
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -55,30 +55,41 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
   const items = [
     {
       key: "1",
-      label: <Proportions className="size-7.5" />,
+      label: <Proportions className={`size-7.5 m-2 w-full cursor-pointer ${activeTab === "1" ? "text-[var(--accent)]" : ""}`} onClick={() => {setActiveTab("1"); !isOpen && togglePanel()}}/>,
       children: <DeviceTypeSelector />,
     },
     {
       key: "2",
-      label: <QrCode   className="size-7.5" />,
+      label: <QrCode className={`size-7.5 m-2 w-full cursor-pointer ${activeTab === "2" ? "text-[var(--accent)]" : ""}`} onClick={() => setActiveTab("2")}/>,
       children: <QRGenerator panelSize={panelSize} />,
     },
     {
       key: "3",
-      label: <Image className="size-7.5" />,
+      label: <Image className={`size-7.5 m-2 w-full cursor-pointer ${activeTab === "3" ? "text-[var(--accent)]" : ""}`} onClick={() => setActiveTab("3")}/>,
       children: <CustomBackgroundSelector panelSize={panelSize} />,
     },
     {
       key: "4",
-      label: <Download className="size-7.5" />,
+      label: <Download className={`size-7.5 m-2 w-full cursor-pointer ${activeTab === "4" ? "text-[var(--accent)]" : ""}`} onClick={() => setActiveTab("4")}/>,
       children: <Exporter ref={wallpaperRef} />,
     },
   ];
 
   return (
     <div className="relative w-[100vw] h-full">
+      {/* Side Panel Tab Bar - Always Visible */}
+      <div className={`fixed left-0 top-[52px] z-110 ${
+        isMobile ? "hidden" : ""
+      }`}>
+        <div className="p-1.5 w-[64px] items-center flex flex-col gap-2 border-r border-[var(--border-color)] text-[var(--text-primary)] bg-[var(--bg-main)] h-[calc(100vh-52px)] shadow-[2px_0_10px_0_rgba(0,0,0,0.075)]">
+          {items.map((item) => (
+            item.label
+          ))}
+        </div>
+      </div>
+      
       <Resizable
-        className="duration-100"
+className=""
         width={panelSize.width}
         height={0}
         minConstraints={[350, 0]}
@@ -96,9 +107,9 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
           ref={panelRef}
           className={`fixed  ${
             isMobile ? "hidden" : ""
-          }  [--body-scroll:true] transition-[left] duration-350 transform h-[calc(100vh-52px)] z-100 bg-[var(--bg-main)] shadow-[0_0_10px_0_rgba(0,0,0,0.075)]`}
+          }  [--body-scroll:true] transition-[left] duration-350 transform h-[calc(100vh-52px)] z-100 bg-[var(--bg-main)] shadow-[0_0_10px_0_rgba(0,0,0,0.075)] `}
           style={{
-            left: isOpen ? 0 : `${panelSize.width * -1}px`,
+            left: isOpen ? 64 : `${(panelSize.width + 64) * -1}px`,
             width: `${panelSize.width}px`,
           }}
           role="dialog"
@@ -128,28 +139,46 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
               <circle cx="16" cy="19" r="1" />
             </svg>
           </span>
-          <div className="h-full">
-            <Tabs
-              onTabClick={(key) => {
-                setActiveTab(key);
-              }}
-              tabBarStyle={{ marginTop: "24px" }}
-              className="h-full"
-              tabPosition="left"
-              items={items}
-              destroyInactiveTabPane={false}
-            />
+          <div className="h-full flex flex-row w-full">
+            <div className="flex-1">
+              {items[activeTab - 1].children}
+            </div>
           </div>
         </div>
       </Resizable>
-      {}
+      
+      {/* Bottom Panel Tab Bar - Always Visible */}
+      <div className={`fixed bottom-0 left-0 right-0 z-110 ${
+        isMobile ? "" : "hidden"
+      }`}>
+        <div className="p-0.5 items-center flex flex-row gap-2 bg-[var(--bg-main)] border-t border-[var(--border-color)] text-[var(--text-primary)] shadow-[0_-2px_10px_0_rgba(0,0,0,0.075)] h-[50px]">
+          {items.map((item) => (
+            item.label
+          ))}
+        </div>
+      </div>
+      
+      <Resizable
+className=""
+        width={panelSize.width}
+        height={panelSize.height}
+        minConstraints={[0, 200]}
+        maxConstraints={[0, 600]}
+        onResize={onResizeBottom}
+        resizeHandles={["n"]}
+        handle={
+          <div className="fixed z-1500 left-0 top-0 w-full h-[20px] cursor-row-resize">
+            <div className="fixed left-0 top-0 cursor-pointer z-200"></div>
+          </div>
+        }
+      >
       <div
         id="bottom-panel"
         className={`fixed bottom-0 rounded-t-2xl w-full ${
           !isMobile ? "hidden" : ""
         } transition-[bottom] duration-350 transform z-100 bg-[var(--bg-main)] shadow-[0_0_10px_0_rgba(0,0,0,0.225)]`}
         style={{
-          bottom: isOpen ? 0 : `${panelSize.height * -1}px`,
+          bottom: isOpen ? 50 : `${(panelSize.height + 50) * -1}px`,
           height: `${panelSize.height}px`,
         }}
         role="dialog"
@@ -180,21 +209,11 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
             </span>
           </div>
         </div>
-        <div className="overflow-auto">
-            <Tabs
-              onTabClick={(key) => {
-                setActiveTab(key);
-              }}
-              tabBarStyle={{backgroundColor: "var(--bg-main)"}}
-              centered
-              size="small"
-              tabPosition="bottom"
-              items={items}
-              destroyInactiveTabPane={false}
-              className="absolute bottom-0 w-full h-full"
-            />
+        <div className="h-full flex flex-col w-full">
+          {items[activeTab - 1].children}
         </div>
       </div>
+      </Resizable>
     </div>
   );
 }

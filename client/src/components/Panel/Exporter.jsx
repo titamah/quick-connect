@@ -74,7 +74,7 @@ const Exporter = forwardRef(({}, ref) => {
     setName(device.name);
   }, [device.name]);
   return (
-    <div className="flex flex-col gap-y-3.5 p-3.5">
+    <div  className={` w-full${isMobile ? "rounded-t-2xl h-full" : ""} flex-1 overflow-y-scroll min-h-0 gap-y-3.5 p-3.5`}>
       <h2 className={`${isMobile ? "hidden" : ""}`}> Save Wallpaper</h2>
       <div>
         <h4 className="py-1.5">File Name</h4>

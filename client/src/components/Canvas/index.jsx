@@ -10,7 +10,6 @@ import ShareButton from "./ShareButton";
 import { useStageCalculations } from "../../hooks/useStageCalculations";
 
 function Canvas({ isOpen, panelSize, wallpaperRef }) {
-
   const { device, isMobile } = useDevice();
   const previewRef = useRef(null);
   const canvasRef = useRef(null);
@@ -21,10 +20,13 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   const memoizedSetIsZoomEnabled = useCallback(setIsZoomEnabled, []);
   const scale = useStageCalculations(device.size, panelSize, isOpen);
 
-  const previewSize = useMemo(() => ({
-    x: device.size.x * scale,
-    y: device.size.y * scale,
-  }), [device.size.x, device.size.y, scale]);
+  const previewSize = useMemo(
+    () => ({
+      x: device.size.x * scale,
+      y: device.size.y * scale,
+    }),
+    [device.size.x, device.size.y, scale]
+  );
   const updatePanelSize = useCallback(() => {
     if (!isMobile) {
       document.documentElement.style.setProperty("--panel-height", "0px");
@@ -103,14 +105,14 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
       const backgroundLayer = backgroundLayerRef.current;
       console.log("Using direct background layer reference:", backgroundLayer);
       const tempStage = new Konva.Stage({
-        container: document.createElement('div'),
+        container: document.createElement("div"),
         width: stage.width(),
         height: stage.height(),
       });
       const clonedLayer = backgroundLayer.clone();
       tempStage.add(clonedLayer);
       const dataURL = tempStage.toDataURL({
-        mimeType: 'image/png',
+        mimeType: "image/png",
         quality: 0.8,
         pixelRatio: 1,
       });
@@ -150,7 +152,11 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   }, [handleOutsideClick]);
   const canvasStyles = useMemo(
     () => ({
-      width: isMobile ? "100%" : isOpen ? "calc(100% - var(--panel-width))" : "100%",
+      width: isMobile
+        ? "100%"
+        : isOpen
+        ? "calc(100% - var(--panel-width))"
+        : "100%",
       height: "100%",
     }),
     [isOpen, isMobile]
@@ -178,8 +184,12 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   );
   return (
     <div
-      className="w-screen h-[calc(100.5%-40px)] top-[39px] right-0 absolute
-      overflow-hidden
+      className={`
+        ${!isMobile ? "h-[calc(100%-60px)]" : "h-[calc(100%-40px)]"}
+        w-screen 
+      absolute
+      bottom-0
+      overflow-y-hidden
           bg-[var(--bg-main)]
           bg-[image:repeating-linear-gradient(315deg,var(--pattern-fg)_0,var(--pattern-fg)_1px,transparent_0,transparent_50%)] 
           bg-[size:10px_10px] 
@@ -187,18 +197,16 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
           [--pattern-fg:var(--bg-secondary)]
           z-0
           pointer-events-auto 
-    "
+    `}
     >
       <div
         id="Canvas"
         ref={canvasRef}
         className={`
+          h-full
           flex
           z-0
           relative
-          min-md:h-full
-          max-sm:w-full
-          h-full
           duration-300 ease-in-ease-out
           ml-auto
           items-center 
@@ -209,7 +217,11 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
       >
         <PreviewButton />
         <UndoRedoButton />
-        <ShareButton wallpaperRef={wallpaperRef} getBackgroundImage={getBackgroundImage} backgroundLayerRef={backgroundLayerRef} />
+        <ShareButton
+          wallpaperRef={wallpaperRef}
+          getBackgroundImage={getBackgroundImage}
+          backgroundLayerRef={backgroundLayerRef}
+        />
         <span
           ref={previewRef}
           className="transition-all duration-150 ease-linear"

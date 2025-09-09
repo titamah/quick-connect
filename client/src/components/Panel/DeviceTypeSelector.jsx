@@ -269,16 +269,14 @@ function DeviceTypeSelector() {
   ];
   return (
     <div
-      className={`h-full flex flex-col overflow-hidden ${
-        isMobile ? "text-sm" : "text-sm"
-      }`}
+      className={`h-full w-full flex flex-col overflow-hidden text-sm`}
     >
       <div
         className={`flex-shrink-0 bg-black/5 dark:bg-black/15 ${
           isMobile ? "pb-2.5 pt-5 px-3 mb-1 rounded-t-2xl" : "p-3.5 mb-3"
         }`}
       >
-        <h3 className={`${isMobile ? "mb-1" : "mb-2"}`}>Current Device</h3>
+        <h3 className={`${isMobile ? "pb-1.5 mb-1" : "mb-2"}`}>Current Device</h3>
         <div
           className={`flex text-[var(--text-secondary)] justify-between w-full h-fit gap-x-3 whitespace-nowrap `}
         >
@@ -290,7 +288,7 @@ function DeviceTypeSelector() {
       </div>
       <div
         className={` flex-shrink-0 flex justify-between items-center ${
-          isMobile ? "py-0.5 px-3 mb-1 hidden" : "px-3.5"
+          isMobile ? "mb-1 hidden" : "px-3.5"
         }`}
       >
         <h2>Select Device</h2>

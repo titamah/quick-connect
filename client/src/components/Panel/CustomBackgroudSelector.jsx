@@ -56,7 +56,7 @@ function CustomBackgroundSelector({ panelSize }) {
     <div
       role="tabpanel"
       aria-labelledby="background-selector-panel"
-      className="w-full"
+      className={` w-full${isMobile ? "rounded-t-2xl h-full" : ""} flex-1 overflow-y-scroll min-h-0`}
     >
       <div className={`border-b border-[var(--border-color)]/25 p-3.5 ${isMobile ? "mt-1" : ""}`}>
         <h2 className={`${isMobile ? "hidden" : "mb-5"}`}>Set Background</h2>
