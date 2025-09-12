@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
-import { HexColorPicker } from 'react-colorful';
+import { HexColorPicker, HexAlphaColorPicker } from 'react-colorful';
 import { createPortal } from 'react-dom';
 import chroma from 'chroma-js';
 import { useDevice } from '../contexts/DeviceContext';
+import { useThrottledCallback } from '../hooks/useDebounce';
 
 const ColorPicker = forwardRef(({
   value,
@@ -19,15 +20,24 @@ const ColorPicker = forwardRef(({
   children,
   customPosition = null // { x, y } for custom positioning
 }, ref) => {
-  const { takeSnapshot } = useDevice();
+  const { takeSnapshot, isMobile } = useDevice();
   const [isOpen, setIsOpen] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const [needsSnapshot, setNeedsSnapshot] = useState(false);
   const [triggerRect, setTriggerRect] = useState(null);
   
+  // Local state for hex input typing
+  const [localHex, setLocalHex] = useState(value.slice(0, 7).toUpperCase());
+  const [localAlpha, setLocalAlpha] = useState(
+    Math.round(chroma(value).alpha() * 100)
+  );
+  
   const triggerRef = useRef(null);
   const popoverRef = useRef(null);
   const timeoutRef = useRef(null);
+  const hexInputRef = useRef(null);
+  const alphaInputRef = useRef(null);
+  const isPressing = useRef(false);
   
   // Parse color value
   const colorObj = chroma.valid(value) ? chroma(value) : chroma('#ffffff');
@@ -36,7 +46,14 @@ const ColorPicker = forwardRef(({
 
   useEffect(() => {
     setLocalValue(value);
+    setLocalHex(value.slice(0, 7).toUpperCase());
+    setLocalAlpha(Math.round(chroma(value).alpha() * 100));
   }, [value]);
+
+  // Throttled onChange to prevent color picker stuttering
+  const throttledOnChange = useThrottledCallback((newColor) => {
+    onChange?.(newColor);
+  }, 16); // 60fps
 
   // Handle color change with snapshot system (matching ColorSelector pattern)
   const handleColorChange = useCallback((newColor) => {
@@ -47,22 +64,61 @@ const ColorPicker = forwardRef(({
       setNeedsSnapshot(false);
     }
     
-    const finalColor = hasAlpha ? chroma(newColor).alpha(alphaValue / 100).css() : newColor;
-    setLocalValue(finalColor);
-    onChange?.(finalColor);
+    setLocalValue(newColor);
+    setLocalHex(newColor.slice(0, 7).toUpperCase());
+    if (hasAlpha) {
+      setLocalAlpha(Math.round(chroma(newColor).alpha() * 100));
+    }
+    
+    // Use throttled onChange to prevent stuttering
+    throttledOnChange(newColor);
     
     clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       setNeedsSnapshot(true);
     }, 500);
-  }, [needsSnapshot, takeSnapshot, hasAlpha, alphaValue, onChange]);
+  }, [needsSnapshot, takeSnapshot, hasAlpha, throttledOnChange]);
 
-  // Handle alpha change
-  const handleAlphaChange = useCallback((newAlpha) => {
-    const finalColor = chroma(hexValue).alpha(newAlpha / 100).css();
-    setLocalValue(finalColor);
-    onChange?.(finalColor);
-  }, [hexValue, onChange]);
+
+  // Hex input handlers
+  const handleHexBlur = useCallback(() => {
+    let hex = localHex.slice(0, 7).toUpperCase();
+    if (!chroma.valid(hex) || hex.length !== 7) {
+      setLocalHex("#FFFFFF");
+      handleColorChange("#FFFFFF");
+    } else {
+      setLocalHex(hex);
+      handleColorChange(hex);
+    }
+  }, [localHex, handleColorChange]);
+
+  const handleHexEnter = useCallback((e) => {
+    if (e.key === "Enter") {
+      handleHexBlur();
+    }
+  }, [handleHexBlur]);
+
+  // Alpha input handlers
+  const handleAlphaBlur = useCallback(() => {
+    const finalColor = chroma(localHex).alpha(localAlpha / 100).css();
+    handleColorChange(finalColor);
+  }, [localHex, localAlpha, handleColorChange]);
+
+  const handleAlphaKeyDown = useCallback((e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      alphaInputRef.current?.blur();
+    } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+      setLocalAlpha(e.target.value);
+      const finalColor = chroma(localHex).alpha(e.target.value / 100).css();
+      handleColorChange(finalColor);
+      isPressing.current = true;
+    }
+  }, [localHex, handleColorChange]);
+
+  const handleAlphaKeyUp = useCallback(() => {
+    isPressing.current = false;
+  }, []);
 
   // Open/close handlers
   const handleOpen = useCallback(() => {
@@ -113,8 +169,8 @@ const ColorPicker = forwardRef(({
 
   // Calculate popover position
   const getPopoverStyle = () => {
-    const popoverHeight = 280; // Approximate height
-    const popoverWidth = 200;
+    const popoverHeight = 325; // Approximate height
+    const popoverWidth = 250;
     
     let top, left;
     
@@ -163,7 +219,9 @@ const ColorPicker = forwardRef(({
       position: 'fixed',
       top: `${top}px`,
       left: `${left}px`,
-      zIndex: 1000
+      zIndex: 1000,
+      width: `${popoverWidth}px`,
+      height: `${popoverHeight}px`,
     };
   };
 
@@ -178,49 +236,65 @@ const ColorPicker = forwardRef(({
       onTouchEnd={handleTouchEnd}
     >
       {/* Hex Input */}
-      <input
-        value={hexValue}
-        onChange={(e) => {
-          let newValue = e.target.value.toUpperCase();
-          if (newValue && !newValue.startsWith('#')) {
-            newValue = '#' + newValue;
-          }
-          newValue = newValue.replace(/[^#0-9A-F]/gi, '');
-          if (chroma.valid(newValue) && newValue.length === 7) {
-            handleColorChange(newValue);
-          }
-        }}
-        className="p-1 border border-black/10 dark:border-white/10 text-neutral-600 dark:text-neutral-200/75 text-sm rounded-sm px-[15px] w-full"
-        placeholder="#ffffff"
-        maxLength={7}
-      />
+      <div className="flex items-center border bg-black/5 dark:bg-black/15 px-1 text-[var(--text-secondary)] min-w-0 w-full h-[24px] rounded border-[var(--border-color)]/75">
+        <input
+          ref={hexInputRef}
+          type="text"
+          value={localHex}
+          onChange={(e) => {
+            setLocalHex(e.target.value);
+          }}
+          onBlur={handleHexBlur}
+          onKeyDown={handleHexEnter}
+          className={`flex-1 min-w-0 ${isMobile ? "px-1 py-1" : "px-2 py-2"} bg-transparent outline-none text-xs`}
+        />
+        {hasAlpha && (
+          <>
+            <div className="w-px h-5 bg-[var(--border-color)]" />
+            <div className="flex items-center px-2 font-light text-xs">
+              <input
+                ref={alphaInputRef}
+                type="number"
+                min="0"
+                max="100"
+                value={localAlpha}
+                onChange={(e) => {
+                  setLocalAlpha(e.target.value);
+                }}
+                onClick={() => {
+                  isPressing.current = false;
+                }}
+                onBlur={handleAlphaBlur}
+                onKeyDown={handleAlphaKeyDown}
+                onKeyUp={handleAlphaKeyUp}
+                className="w-5 outline-none"
+              />
+              <span className="ml-1 ">%</span>
+            </div>
+          </>
+        )}
+      </div>
       
       {/* Color Picker */}
-      <HexColorPicker
-        color={hexValue}
-        onChange={handleColorChange}
-        className="!w-full"
-      />
-      
-      {/* Alpha Slider */}
-      {hasAlpha && (
-        <div className="space-y-2">
-          <label className="text-sm text-[var(--text-secondary)]">Opacity: {alphaValue}%</label>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={alphaValue}
-            onChange={(e) => handleAlphaChange(parseInt(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-          />
-        </div>
+      {hasAlpha ? (
+        <HexAlphaColorPicker
+          color={localValue}
+          onChange={handleColorChange}
+          className="!w-full"
+        />
+      ) : (
+        <HexColorPicker
+          color={hexValue}
+          onChange={handleColorChange}
+          className="!w-full"
+        />
       )}
+      
       
       {/* Preset Colors */}
       {presets.length > 0 && (
         <div className="space-y-2">
-          <label className="text-sm text-[var(--text-secondary)]">Presets</label>
+          <h4 className="text-sm text-[var(--text-secondary)]">Active Colors</h4>
           <div className="flex flex-wrap gap-2">
             {presets.map((preset, index) => (
               <button

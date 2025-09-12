@@ -78,7 +78,7 @@ const RemixPage = () => {
         grain: device_state.bg.grain || false,
       },
       qrConfig: {
-        url: "www.qrki.com",
+        url: "www.qrki.xyz",
         scale: device_state.qr.scale || 0.5,
         custom: {
           primaryColor: device_state.qr.primaryColor,
