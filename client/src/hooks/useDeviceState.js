@@ -28,7 +28,24 @@ const deepMerge = (target, source) => {
   }
   return result;
 };
+const isMobile = window.innerWidth <= 768;
+const isHighDPI = window.devicePixelRatio > 2;
+const isLowPowerDevice = navigator.hardwareConcurrency <= 4;
+const PERFORMANCE_MODE = isMobile || isHighDPI || isLowPowerDevice;
+
+// Log performance mode for debugging
+if (PERFORMANCE_MODE) {
+  console.log('🚀 Performance Mode Enabled:', {
+    mobile: isMobile,
+    highDPI: isHighDPI,
+    lowPower: isLowPowerDevice,
+    cores: navigator.hardwareConcurrency,
+    pixelRatio: window.devicePixelRatio
+  });
+}
+
 export const useDeviceState = () => {
+
   const [deviceInfo, setDeviceInfo] = useState({
     name: "Sample iPhone Wallpaper",
     type: "iPhone 15 Pro Max",
@@ -56,7 +73,7 @@ export const useDeviceState = () => {
     grain: false,
   });
   const [qrConfig, setQRConfig] = useState({
-    url: "www.qrki.com",
+    url: "www.qrki.xyz",
     scale: 0.5,
     custom: {
       primaryColor: "#000000",
@@ -234,10 +251,19 @@ export const useDeviceState = () => {
     console.log("🔧 updateDeviceInfo:", updates);
     setDeviceInfo((prev) => deepMerge(prev, updates));
   };
+
   const updateBackground = (updates) => {
     console.log("🔧 updateBackground:", updates);
+    
+    // In performance mode, simplify certain backgrounds
+    if (PERFORMANCE_MODE && updates.style === 'gradient') {
+      console.log("🚀 Performance mode: Simplifying gradient");
+      // Could potentially fallback to solid color, but let's keep gradients for now
+    }
+    
     setBackground((prev) => deepMerge(prev, updates));
   };
+
   const updateQRConfig = useCallback((updates) => {
     console.log("🔧 updateQRConfig:", updates);
     if (updates.scale !== undefined) {
@@ -260,14 +286,27 @@ export const useDeviceState = () => {
     }
     setQRConfig((prev) => deepMerge(prev, updates));
   }, []);
+
   const updateQRPositionPercentages = useCallback((percentages) => {
     console.log("🔧 updateQRPositionPercentages:", percentages);
     const validatedPercentages = validatePosition(percentages);
-    setQRConfig((prev) =>
-      deepMerge(prev, {
-        positionPercentages: validatedPercentages,
-      })
-    );
+    
+    if (PERFORMANCE_MODE) {
+      clearTimeout(updateQRPositionPercentages._timeout);
+      updateQRPositionPercentages._timeout = setTimeout(() => {
+        setQRConfig((prev) =>
+          deepMerge(prev, {
+            positionPercentages: validatedPercentages,
+          })
+        );
+      }, 50);
+    } else {
+      setQRConfig((prev) =>
+        deepMerge(prev, {
+          positionPercentages: validatedPercentages,
+        })
+      );
+    }
   }, []);
   const updateImagePalette = (colors) => {
     console.log("🔧 updateImagePalette:", colors.length, "colors");
