@@ -77,24 +77,21 @@ const Wallpaper = forwardRef(
           "data:image/svg+xml;base64," +
           btoa(unescape(encodeURIComponent(svgData)));
 
-        // In your QR setup effect, after creating the sprite:
         Assets.load(dataURL).then((texture) => {
-          // 🧹 CLEAN UP: Remove all old children
+          let qrSprite = qrContainer.getChildByName("qrSprite");
           qrContainer.removeChildren();
+          qrContainer.removeAllListeners();
 
-          // Calculate sizes
           const qrSize = Math.min(deviceInfo.size.x, deviceInfo.size.y);
-          const borderSize = qrSize * (qrConfig.custom.borderSizeRatio / 100); // Convert ratio to pixels
+          const borderSize = qrSize * (qrConfig.custom.borderSizeRatio / 100);
           const cornerRadius =
             (qrSize + borderSize) * (qrConfig.custom.cornerRadiusRatio / 100);
 
-          // 1. CREATE BORDER FIRST (so it's behind QR)
           const borderGraphics = new Graphics();
           if (borderSize > 0) {
-            // Only draw if border exists
             const totalSize = qrSize + borderSize;
             borderGraphics.roundRect(
-              -totalSize / 2, // Center the border
+              -totalSize / 2,
               -totalSize / 2,
               totalSize,
               totalSize,
@@ -102,27 +99,93 @@ const Wallpaper = forwardRef(
             );
             borderGraphics.fill(qrConfig.custom.borderColor);
           }
-
-          // 2. CREATE QR SPRITE
-          let qrSprite = qrContainer.getChildByName('qrSprite');
           if (!qrSprite) {
             qrSprite = new Sprite(texture);
-            qrSprite.name = 'qrSprite';
+            qrSprite.name = "qrSprite";
             qrSprite.anchor.set(0.5);
           } else {
-            // Just swap the texture! 🔥
             qrSprite.texture = texture;
           }
 
-          // 3. ADD TO CONTAINER (border behind, QR in front)
           qrContainer.addChild(borderGraphics);
           qrContainer.addChild(qrSprite);
 
-          // Apply transforms to whole container
           qrContainer.scale.set(qrConfig.scale);
           qrContainer.x = deviceInfo.size.x * qrConfig.positionPercentages.x;
           qrContainer.y = deviceInfo.size.y * qrConfig.positionPercentages.y;
           qrContainer.rotation = (qrConfig.rotation * Math.PI) / 180;
+
+          qrContainer.eventMode = "dynamic";
+          qrContainer.cursor = "grab";
+
+          let isDragging = false;
+          let dragStarted = false;
+          let dragOffset = { x: 0, y: 0 };
+
+          const timestamp = Date.now();
+          console.log(`Creating event listeners at ${timestamp}`);
+
+          qrContainer.on("pointerdown", (event) => {
+            if (!locked) return;
+
+            isDragging = true;
+            qrContainer.cursor = "grabbing";
+
+            const containerBounds = qrContainer.getBounds();
+            dragOffset.x = event.global.x - qrContainer.x;
+            dragOffset.y = event.global.y - qrContainer.y;
+
+            const currentPosition = {
+              x: qrContainer.x / deviceInfo.size.x,
+              y: qrContainer.y / deviceInfo.size.y,
+            };
+            
+            updateQRPositionPercentages(currentPosition);
+              
+              // Then take snapshot on next tick
+              setTimeout(() => {
+                takeSnapshot("Move QR Code");
+              }, 0);          
+          });
+
+          qrContainer.on("pointermove", (event) => {
+            if (!isDragging) return;
+
+            const qrHalfSize = (qrSize * qrConfig.scale) / 2;
+
+            const newX = Math.max(
+              qrHalfSize,
+              Math.min(
+                deviceInfo.size.x - qrHalfSize,
+                event.global.x - dragOffset.x
+              )
+            );
+            const newY = Math.max(
+              qrHalfSize,
+              Math.min(
+                deviceInfo.size.y - qrHalfSize,
+                event.global.y - dragOffset.y
+              )
+            );
+
+            qrContainer.x = newX;
+            qrContainer.y = newY;
+
+            updateQRPositionPercentages({
+              x: newX / deviceInfo.size.x,
+              y: newY / deviceInfo.size.y,
+            });
+          });
+
+          qrContainer.on("pointerup", () => {
+            isDragging = false;
+            qrContainer.cursor = "grab";
+          });
+
+          qrContainer.on("pointerupoutside", () => {
+            isDragging = false;
+            qrContainer.cursor = "grab";
+          });
         });
       }
     }, [
@@ -154,6 +217,7 @@ const Wallpaper = forwardRef(
         qrContainerRef.current.rotation = (qrConfig.rotation * Math.PI) / 180;
       }
     }, [qrConfig.rotation]);
+
 
     return (
       <>
