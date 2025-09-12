@@ -10,6 +10,7 @@ import LoadingSpinner from "../LoadingSpinner";
 
 // Lazy load heavy components
 const Wallpaper = lazy(() => import("../Wallpaper/index"));
+const WallpaperPixi = lazy(() => import("../Wallpaper/pixi"));
 const ShareButton = lazy(() => import("./ShareButton"));
 
 // Import skeleton
@@ -339,7 +340,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
               </div>
             ) : (
               <Suspense fallback={<WallpaperSkeleton previewSize={previewSize} />}>
-                <Wallpaper
+                <WallpaperPixi
                   ref={wallpaperRef}
                   panelSize={panelSize}
                   isOpen={isOpen}

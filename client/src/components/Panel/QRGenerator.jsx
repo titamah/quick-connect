@@ -292,8 +292,8 @@ function QRGenerator(panelSize) {
         <div className="flex items-center pb-1.5 px-3.5">
           <h4> Width</h4>
           <Slider
-            min="-1"
-            max="200"
+            min="0"
+            max="100"
             step="0.5"
             value={qrConfig.custom.borderSizeRatio}
             onChange={(e) => {
@@ -306,7 +306,7 @@ function QRGenerator(panelSize) {
           <h4> Radius</h4>
           <Slider
             min="0"
-            max="100"
+            max="50"
             step="1"
             value={qrConfig.custom.cornerRadiusRatio}
             onChange={(e) => {
