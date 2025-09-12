@@ -4,7 +4,7 @@
   box-shadow: inherit !important;
   height: 180.5px !important;
 }
-.react-colorful__hue {
+.react-colorful__hue, .react-colorful__alpha {
   border-radius: 4px !important;
   margin-top: 7.5px !important;
   height: 8px !important;
@@ -44,6 +44,16 @@
   .react-colorful__saturation {
     height: 125px!important;
     flex-grow: 0!important;
+  }
+  
+  /* Disable hover states on mobile for better performance */
+  .react-colorful__pointer:hover {
+    height: 12px !important;
+    width: 12px !important;
+  }
+  
+  .hover:hover {
+    opacity: 0;
   }
 }
 
