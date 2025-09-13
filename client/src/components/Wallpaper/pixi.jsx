@@ -3,6 +3,7 @@ import { Application, Graphics, Container, Sprite, Assets } from "pixi.js";
 import { useDevice } from "../../contexts/DeviceContext";
 import { useStageCalculations } from "../../hooks/useStageCalculations";
 import { QRCodeSVG } from "qrcode.react";
+import { Transformer } from "./QRTransformer"; // Import our custom transformer
 
 const Wallpaper = forwardRef(
   (
@@ -23,6 +24,7 @@ const Wallpaper = forwardRef(
     const qrRef = useRef(null);
     const stageScale = useStageCalculations(deviceInfo.size, panelSize, isOpen);
     const qrContainerRef = useRef(null);
+    const transformerRef = useRef(null);
 
     // ✅ FIX: Use refs to store current values for event handlers
     const currentConfigRef = useRef(qrConfig);
@@ -43,62 +45,73 @@ const Wallpaper = forwardRef(
     }, [locked]);
 
     // ✅ FIX: Create stable callback functions that use current refs
-    const handlePointerDown = useCallback((event) => {
-      const qrContainer = qrContainerRef.current;
-      if (!qrContainer || !currentLockedRef.current) return;
+    const handlePointerDown = useCallback(
+      (event) => {
+        const qrContainer = qrContainerRef.current;
+        if (!qrContainer || !currentLockedRef.current) return;
 
-      console.log("📸 Taking snapshot with current position:", {
-        x: currentConfigRef.current.positionPercentages.x,
-        y: currentConfigRef.current.positionPercentages.y,
-      });
+        console.log("📸 Taking snapshot with current position:", {
+          x: currentConfigRef.current.positionPercentages.x,
+          y: currentConfigRef.current.positionPercentages.y,
+        });
 
-      // Take snapshot FIRST with current state
-      takeSnapshot("Move QR Code");
+        // Take snapshot FIRST with current state
+        takeSnapshot("Move QR Code");
 
-      qrContainer.cursor = "grabbing";
-      qrContainer.isDragging = true;
+        qrContainer.cursor = "grabbing";
+        qrContainer.isDragging = true;
 
-      // Store drag offset
-      qrContainer.dragOffset = {
-        x: event.global.x - qrContainer.x,
-        y: event.global.y - qrContainer.y,
-      };
-    }, [takeSnapshot]);
+        // Store drag offset
+        qrContainer.dragOffset = {
+          x: event.global.x - qrContainer.x,
+          y: event.global.y - qrContainer.y,
+        };
+      },
+      [takeSnapshot]
+    );
 
-    const handlePointerMove = useCallback((event) => {
-      const qrContainer = qrContainerRef.current;
-      if (!qrContainer || !qrContainer.isDragging) return;
+    const handlePointerMove = useCallback(
+      (event) => {
+        const qrContainer = qrContainerRef.current;
+        if (!qrContainer || !qrContainer.isDragging) return;
 
-      const currentConfig = currentConfigRef.current;
-      const currentDevice = currentDeviceRef.current;
-      
-      const qrSize = Math.min(currentDevice.size.x, currentDevice.size.y);
-      const qrHalfSize = (qrSize * currentConfig.scale) / 2;
+        const currentConfig = currentConfigRef.current;
+        const currentDevice = currentDeviceRef.current;
 
-      const newX = Math.max(
-        qrHalfSize,
-        Math.min(
-          currentDevice.size.x - qrHalfSize,
-          event.global.x - qrContainer.dragOffset.x
-        )
-      );
-      const newY = Math.max(
-        qrHalfSize,
-        Math.min(
-          currentDevice.size.y - qrHalfSize,
-          event.global.y - qrContainer.dragOffset.y
-        )
-      );
+        const qrSize = Math.min(currentDevice.size.x, currentDevice.size.y);
+        const qrHalfSize = (qrSize * currentConfig.scale) / 2;
 
-      qrContainer.x = newX;
-      qrContainer.y = newY;
+        const newX = Math.max(
+          qrHalfSize,
+          Math.min(
+            currentDevice.size.x - qrHalfSize,
+            event.global.x - qrContainer.dragOffset.x
+          )
+        );
+        const newY = Math.max(
+          qrHalfSize,
+          Math.min(
+            currentDevice.size.y - qrHalfSize,
+            event.global.y - qrContainer.dragOffset.y
+          )
+        );
 
-      // Update position immediately
-      updateQRPositionPercentages({
-        x: newX / currentDevice.size.x,
-        y: newY / currentDevice.size.y,
-      });
-    }, [updateQRPositionPercentages]);
+        qrContainer.x = newX;
+        qrContainer.y = newY;
+
+        // ✅ Update transformer position to follow the QR
+        if (transformerRef.current && transformerRef.current.visible) {
+          transformerRef.current.updatePosition();
+        }
+
+        // Update position immediately
+        updateQRPositionPercentages({
+          x: newX / currentDevice.size.x,
+          y: newY / currentDevice.size.y,
+        });
+      },
+      [updateQRPositionPercentages]
+    );
 
     const handlePointerUp = useCallback(() => {
       const qrContainer = qrContainerRef.current;
@@ -108,23 +121,16 @@ const Wallpaper = forwardRef(
       qrContainer.cursor = "grab";
     }, []);
 
-    // ✅ FIX: Separate function to setup/update event listeners
-    const setupEventListeners = useCallback((qrContainer) => {
-      // Remove existing listeners
-      qrContainer.removeAllListeners();
+    const handleStageClick = useCallback((event) => {
+      if (event.target === appRef.current?.stage) {
+        console.log("🖱️ Stage clicked - deselecting transformer");
+        if (transformerRef.current) {
+          transformerRef.current.detach();
+        }
+      }
+    }, []);
 
-      qrContainer.eventMode = "dynamic";
-      qrContainer.cursor = "grab";
-
-      // Add fresh listeners that use current callbacks
-      qrContainer.on("pointerdown", handlePointerDown);
-      qrContainer.on("pointermove", handlePointerMove);
-      qrContainer.on("pointerup", handlePointerUp);
-      qrContainer.on("pointerupoutside", handlePointerUp);
-
-      console.log("🎯 Event listeners setup with fresh callbacks");
-    }, [handlePointerDown, handlePointerMove, handlePointerUp]);
-
+    // Initialize Pixi Application
     useEffect(() => {
       if (appRef.current) return;
 
@@ -134,6 +140,7 @@ const Wallpaper = forwardRef(
           width: deviceInfo.size.x + 2,
           height: deviceInfo.size.y + 2,
           backgroundColor: 0x000000,
+          antialias: true,
         });
 
         if (containerRef.current) {
@@ -142,6 +149,40 @@ const Wallpaper = forwardRef(
         }
 
         appRef.current = app;
+        
+        // ✅ FIX: Create the transformer instance
+        const transformer = new Transformer();
+        app.stage.addChild(transformer);
+        transformerRef.current = transformer;
+
+        // Listen for transformer events
+        transformer.on('transformstart', () => {
+          takeSnapshot("Transform QR Code");
+        });
+
+        transformer.on('transform', () => {
+          const qrContainer = qrContainerRef.current;
+          if (!qrContainer) return;
+
+          // Update QR config during transform
+          const newScale = Math.max(0.1, Math.min(1.0, qrContainer.scale.x));
+          const newRotation = (qrContainer.rotation * 180) / Math.PI;
+          const newPosition = {
+            x: qrContainer.x / deviceInfo.size.x,
+            y: qrContainer.y / deviceInfo.size.y,
+          };
+
+          updateQRConfig({ scale: newScale, rotation: newRotation });
+          updateQRPositionPercentages(newPosition);
+        });
+
+        transformer.on('transformend', () => {
+          console.log("Transform ended");
+        });
+
+        // Handle stage clicks for deselection
+        app.stage.eventMode = 'static';
+        app.stage.on('pointerdown', handleStageClick);
       };
 
       initApp();
@@ -155,8 +196,9 @@ const Wallpaper = forwardRef(
           containerRef.current.innerHTML = "";
         }
       };
-    }, []);
+    }, [deviceInfo.size]); // ✅ FIX: Revert to original dependencies only
 
+    // Update QR Code
     useEffect(() => {
       if (!appRef.current || !qrRef.current) return;
 
@@ -201,8 +243,9 @@ const Wallpaper = forwardRef(
 
           // Create QR sprite
           const qrSprite = new Sprite(texture);
-          qrSprite.name = "qrSprite";
           qrSprite.anchor.set(0.5);
+          qrSprite.width = qrSize;
+          qrSprite.height = qrSize;
 
           qrContainer.addChild(borderGraphics);
           qrContainer.addChild(qrSprite);
@@ -213,8 +256,29 @@ const Wallpaper = forwardRef(
           qrContainer.y = deviceInfo.size.y * qrConfig.positionPercentages.y;
           qrContainer.rotation = (qrConfig.rotation * Math.PI) / 180;
 
-          // ✅ FIX: Setup event listeners with current callbacks
-          setupEventListeners(qrContainer);
+          // Make QR container interactive
+          qrContainer.eventMode = 'static';
+          qrContainer.cursor = 'pointer';
+          
+          // Handle QR container clicks
+          qrContainer.on('pointerdown', (event) => {
+            event.stopPropagation();
+            console.log("🎯 QR selected");
+            
+            if (transformerRef.current) {
+              transformerRef.current.attachTo(qrContainer);
+            }
+            
+            takeSnapshot("Select QR Code");
+          });
+
+          // Setup drag functionality when not using transformer
+          if (locked) {
+            qrContainer.on('pointerdown', handlePointerDown);
+            qrContainer.on('pointermove', handlePointerMove);
+            qrContainer.on('pointerup', handlePointerUp);
+            qrContainer.on('pointerupoutside', handlePointerUp);
+          }
         });
       }
     }, [
@@ -225,36 +289,15 @@ const Wallpaper = forwardRef(
       qrConfig.custom.cornerRadiusRatio,
       qrConfig.custom.borderSizeRatio,
       qrConfig.scale,
-      setupEventListeners, // ✅ Include setupEventListeners in dependencies
+      qrConfig.positionPercentages,
+      qrConfig.rotation,
+      deviceInfo.size,
+      locked,
+      handlePointerDown,
+      handlePointerMove,
+      handlePointerUp,
+      takeSnapshot,
     ]);
-
-    // ✅ FIX: Update event listeners when callbacks change
-    useEffect(() => {
-      if (qrContainerRef.current) {
-        setupEventListeners(qrContainerRef.current);
-      }
-    }, [setupEventListeners]);
-
-    useEffect(() => {
-      if (qrContainerRef.current) {
-        qrContainerRef.current.x =
-          deviceInfo.size.x * qrConfig.positionPercentages.x;
-        qrContainerRef.current.y =
-          deviceInfo.size.y * qrConfig.positionPercentages.y;
-      }
-    }, [qrConfig.positionPercentages, deviceInfo.size]);
-
-    useEffect(() => {
-      if (qrContainerRef.current) {
-        qrContainerRef.current.scale = qrConfig.scale;
-      }
-    }, [qrConfig.scale]);
-
-    useEffect(() => {
-      if (qrContainerRef.current) {
-        qrContainerRef.current.rotation = (qrConfig.rotation * Math.PI) / 180;
-      }
-    }, [qrConfig.rotation]);
 
     return (
       <>

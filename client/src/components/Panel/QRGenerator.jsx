@@ -95,21 +95,19 @@ function QRGenerator(panelSize) {
   }
 
   const handleBorderSizeChange = (e) => {
-  const newValue = parseFloat(e.target.value);
   updateQRConfig({
     custom: {
       ...currentQRCustomRef.current,
-      borderSizeRatio: newValue,
+      borderSizeRatio: e,
     },
   });
 };
 
 const handleCornerRadiusChange = (e) => {
-  const newValue = parseFloat(e.target.value);
   updateQRConfig({
     custom: {
       ...currentQRCustomRef.current,
-      cornerRadiusRatio: newValue,
+      cornerRadiusRatio: e,
     },
   });
 };
