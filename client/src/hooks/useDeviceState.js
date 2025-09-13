@@ -254,13 +254,6 @@ export const useDeviceState = () => {
 
   const updateBackground = (updates) => {
     console.log("🔧 updateBackground:", updates);
-    
-    // In performance mode, simplify certain backgrounds
-    if (PERFORMANCE_MODE && updates.style === 'gradient') {
-      console.log("🚀 Performance mode: Simplifying gradient");
-      // Could potentially fallback to solid color, but let's keep gradients for now
-    }
-    
     setBackground((prev) => deepMerge(prev, updates));
   };
 
@@ -291,22 +284,11 @@ export const useDeviceState = () => {
     console.log("🔧 updateQRPositionPercentages:", percentages);
     const validatedPercentages = validatePosition(percentages);
     
-    if (PERFORMANCE_MODE) {
-      clearTimeout(updateQRPositionPercentages._timeout);
-      updateQRPositionPercentages._timeout = setTimeout(() => {
-        setQRConfig((prev) =>
-          deepMerge(prev, {
-            positionPercentages: validatedPercentages,
-          })
-        );
-      }, 50);
-    } else {
-      setQRConfig((prev) =>
-        deepMerge(prev, {
-          positionPercentages: validatedPercentages,
-        })
-      );
-    }
+    setQRConfig((prev) =>
+      deepMerge(prev, {
+        positionPercentages: validatedPercentages,
+      })
+    );
   }, []);
   const updateImagePalette = (colors) => {
     console.log("🔧 updateImagePalette:", colors.length, "colors");

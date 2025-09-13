@@ -54,7 +54,7 @@ const Wallpaper = forwardRef(
           containerRef.current.innerHTML = "";
         }
       };
-    }, []);
+    }, [deviceInfo.size]);
 
     useEffect(() => {
       if (!appRef.current || !qrRef.current) return;
@@ -195,6 +195,8 @@ const Wallpaper = forwardRef(
       qrConfig.custom.borderColor,
       qrConfig.custom.cornerRadiusRatio,
       qrConfig.custom.borderSizeRatio,
+      qrConfig.scale,
+      deviceInfo.size,
     ]);
 
     useEffect(() => {
