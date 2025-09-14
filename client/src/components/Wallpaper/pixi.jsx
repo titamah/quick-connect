@@ -256,6 +256,14 @@ const Wallpaper = forwardRef(
           qrContainer.y = deviceInfo.size.y * qrConfig.positionPercentages.y;
           qrContainer.rotation = (qrConfig.rotation * Math.PI) / 180;
 
+          // ✅ Update transformer immediately after QR container is updated
+          if (transformerRef.current && transformerRef.current.visible) {
+            // Use requestAnimationFrame to ensure the QR container is fully rendered
+            requestAnimationFrame(() => {
+              transformerRef.current.updateBorder();
+            });
+          }
+
           // Make QR container interactive
           qrContainer.eventMode = 'static';
           qrContainer.cursor = 'pointer';
@@ -266,7 +274,7 @@ const Wallpaper = forwardRef(
             console.log("🎯 QR selected");
             
             if (transformerRef.current) {
-              transformerRef.current.attachTo(qrContainer);
+              transformerRef.current.attachTo(qrContainer, deviceInfo, qrConfig);
             }
             
             takeSnapshot("Select QR Code");
@@ -297,6 +305,24 @@ const Wallpaper = forwardRef(
       handlePointerMove,
       handlePointerUp,
       takeSnapshot,
+    ]);
+
+    // ✅ Add useEffect to update transformer when QR config changes
+    useEffect(() => {
+      if (transformerRef.current && transformerRef.current.visible && qrContainerRef.current) {
+        console.log("🔄 QR config changed, updating transformer");
+        transformerRef.current.updateBorder();
+      }
+    }, [
+      qrConfig.scale,
+      qrConfig.rotation, 
+      qrConfig.positionPercentages.x,
+      qrConfig.positionPercentages.y,
+      qrConfig.custom.primaryColor,
+      qrConfig.custom.secondaryColor,
+      qrConfig.custom.borderColor,
+      qrConfig.custom.cornerRadiusRatio,
+      qrConfig.custom.borderSizeRatio
     ]);
 
     return (

@@ -5,6 +5,8 @@ export class Transformer extends Container {
     super();
     
     this.target = null;
+    this.qrSize = 0; // Store the base QR size
+    this.borderSize = 0; // Store the border size
     this.selectionBorder = new Graphics();
     this.addChild(this.selectionBorder);
     
@@ -16,10 +18,15 @@ export class Transformer extends Container {
     this.visible = false;
   }
   
-  attachTo(target) {
+  attachTo(target, deviceInfo, qrConfig) {
     console.log("🎯 Attaching to target:", target);
     this.target = target;
     this.visible = true;
+    
+    // ✅ Get the actual QR size and border size (same calculation as in Pixi.jsx)
+    this.qrSize = Math.min(deviceInfo.size.x, deviceInfo.size.y);
+    this.borderSize = this.qrSize * (qrConfig.custom.borderSizeRatio / 100);
+    
     this.updateBorder();
     
     this.emit('transformstart');
@@ -43,25 +50,28 @@ export class Transformer extends Container {
   updateBorder() {
     if (!this.target) return;
     
-    const bounds = this.target.getBounds();
-    console.log("🎯 Target bounds:", bounds);
-    
     // ✅ Position the transformer to follow the target
     this.x = this.target.x;
     this.y = this.target.y;
     
-    // ✅ Clear and redraw with correct size
+    // ✅ Copy the target's rotation AND scale
+    this.rotation = this.target.rotation;
+    this.scale.set(this.target.scale.x, this.target.scale.y);
+    
+    // ✅ Use the total size (QR + border) just like in Pixi.jsx
+    const totalSize = this.qrSize + this.borderSize;
+    
     this.selectionBorder.clear();
     this.selectionBorder
       .rect(
-        -bounds.width / 2 - 10,  // Center the rectangle
-        -bounds.height / 2 - 10, 
-        bounds.width + 20,       // Make it slightly bigger than the QR
-        bounds.height + 20
+        -totalSize / 2 - 20,   // Use total size (QR + border)
+        -totalSize / 2 - 20,   // Same for height
+        totalSize + 40,        // Add padding around the total size
+        totalSize + 40
       )
       .stroke({ color: this.lineColor, width: 5 });
     
-    console.log("📐 Border updated - size:", bounds.width, bounds.height);
+    console.log("📐 Border updated - QR size:", this.qrSize, "border size:", this.borderSize, "total size:", totalSize);
   }
   
   // ✅ Add a method to update position when target moves
@@ -69,6 +79,8 @@ export class Transformer extends Container {
     if (this.target && this.visible) {
       this.x = this.target.x;
       this.y = this.target.y;
+      this.rotation = this.target.rotation;
+      this.scale.set(this.target.scale.x, this.target.scale.y);
     }
   }
   
