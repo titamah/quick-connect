@@ -5,76 +5,290 @@ export class Transformer extends Container {
     super();
     
     this.target = null;
-    this.qrSize = 0; // Store the base QR size
-    this.borderSize = 0; // Store the border size
+    this.qrSize = 0;
+    this.borderSize = 0;
     this.selectionBorder = new Graphics();
     this.addChild(this.selectionBorder);
+    
+    this.rotationLine = new Graphics();
+    this.addChild(this.rotationLine);
+    
+    this.rotationHandle = new Graphics();
+    this.addChild(this.rotationHandle);
     
     // Store options for styling
     this.lineColor = options.lineColor || 0x7ed03b;
     this.handleColor = options.handleColor || 0xffffff;
-    this.handleSize = options.handleSize || 12;
+    this.handleSize = options.handleSize || 60;
+    
+    this.cornerHandles = [];
+    this.createCornerHandles();
+    this.createRotationHandle();
+    
+    // ✅ Track active drag sessions to prevent overlaps
+    this.activeDrag = null;
     
     this.visible = false;
   }
   
+  createCornerHandles() {
+    for (let i = 0; i < 4; i++) {
+      const handle = new Graphics();
+      handle
+        .rect(-this.handleSize / 2, -this.handleSize / 2, this.handleSize, this.handleSize)
+        .fill({ color: this.handleColor })
+        .stroke({ color: this.lineColor, width: 1 });
+      
+      handle.eventMode = 'static';
+      handle.cursor = 'pointer';
+      handle.handleIndex = i;
+      
+      this.setupHandleDrag(handle);
+      
+      this.cornerHandles.push(handle);
+      this.addChild(handle);
+    }
+  }
+  
+  createRotationHandle() {
+    this.rotationHandle
+      .circle(0, 0, this.handleSize / 3)
+      .fill({ color: this.handleColor })
+      .stroke({ color: this.lineColor, width: 1 });
+    
+    this.rotationHandle.eventMode = 'static';
+    this.rotationHandle.cursor = 'pointer';
+    
+    this.setupRotationDrag();
+  }
+  
+  // ✅ Guaranteed cleanup function
+  cleanupActiveDrag() {
+    if (this.activeDrag) {
+      const { stage, onMove, onUp } = this.activeDrag;
+      
+      console.log("🧹 Cleaning up active drag session");
+      
+      // Remove all possible event listeners
+      if (stage && onMove && onUp) {
+        stage.off('globalpointermove', onMove);
+        stage.off('globalpointerup', onUp);
+        stage.off('pointerupoutside', onUp);
+        stage.off('pointermove', onMove); // Backup cleanup
+        stage.off('pointerup', onUp);     // Backup cleanup
+      }
+      
+      this.activeDrag = null;
+    }
+  }
+  
+  setupHandleDrag(handle) {
+    handle.on('pointerdown', (event) => {
+      event.stopPropagation();
+      
+      // ✅ Clean up any existing drag before starting new one
+      this.cleanupActiveDrag();
+      
+      const centerPoint = { x: this.target.x, y: this.target.y };
+      const initialScale = this.target.scale.x;
+      const initialGlobalPos = { x: event.global.x, y: event.global.y };
+      
+      const initialDistance = Math.sqrt(
+        Math.pow(initialGlobalPos.x - centerPoint.x, 2) + 
+        Math.pow(initialGlobalPos.y - centerPoint.y, 2)
+      );
+      
+      const minDistance = 20;
+      const safeInitialDistance = Math.max(initialDistance, minDistance);
+      
+      console.log("🎯 Professional scale drag started", { 
+        initialScale, 
+        initialDistance: safeInitialDistance,
+        handleIndex: handle.handleIndex
+      });
+      
+      this.emit('transformstart');
+      
+      // ✅ Create stable function references
+      const onMove = (event) => {
+        const currentDistance = Math.sqrt(
+          Math.pow(event.global.x - centerPoint.x, 2) + 
+          Math.pow(event.global.y - centerPoint.y, 2)
+        );
+        
+        const safeCurrentDistance = Math.max(currentDistance, minDistance);
+        const distanceRatio = safeCurrentDistance / safeInitialDistance;
+        const newScale = Math.max(0.1, Math.min(2.0, initialScale * distanceRatio));
+        
+        this.target.scale.set(newScale, newScale);
+        this.updateBorder();
+        this.emit('transform', { scale: newScale });
+      };
+      
+      const onUp = (event) => {
+        console.log("🎯 Scale drag ended via:", event.type);
+        
+        // ✅ Use the cleanup function
+        this.cleanupActiveDrag();
+        this.emit('transformend');
+      };
+      
+      const stage = this.target.parent;
+      if (stage) {
+        // ✅ Store drag session info for guaranteed cleanup
+        this.activeDrag = { stage, onMove, onUp, type: 'scale' };
+        
+        // ✅ Add multiple event types for better coverage
+        stage.on('globalpointermove', onMove);
+        stage.on('globalpointerup', onUp);
+        stage.on('pointerupoutside', onUp);
+        
+        // ✅ Add backup listeners in case global events fail
+        stage.on('pointermove', onMove);
+        stage.on('pointerup', onUp);
+      }
+    });
+  }
+  
+  setupRotationDrag() {
+    this.rotationHandle.on('pointerdown', (event) => {
+      event.stopPropagation();
+      
+      // ✅ Clean up any existing drag before starting new one
+      this.cleanupActiveDrag();
+      
+      const centerPoint = { x: this.target.x, y: this.target.y };
+      const initialRotation = this.target.rotation;
+      
+      const initialAngle = Math.atan2(
+        event.global.y - centerPoint.y,
+        event.global.x - centerPoint.x
+      );
+      
+      console.log("🔄 Professional rotation drag started", { 
+        initialRotation, 
+        initialAngle: (initialAngle * 180 / Math.PI).toFixed(1) + "°"
+      });
+      
+      this.emit('transformstart');
+      
+      // ✅ Create stable function references
+      const onRotateMove = (event) => {
+        const currentAngle = Math.atan2(
+          event.global.y - centerPoint.y,
+          event.global.x - centerPoint.x
+        );
+        
+        let angleDelta = currentAngle - initialAngle;
+        
+        // Handle angle wrapping
+        while (angleDelta > Math.PI) angleDelta -= 2 * Math.PI;
+        while (angleDelta < -Math.PI) angleDelta += 2 * Math.PI;
+        
+        const newRotation = initialRotation + angleDelta;
+        
+        this.target.rotation = newRotation;
+        this.updateBorder();
+        this.emit('transform', { rotation: newRotation });
+      };
+      
+      const onRotateUp = (event) => {
+        console.log("🔄 Rotation drag ended via:", event.type);
+        
+        // ✅ Use the cleanup function
+        this.cleanupActiveDrag();
+        this.emit('transformend');
+      };
+      
+      const stage = this.target.parent;
+      if (stage) {
+        // ✅ Store drag session info for guaranteed cleanup
+        this.activeDrag = { stage, onMove: onRotateMove, onUp: onRotateUp, type: 'rotation' };
+        
+        // ✅ Add multiple event types for better coverage
+        stage.on('globalpointermove', onRotateMove);
+        stage.on('globalpointerup', onRotateUp);
+        stage.on('pointerupoutside', onRotateUp);
+        
+        // ✅ Add backup listeners
+        stage.on('pointermove', onRotateMove);
+        stage.on('pointerup', onRotateUp);
+      }
+    });
+  }
+  
   attachTo(target, deviceInfo, qrConfig) {
     console.log("🎯 Attaching to target:", target);
+    
+    // ✅ Clean up any active drags when attaching to new target
+    this.cleanupActiveDrag();
+    
     this.target = target;
     this.visible = true;
     
-    // ✅ Get the actual QR size and border size (same calculation as in Pixi.jsx)
     this.qrSize = Math.min(deviceInfo.size.x, deviceInfo.size.y);
     this.borderSize = this.qrSize * (qrConfig.custom.borderSizeRatio / 100);
     
     this.updateBorder();
-    
     this.emit('transformstart');
   }
   
   detach() {
     console.log("❌ Detaching from target");
+    
+    // ✅ Clean up any active drags when detaching
+    this.cleanupActiveDrag();
+    
     this.target = null;
     this.visible = false;
     this.selectionBorder.clear();
   }
   
-  select(target) {
-    this.attachTo(target);
-  }
-  
-  deselect() {
-    this.detach();
+  // ✅ Emergency cleanup method you can call manually
+  forceCleanup() {
+    console.log("🚨 Force cleaning up transformer");
+    this.cleanupActiveDrag();
   }
   
   updateBorder() {
     if (!this.target) return;
     
-    // ✅ Position the transformer to follow the target
     this.x = this.target.x;
     this.y = this.target.y;
-    
-    // ✅ Copy the target's rotation AND scale
     this.rotation = this.target.rotation;
     this.scale.set(this.target.scale.x, this.target.scale.y);
     
-    // ✅ Use the total size (QR + border) just like in Pixi.jsx
     const totalSize = this.qrSize + this.borderSize;
     
     this.selectionBorder.clear();
     this.selectionBorder
       .rect(
-        -totalSize / 2 - 20,   // Use total size (QR + border)
-        -totalSize / 2 - 20,   // Same for height
-        totalSize + 40,        // Add padding around the total size
+        -totalSize / 2 - 20,
+        -totalSize / 2 - 20,
+        totalSize + 40,
         totalSize + 40
       )
-      .stroke({ color: this.lineColor, width: 5 });
+      .stroke({ color: this.lineColor, width: 12 });
     
-    console.log("📐 Border updated - QR size:", this.qrSize, "border size:", this.borderSize, "total size:", totalSize);
+    this.rotationLine.clear();
+    this.rotationLine
+      .moveTo(0, -totalSize / 2 - 20)
+      .lineTo(0, -totalSize / 2 - 80)
+      .stroke({ color: this.lineColor, width: 3 });
+    
+    this.updateCornerHandles(totalSize);
+    this.rotationHandle.position.set(0, -totalSize / 2 - 80);
   }
   
-  // ✅ Add a method to update position when target moves
+  updateCornerHandles(totalSize) {
+    const halfSize = totalSize / 2 + 20;
+    
+    this.cornerHandles[0].position.set(-halfSize, -halfSize);
+    this.cornerHandles[1].position.set(halfSize, -halfSize);
+    this.cornerHandles[2].position.set(halfSize, halfSize);
+    this.cornerHandles[3].position.set(-halfSize, halfSize);
+  }
+  
   updatePosition() {
     if (this.target && this.visible) {
       this.x = this.target.x;
@@ -85,6 +299,8 @@ export class Transformer extends Container {
   }
   
   destroy() {
+    // ✅ Clean up everything before destroying
+    this.cleanupActiveDrag();
     this.detach();
     super.destroy();
   }

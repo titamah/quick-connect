@@ -125,10 +125,20 @@ const Wallpaper = forwardRef(
       if (event.target === appRef.current?.stage) {
         console.log("🖱️ Stage clicked - deselecting transformer");
         if (transformerRef.current) {
+          transformerRef.current.forceCleanup();
           transformerRef.current.detach();
         }
       }
     }, []);
+
+    useEffect(() => {
+        return () => {
+          // Cleanup when component unmounts
+          if (transformerRef.current) {
+            transformerRef.current.forceCleanup();
+          }
+        };
+      }, []);
 
     // Initialize Pixi Application
     useEffect(() => {
@@ -149,18 +159,18 @@ const Wallpaper = forwardRef(
         }
 
         appRef.current = app;
-        
+
         // ✅ FIX: Create the transformer instance
         const transformer = new Transformer();
         app.stage.addChild(transformer);
         transformerRef.current = transformer;
 
         // Listen for transformer events
-        transformer.on('transformstart', () => {
+        transformer.on("transformstart", () => {
           takeSnapshot("Transform QR Code");
         });
 
-        transformer.on('transform', () => {
+        transformer.on("transform", () => {
           const qrContainer = qrContainerRef.current;
           if (!qrContainer) return;
 
@@ -176,13 +186,13 @@ const Wallpaper = forwardRef(
           updateQRPositionPercentages(newPosition);
         });
 
-        transformer.on('transformend', () => {
+        transformer.on("transformend", () => {
           console.log("Transform ended");
         });
 
         // Handle stage clicks for deselection
-        app.stage.eventMode = 'static';
-        app.stage.on('pointerdown', handleStageClick);
+        app.stage.eventMode = "static";
+        app.stage.on("pointerdown", handleStageClick);
       };
 
       initApp();
@@ -265,27 +275,31 @@ const Wallpaper = forwardRef(
           }
 
           // Make QR container interactive
-          qrContainer.eventMode = 'static';
-          qrContainer.cursor = 'pointer';
-          
+          qrContainer.eventMode = "static";
+          qrContainer.cursor = "pointer";
+
           // Handle QR container clicks
-          qrContainer.on('pointerdown', (event) => {
+          qrContainer.on("pointerdown", (event) => {
             event.stopPropagation();
             console.log("🎯 QR selected");
-            
+
             if (transformerRef.current) {
-              transformerRef.current.attachTo(qrContainer, deviceInfo, qrConfig);
+              transformerRef.current.attachTo(
+                qrContainer,
+                deviceInfo,
+                qrConfig
+              );
             }
-            
+
             takeSnapshot("Select QR Code");
           });
 
           // Setup drag functionality when not using transformer
           if (locked) {
-            qrContainer.on('pointerdown', handlePointerDown);
-            qrContainer.on('pointermove', handlePointerMove);
-            qrContainer.on('pointerup', handlePointerUp);
-            qrContainer.on('pointerupoutside', handlePointerUp);
+            qrContainer.on("pointerdown", handlePointerDown);
+            qrContainer.on("pointermove", handlePointerMove);
+            qrContainer.on("pointerup", handlePointerUp);
+            qrContainer.on("pointerupoutside", handlePointerUp);
           }
         });
       }
@@ -309,20 +323,24 @@ const Wallpaper = forwardRef(
 
     // ✅ Add useEffect to update transformer when QR config changes
     useEffect(() => {
-      if (transformerRef.current && transformerRef.current.visible && qrContainerRef.current) {
+      if (
+        transformerRef.current &&
+        transformerRef.current.visible &&
+        qrContainerRef.current
+      ) {
         console.log("🔄 QR config changed, updating transformer");
         transformerRef.current.updateBorder();
       }
     }, [
       qrConfig.scale,
-      qrConfig.rotation, 
+      qrConfig.rotation,
       qrConfig.positionPercentages.x,
       qrConfig.positionPercentages.y,
       qrConfig.custom.primaryColor,
       qrConfig.custom.secondaryColor,
       qrConfig.custom.borderColor,
       qrConfig.custom.cornerRadiusRatio,
-      qrConfig.custom.borderSizeRatio
+      qrConfig.custom.borderSizeRatio,
     ]);
 
     return (
