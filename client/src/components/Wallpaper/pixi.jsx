@@ -25,6 +25,7 @@ const Wallpaper = forwardRef(
     const stageScale = useStageCalculations(deviceInfo.size, panelSize, isOpen);
     const qrContainerRef = useRef(null);
     const transformerRef = useRef(null);
+    const guidesRef = useRef(null);
 
     const currentConfigRef = useRef(qrConfig);
     const currentDeviceRef = useRef(deviceInfo);
@@ -42,6 +43,56 @@ const Wallpaper = forwardRef(
       currentLockedRef.current = locked;
     }, [locked]);
 
+    const createGuides = useCallback(() => {
+      if (!appRef.current) return;
+
+      let guides = guidesRef.current;
+      if (!guides) {
+        guides = new Graphics();
+        guides.zIndex = 1000;
+        appRef.current.stage.addChild(guides);
+        guidesRef.current = guides;
+      }
+
+      guides.clear();
+      guides.visible = false;
+      
+      return guides;
+    }, []);
+
+    const showGuides = useCallback((showHorizontal, showVertical) => {
+      const guides = guidesRef.current;
+      if (!guides) return;
+
+      guides.clear();
+      
+      const centerX = deviceInfo.size.x / 2;
+      const centerY = deviceInfo.size.y / 2;
+      
+      if (showHorizontal) {
+        guides
+          .moveTo(0, centerY)
+          .lineTo(deviceInfo.size.x, centerY)
+          .stroke({ color: 0x00ff88, width: 2, alpha: 0.8 });
+      }
+      
+      if (showVertical) {
+        guides
+          .moveTo(centerX, 0)
+          .lineTo(centerX, deviceInfo.size.y)
+          .stroke({ color: 0x00ff88, width: 2, alpha: 0.8 });
+      }
+      
+      guides.visible = showHorizontal || showVertical;
+    }, [deviceInfo.size]);
+
+    const hideGuides = useCallback(() => {
+      const guides = guidesRef.current;
+      if (guides) {
+        guides.visible = false;
+      }
+    }, []);
+
     const handlePointerDown = useCallback(
       (event) => {
         const qrContainer = qrContainerRef.current;
@@ -56,8 +107,10 @@ const Wallpaper = forwardRef(
           x: event.global.x - qrContainer.x,
           y: event.global.y - qrContainer.y,
         };
+
+        createGuides();
       },
-      [takeSnapshot]
+      [takeSnapshot, createGuides]
     );
 
     const handlePointerMove = useCallback(
@@ -71,23 +124,43 @@ const Wallpaper = forwardRef(
         const qrSize = Math.min(currentDevice.size.x, currentDevice.size.y);
         const qrHalfSize = (qrSize * currentConfig.scale) / 2;
 
+        const centerX = currentDevice.size.x / 2;
+        const centerY = currentDevice.size.y / 2;
+        const snapThreshold = 20;
+
+        let targetX = event.global.x - qrContainer.dragOffset.x;
+        let targetY = event.global.y - qrContainer.dragOffset.y;
+
+        const snapToHorizontalCenter = Math.abs(targetX - centerX) < snapThreshold;
+        const snapToVerticalCenter = Math.abs(targetY - centerY) < snapThreshold;
+
+        if (snapToHorizontalCenter) {
+          targetX = centerX;
+        }
+        if (snapToVerticalCenter) {
+          targetY = centerY;
+        }
+
         const newX = Math.max(
           qrHalfSize,
-          Math.min(
-            currentDevice.size.x - qrHalfSize,
-            event.global.x - qrContainer.dragOffset.x
-          )
+          Math.min(currentDevice.size.x - qrHalfSize, targetX)
         );
         const newY = Math.max(
           qrHalfSize,
-          Math.min(
-            currentDevice.size.y - qrHalfSize,
-            event.global.y - qrContainer.dragOffset.y
-          )
+          Math.min(currentDevice.size.y - qrHalfSize, targetY)
         );
 
         qrContainer.x = newX;
         qrContainer.y = newY;
+
+        const isSnappedHorizontal = snapToVerticalCenter && newY === centerY;
+        const isSnappedVertical = snapToHorizontalCenter && newX === centerX;
+        
+        if (isSnappedHorizontal || isSnappedVertical) {
+          showGuides(isSnappedHorizontal, isSnappedVertical);
+        } else {
+          hideGuides();
+        }
 
         if (transformerRef.current && transformerRef.current.visible) {
           transformerRef.current.updatePosition();
@@ -98,7 +171,7 @@ const Wallpaper = forwardRef(
           y: newY / currentDevice.size.y,
         });
       },
-      [updateQRPositionPercentages]
+      [updateQRPositionPercentages, showGuides, hideGuides]
     );
 
     const handlePointerUp = useCallback(() => {
@@ -107,7 +180,9 @@ const Wallpaper = forwardRef(
 
       qrContainer.isDragging = false;
       qrContainer.cursor = "grab";
-    }, []);
+      
+      hideGuides();
+    }, [hideGuides]);
 
     const handleStageClick = useCallback((event) => {
       if (event.target === appRef.current?.stage) {
@@ -228,7 +303,6 @@ const Wallpaper = forwardRef(
       };
     }, []);
 
-    // Initialize Pixi Application (once only)
     useEffect(() => {
       if (appRef.current) return;
 
@@ -278,7 +352,6 @@ const Wallpaper = forwardRef(
         app.stage.eventMode = "static";
         app.stage.on("pointerdown", handleStageClick);
 
-        // Generate QR code after Pixi is ready
         setTimeout(generateQRCode, 0);
       };
 
@@ -295,19 +368,16 @@ const Wallpaper = forwardRef(
       };
     }, []);
 
-    // Resize Pixi app when device size changes
     useEffect(() => {
       if (appRef.current) {
         appRef.current.renderer.resize(deviceInfo.size.x + 2, deviceInfo.size.y + 2);
       }
     }, [deviceInfo.size]);
 
-    // Update QR Code when dependencies change
     useEffect(() => {
       generateQRCode();
     }, [generateQRCode]);
 
-    // Update transformer when QR config changes
     useEffect(() => {
       if (
         transformerRef.current &&
