@@ -52,7 +52,7 @@ export class Transformer extends Container {
   
   createRotationHandle() {
     this.rotationHandle
-      .circle(0, 0, this.handleSize / 3)
+      .circle(0, 0, this.handleSize / 2)
       .fill({ color: this.handleColor })
       .stroke({ color: this.lineColor, width: 1 });
     
@@ -150,6 +150,32 @@ export class Transformer extends Container {
     });
   }
   
+  // ✅ Rotation snapping helper
+  snapRotation(rotation) {
+    const snapAngle = Math.PI / 4;
+    const snapThreshold = Math.PI / 36;
+    
+    // Find the nearest snap point
+    const nearestSnap = Math.round(rotation / snapAngle) * snapAngle;
+    
+    // Check if we're within the threshold
+    const distanceToSnap = Math.abs(rotation - nearestSnap);
+    
+    if (distanceToSnap <= snapThreshold) {
+      return {
+        rotation: nearestSnap,
+        snapped: true,
+        snapDegrees: (nearestSnap * 180 / Math.PI) % 360
+      };
+    }
+    
+    return {
+      rotation: rotation,
+      snapped: false,
+      snapDegrees: null
+    };
+  }
+
   setupRotationDrag() {
     this.rotationHandle.on('pointerdown', (event) => {
       event.stopPropagation();
@@ -185,15 +211,35 @@ export class Transformer extends Container {
         while (angleDelta > Math.PI) angleDelta -= 2 * Math.PI;
         while (angleDelta < -Math.PI) angleDelta += 2 * Math.PI;
         
-        const newRotation = initialRotation + angleDelta;
+        const rawRotation = initialRotation + angleDelta;
+        
+        // ✅ Apply rotation snapping
+        const snapResult = this.snapRotation(rawRotation);
+        const newRotation = snapResult.rotation;
+        
+        // ✅ Visual feedback for snapping
+        if (snapResult.snapped) {
+          console.log(`🧲 Snapped to ${snapResult.snapDegrees}°`);
+          // You could add visual feedback here (like changing handle color)
+          this.rotationHandle.tint = 0x7ed03b; // Green when snapped
+        } else {
+          this.rotationHandle.tint = 0xffffff; // White when free
+        }
         
         this.target.rotation = newRotation;
         this.updateBorder();
-        this.emit('transform', { rotation: newRotation });
+        this.emit('transform', { 
+          rotation: newRotation, 
+          snapped: snapResult.snapped,
+          snapDegrees: snapResult.snapDegrees 
+        });
       };
       
       const onRotateUp = (event) => {
         console.log("🔄 Rotation drag ended via:", event.type);
+        
+        // ✅ Reset handle color
+        this.rotationHandle.tint = 0xffffff;
         
         // ✅ Use the cleanup function
         this.cleanupActiveDrag();
@@ -273,11 +319,11 @@ export class Transformer extends Container {
     this.rotationLine.clear();
     this.rotationLine
       .moveTo(0, -totalSize / 2 - 20)
-      .lineTo(0, -totalSize / 2 - 80)
-      .stroke({ color: this.lineColor, width: 3 });
+      .lineTo(0, -totalSize / 2 - 160)
+      .stroke({ color: this.lineColor, width: 12 });
     
     this.updateCornerHandles(totalSize);
-    this.rotationHandle.position.set(0, -totalSize / 2 - 80);
+    this.rotationHandle.position.set(0, -totalSize / 2 - 160);
   }
   
   updateCornerHandles(totalSize) {
