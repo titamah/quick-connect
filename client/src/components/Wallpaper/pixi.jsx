@@ -27,9 +27,28 @@ const Wallpaper = forwardRef(
     const transformerRef = useRef(null);
     const guidesRef = useRef(null);
 
+    // Existing refs for dragging
     const currentConfigRef = useRef(qrConfig);
     const currentDeviceRef = useRef(deviceInfo);
     const currentLockedRef = useRef(locked);
+
+    // ✅ NEW: Refs to avoid stale closure in transformer
+    const takeSnapshotRef = useRef(takeSnapshot);
+    const updateQRConfigRef = useRef(updateQRConfig);
+    const updateQRPositionPercentagesRef = useRef(updateQRPositionPercentages);
+
+    // ✅ Update refs when functions change
+    useEffect(() => {
+      takeSnapshotRef.current = takeSnapshot;
+    }, [takeSnapshot]);
+
+    useEffect(() => {
+      updateQRConfigRef.current = updateQRConfig;
+    }, [updateQRConfig]);
+
+    useEffect(() => {
+      updateQRPositionPercentagesRef.current = updateQRPositionPercentages;
+    }, [updateQRPositionPercentages]);
 
     useEffect(() => {
       currentConfigRef.current = qrConfig;
@@ -73,14 +92,14 @@ const Wallpaper = forwardRef(
         guides
           .moveTo(0, centerY)
           .lineTo(deviceInfo.size.x, centerY)
-          .stroke({ color: 0x7ED03B, width: 6, alpha: 0.8 });
+          .stroke({ color: 0x00ff88, width: 6, alpha: 0.8 });
       }
       
       if (showVertical) {
         guides
           .moveTo(centerX, 0)
           .lineTo(centerX, deviceInfo.size.y)
-          .stroke({ color: 0x7ED03B, width: 6, alpha: 0.8 });
+          .stroke({ color: 0x00ff88, width: 6, alpha: 0.8 });
       }
       
       guides.visible = showHorizontal || showVertical;
@@ -98,7 +117,8 @@ const Wallpaper = forwardRef(
         const qrContainer = qrContainerRef.current;
         if (!qrContainer || !currentLockedRef.current) return;
 
-        takeSnapshot("Move QR Code");
+        // ✅ Use ref for latest takeSnapshot
+        takeSnapshotRef.current("Move QR Code");
 
         qrContainer.cursor = "grabbing";
         qrContainer.isDragging = true;
@@ -110,7 +130,7 @@ const Wallpaper = forwardRef(
 
         createGuides();
       },
-      [takeSnapshot, createGuides]
+      [createGuides]
     );
 
     const handlePointerMove = useCallback(
@@ -166,12 +186,13 @@ const Wallpaper = forwardRef(
           transformerRef.current.updatePosition();
         }
 
-        updateQRPositionPercentages({
+        // ✅ Use ref for latest updateQRPositionPercentages
+        updateQRPositionPercentagesRef.current({
           x: newX / currentDevice.size.x,
           y: newY / currentDevice.size.y,
         });
       },
-      [updateQRPositionPercentages, showGuides, hideGuides]
+      [showGuides, hideGuides]
     );
 
     const handlePointerUp = useCallback(() => {
@@ -267,7 +288,8 @@ const Wallpaper = forwardRef(
             );
           }
 
-          takeSnapshot("Select QR Code");
+          // ✅ Use ref for latest takeSnapshot
+          takeSnapshotRef.current("Select QR Code");
         });
 
         if (locked) {
@@ -292,7 +314,6 @@ const Wallpaper = forwardRef(
       handlePointerDown,
       handlePointerMove,
       handlePointerUp,
-      takeSnapshot,
     ]);
 
     useEffect(() => {
@@ -326,23 +347,28 @@ const Wallpaper = forwardRef(
         app.stage.addChild(transformer);
         transformerRef.current = transformer;
 
+        // ✅ FIXED: Transformer events now use refs to avoid stale closures
         transformer.on("transformstart", () => {
-          takeSnapshot("Transform QR Code");
+          // Use ref to get latest takeSnapshot function
+          takeSnapshotRef.current("Transform QR Code");
         });
 
         transformer.on("transform", () => {
           const qrContainer = qrContainerRef.current;
           if (!qrContainer) return;
 
+          // Use ref to get latest device info
+          const currentDevice = currentDeviceRef.current;
           const newScale = Math.max(0.1, Math.min(1.0, qrContainer.scale.x));
           const newRotation = (qrContainer.rotation * 180) / Math.PI;
           const newPosition = {
-            x: qrContainer.x / deviceInfo.size.x,
-            y: qrContainer.y / deviceInfo.size.y,
+            x: qrContainer.x / currentDevice.size.x,
+            y: qrContainer.y / currentDevice.size.y,
           };
 
-          updateQRConfig({ scale: newScale, rotation: newRotation });
-          updateQRPositionPercentages(newPosition);
+          // ✅ Use refs for latest update functions
+          updateQRConfigRef.current({ scale: newScale, rotation: newRotation });
+          updateQRPositionPercentagesRef.current(newPosition);
         });
 
         transformer.on("transformend", () => {
@@ -366,7 +392,7 @@ const Wallpaper = forwardRef(
           containerRef.current.innerHTML = "";
         }
       };
-    }, []);
+    }, []); // Empty deps - only run once on mount
 
     useEffect(() => {
       if (appRef.current) {
