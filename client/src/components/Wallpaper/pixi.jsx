@@ -73,14 +73,14 @@ const Wallpaper = forwardRef(
         guides
           .moveTo(0, centerY)
           .lineTo(deviceInfo.size.x, centerY)
-          .stroke({ color: 0x00ff88, width: 2, alpha: 0.8 });
+          .stroke({ color: 0x7ED03B, width: 6, alpha: 0.8 });
       }
       
       if (showVertical) {
         guides
           .moveTo(centerX, 0)
           .lineTo(centerX, deviceInfo.size.y)
-          .stroke({ color: 0x00ff88, width: 2, alpha: 0.8 });
+          .stroke({ color: 0x7ED03B, width: 6, alpha: 0.8 });
       }
       
       guides.visible = showHorizontal || showVertical;
