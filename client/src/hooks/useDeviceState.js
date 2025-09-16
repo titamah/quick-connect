@@ -7,10 +7,13 @@ const validatePosition = (pos) => ({
   x: Math.max(0, Math.min(1, pos?.x ?? 0.5)),
   y: Math.max(0, Math.min(1, pos?.y ?? 0.5)),
 });
+
 const validateRotation = (rotation) => {
   const num = typeof rotation === 'number' ? rotation : 0;
-  return ((num % 360) + 360) % 360; 
+  const normalized = ((num + 180) % 360 + 360) % 360 - 180;
+  return normalized;
 };
+
 const deepMerge = (target, source) => {
   const result = { ...target };
   for (const key in source) {

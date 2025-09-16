@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useRef, useCallback } from "react";
-import { Application, Graphics, Container, Sprite, Assets } from "pixi.js";
+import { Application, Graphics, Container, Sprite, Assets, Rectangle } from "pixi.js";
 import { useDevice } from "../../contexts/DeviceContext";
 import { useStageCalculations } from "../../hooks/useStageCalculations";
 import { QRCodeSVG } from "qrcode.react";
@@ -17,6 +17,10 @@ const Wallpaper = forwardRef(
       updateQRConfig,
       updateQRPositionPercentages,
       takeSnapshot,
+      // NEW: Add selection state from context
+      isQRSelected,
+      selectQR: contextSelectQR,
+      deselectAll,
     } = useDevice();
 
     const containerRef = useRef(null);
@@ -27,17 +31,14 @@ const Wallpaper = forwardRef(
     const transformerRef = useRef(null);
     const guidesRef = useRef(null);
 
-    // Existing refs for dragging
     const currentConfigRef = useRef(qrConfig);
     const currentDeviceRef = useRef(deviceInfo);
     const currentLockedRef = useRef(locked);
 
-    // ✅ NEW: Refs to avoid stale closure in transformer
     const takeSnapshotRef = useRef(takeSnapshot);
     const updateQRConfigRef = useRef(updateQRConfig);
     const updateQRPositionPercentagesRef = useRef(updateQRPositionPercentages);
 
-    // ✅ Update refs when functions change
     useEffect(() => {
       takeSnapshotRef.current = takeSnapshot;
     }, [takeSnapshot]);
@@ -92,14 +93,14 @@ const Wallpaper = forwardRef(
         guides
           .moveTo(0, centerY)
           .lineTo(deviceInfo.size.x, centerY)
-          .stroke({ color: 0x00ff88, width: 6, alpha: 0.8 });
+          .stroke({ color: 0x7ED03B, width: 6, alpha: 0.8 });
       }
       
       if (showVertical) {
         guides
           .moveTo(centerX, 0)
           .lineTo(centerX, deviceInfo.size.y)
-          .stroke({ color: 0x00ff88, width: 6, alpha: 0.8 });
+          .stroke({ color: 0x7ED03B, width: 6, alpha: 0.8 });
       }
       
       guides.visible = showHorizontal || showVertical;
@@ -117,8 +118,13 @@ const Wallpaper = forwardRef(
         const qrContainer = qrContainerRef.current;
         if (!qrContainer || !currentLockedRef.current) return;
 
-        // ✅ Use ref for latest takeSnapshot
+        event.stopPropagation();
+
         takeSnapshotRef.current("Move QR Code");
+
+        if (transformerRef.current) {
+          transformerRef.current.detach();
+        }
 
         qrContainer.cursor = "grabbing";
         qrContainer.isDragging = true;
@@ -182,11 +188,6 @@ const Wallpaper = forwardRef(
           hideGuides();
         }
 
-        if (transformerRef.current && transformerRef.current.visible) {
-          transformerRef.current.updatePosition();
-        }
-
-        // ✅ Use ref for latest updateQRPositionPercentages
         updateQRPositionPercentagesRef.current({
           x: newX / currentDevice.size.x,
           y: newY / currentDevice.size.y,
@@ -203,16 +204,76 @@ const Wallpaper = forwardRef(
       qrContainer.cursor = "grab";
       
       hideGuides();
-    }, [hideGuides]);
+
+      if (isQRSelected && transformerRef.current) {
+        transformerRef.current.attachTo(
+          qrContainer,
+          currentDeviceRef.current,
+          currentConfigRef.current
+        );
+      }
+    }, [hideGuides, isQRSelected]);
+
+    const attachDragHandlers = useCallback(() => {
+      const qrContainer = qrContainerRef.current;
+      if (!qrContainer || !locked) return;
+
+      qrContainer.on("pointerdown", handlePointerDown);
+      qrContainer.on("pointermove", handlePointerMove);
+      qrContainer.on("pointerup", handlePointerUp);
+      qrContainer.on("pointerupoutside", handlePointerUp);
+    }, [locked, handlePointerDown, handlePointerMove, handlePointerUp]);
+
+    const removeDragHandlers = useCallback(() => {
+      const qrContainer = qrContainerRef.current;
+      if (!qrContainer) return;
+
+      qrContainer.off("pointerdown", handlePointerDown);
+      qrContainer.off("pointermove", handlePointerMove);
+      qrContainer.off("pointerup", handlePointerUp);
+      qrContainer.off("pointerupoutside", handlePointerUp);
+    }, [handlePointerDown, handlePointerMove, handlePointerUp]);
+
+    const selectQR = useCallback(() => {
+      const qrContainer = qrContainerRef.current;
+      if (!qrContainer) return;
+
+      contextSelectQR(); // Use context function
+      qrContainer.cursor = "grab";
+
+      if (transformerRef.current) {
+        transformerRef.current.attachTo(
+          qrContainer,
+          currentDeviceRef.current,
+          currentConfigRef.current
+        );
+      }
+
+      attachDragHandlers();
+      takeSnapshotRef.current("Select QR Code");
+    }, [contextSelectQR, attachDragHandlers]);
+
+    const deselectQR = useCallback(() => {
+      const qrContainer = qrContainerRef.current;
+      if (!qrContainer) return;
+
+      deselectAll(); // Use context function
+      qrContainer.cursor = "pointer";
+
+      if (transformerRef.current) {
+        transformerRef.current.forceCleanup();
+        transformerRef.current.detach();
+      }
+
+      removeDragHandlers();
+    }, [deselectAll, removeDragHandlers]);
 
     const handleStageClick = useCallback((event) => {
+      // Check if we clicked on the stage itself (not a child object)
       if (event.target === appRef.current?.stage) {
-        if (transformerRef.current) {
-          transformerRef.current.forceCleanup();
-          transformerRef.current.detach();
-        }
+        deselectAll();
       }
-    }, []);
+    }, [deselectAll]);
 
     const generateQRCode = useCallback(() => {
       if (!appRef.current || !qrRef.current) return;
@@ -268,7 +329,7 @@ const Wallpaper = forwardRef(
         qrContainer.y = deviceInfo.size.y * qrConfig.positionPercentages.y;
         qrContainer.rotation = (qrConfig.rotation * Math.PI) / 180;
 
-        if (transformerRef.current && transformerRef.current.visible) {
+        if (transformerRef.current && transformerRef.current.visible && isQRSelected) {
           requestAnimationFrame(() => {
             transformerRef.current.updateBorder();
           });
@@ -280,24 +341,10 @@ const Wallpaper = forwardRef(
         qrContainer.on("pointerdown", (event) => {
           event.stopPropagation();
 
-          if (transformerRef.current) {
-            transformerRef.current.attachTo(
-              qrContainer,
-              deviceInfo,
-              qrConfig
-            );
+          if (!isQRSelected) {
+            selectQR();
           }
-
-          // ✅ Use ref for latest takeSnapshot
-          takeSnapshotRef.current("Select QR Code");
         });
-
-        if (locked) {
-          qrContainer.on("pointerdown", handlePointerDown);
-          qrContainer.on("pointermove", handlePointerMove);
-          qrContainer.on("pointerup", handlePointerUp);
-          qrContainer.on("pointerupoutside", handlePointerUp);
-        }
       });
     }, [
       qrConfig.url,
@@ -311,9 +358,8 @@ const Wallpaper = forwardRef(
       qrConfig.rotation,
       deviceInfo.size,
       locked,
-      handlePointerDown,
-      handlePointerMove,
-      handlePointerUp,
+      selectQR,
+      isQRSelected,
     ]);
 
     useEffect(() => {
@@ -347,9 +393,7 @@ const Wallpaper = forwardRef(
         app.stage.addChild(transformer);
         transformerRef.current = transformer;
 
-        // ✅ FIXED: Transformer events now use refs to avoid stale closures
         transformer.on("transformstart", () => {
-          // Use ref to get latest takeSnapshot function
           takeSnapshotRef.current("Transform QR Code");
         });
 
@@ -357,7 +401,6 @@ const Wallpaper = forwardRef(
           const qrContainer = qrContainerRef.current;
           if (!qrContainer) return;
 
-          // Use ref to get latest device info
           const currentDevice = currentDeviceRef.current;
           const newScale = Math.max(0.1, Math.min(1.0, qrContainer.scale.x));
           const newRotation = (qrContainer.rotation * 180) / Math.PI;
@@ -366,7 +409,6 @@ const Wallpaper = forwardRef(
             y: qrContainer.y / currentDevice.size.y,
           };
 
-          // ✅ Use refs for latest update functions
           updateQRConfigRef.current({ scale: newScale, rotation: newRotation });
           updateQRPositionPercentagesRef.current(newPosition);
         });
@@ -375,7 +417,9 @@ const Wallpaper = forwardRef(
           console.log("Transform ended");
         });
 
+        // Make sure the stage can receive clicks everywhere
         app.stage.eventMode = "static";
+        app.stage.hitArea = new Rectangle(0, 0, deviceInfo.size.x + 2, deviceInfo.size.y + 2);
         app.stage.on("pointerdown", handleStageClick);
 
         setTimeout(generateQRCode, 0);
@@ -392,7 +436,57 @@ const Wallpaper = forwardRef(
           containerRef.current.innerHTML = "";
         }
       };
-    }, []); // Empty deps - only run once on mount
+    }, []);
+
+    // NEW: Effect to handle deselection from context
+    useEffect(() => {
+      if (!isQRSelected) {
+        // If context says QR should not be selected, deselect it
+        const qrContainer = qrContainerRef.current;
+        if (qrContainer) {
+          qrContainer.cursor = "pointer";
+          
+          if (transformerRef.current) {
+            transformerRef.current.forceCleanup();
+            transformerRef.current.detach();
+          }
+          
+          removeDragHandlers();
+        }
+      }
+    }, [isQRSelected, removeDragHandlers]);
+
+    // NEW: Simple outside mousedown handler (works with touch too)
+    useEffect(() => {
+      const handlePointerDownOutside = (event) => {
+        const previewElement = document.getElementById('preview');
+        
+        // If QR is selected and pointerdown is outside the preview area
+        if (isQRSelected && previewElement && !previewElement.contains(event.target)) {
+          deselectAll();
+        }
+      };
+
+      // Only add listener if QR is selected
+      if (isQRSelected) {
+        // Use touchstart with passive: false to ensure it works on mobile
+        document.addEventListener('pointerdown', handlePointerDownOutside);
+        
+        return () => {
+          document.removeEventListener('pointerdown', handlePointerDownOutside);
+        };
+      }
+    }, [isQRSelected, deselectAll]);
+
+    useEffect(() => {
+      if (isQRSelected) {
+        if (locked) {
+          attachDragHandlers();
+        } else {
+          removeDragHandlers();
+        }
+      }
+    }, [locked, attachDragHandlers, removeDragHandlers, isQRSelected]);
 
     useEffect(() => {
       if (appRef.current) {
@@ -440,7 +534,6 @@ const Wallpaper = forwardRef(
             fgColor={qrConfig.custom.primaryColor}
             bgColor={qrConfig.custom.secondaryColor}
             level="M"
-            includeMargin={false}
           />
         </div>
 
