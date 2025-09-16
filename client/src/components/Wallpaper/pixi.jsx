@@ -1,9 +1,17 @@
 import { forwardRef, useEffect, useRef, useCallback } from "react";
-import { Application, Graphics, Container, Sprite, Assets, Rectangle } from "pixi.js";
+import {
+  Application,
+  Graphics,
+  Container,
+  Sprite,
+  Assets,
+  Rectangle,
+} from "pixi.js";
 import { useDevice } from "../../contexts/DeviceContext";
 import { useStageCalculations } from "../../hooks/useStageCalculations";
 import { QRCodeSVG } from "qrcode.react";
 import { Transformer } from "./QRTransformer";
+import { BackgroundRenderer } from "./BackgroundRenderer";
 
 const Wallpaper = forwardRef(
   (
@@ -30,6 +38,7 @@ const Wallpaper = forwardRef(
     const qrContainerRef = useRef(null);
     const transformerRef = useRef(null);
     const guidesRef = useRef(null);
+    const backgroundRendererRef = useRef(null);
 
     const currentConfigRef = useRef(qrConfig);
     const currentDeviceRef = useRef(deviceInfo);
@@ -76,35 +85,38 @@ const Wallpaper = forwardRef(
 
       guides.clear();
       guides.visible = false;
-      
+
       return guides;
     }, []);
 
-    const showGuides = useCallback((showHorizontal, showVertical) => {
-      const guides = guidesRef.current;
-      if (!guides) return;
+    const showGuides = useCallback(
+      (showHorizontal, showVertical) => {
+        const guides = guidesRef.current;
+        if (!guides) return;
 
-      guides.clear();
-      
-      const centerX = deviceInfo.size.x / 2;
-      const centerY = deviceInfo.size.y / 2;
-      
-      if (showHorizontal) {
-        guides
-          .moveTo(0, centerY)
-          .lineTo(deviceInfo.size.x, centerY)
-          .stroke({ color: 0x7ED03B, width: 6, alpha: 0.8 });
-      }
-      
-      if (showVertical) {
-        guides
-          .moveTo(centerX, 0)
-          .lineTo(centerX, deviceInfo.size.y)
-          .stroke({ color: 0x7ED03B, width: 6, alpha: 0.8 });
-      }
-      
-      guides.visible = showHorizontal || showVertical;
-    }, [deviceInfo.size]);
+        guides.clear();
+
+        const centerX = deviceInfo.size.x / 2;
+        const centerY = deviceInfo.size.y / 2;
+
+        if (showHorizontal) {
+          guides
+            .moveTo(0, centerY)
+            .lineTo(deviceInfo.size.x, centerY)
+            .stroke({ color: 0x7ed03b, width: 6, alpha: 0.8 });
+        }
+
+        if (showVertical) {
+          guides
+            .moveTo(centerX, 0)
+            .lineTo(centerX, deviceInfo.size.y)
+            .stroke({ color: 0x7ed03b, width: 6, alpha: 0.8 });
+        }
+
+        guides.visible = showHorizontal || showVertical;
+      },
+      [deviceInfo.size]
+    );
 
     const hideGuides = useCallback(() => {
       const guides = guidesRef.current;
@@ -157,8 +169,10 @@ const Wallpaper = forwardRef(
         let targetX = event.global.x - qrContainer.dragOffset.x;
         let targetY = event.global.y - qrContainer.dragOffset.y;
 
-        const snapToHorizontalCenter = Math.abs(targetX - centerX) < snapThreshold;
-        const snapToVerticalCenter = Math.abs(targetY - centerY) < snapThreshold;
+        const snapToHorizontalCenter =
+          Math.abs(targetX - centerX) < snapThreshold;
+        const snapToVerticalCenter =
+          Math.abs(targetY - centerY) < snapThreshold;
 
         if (snapToHorizontalCenter) {
           targetX = centerX;
@@ -181,7 +195,7 @@ const Wallpaper = forwardRef(
 
         const isSnappedHorizontal = snapToVerticalCenter && newY === centerY;
         const isSnappedVertical = snapToHorizontalCenter && newX === centerX;
-        
+
         if (isSnappedHorizontal || isSnappedVertical) {
           showGuides(isSnappedHorizontal, isSnappedVertical);
         } else {
@@ -200,9 +214,11 @@ const Wallpaper = forwardRef(
       const qrContainer = qrContainerRef.current;
       if (!qrContainer) return;
 
+      if (!qrContainer.isDragging) return;
+
       qrContainer.isDragging = false;
       qrContainer.cursor = "grab";
-      
+
       hideGuides();
 
       if (isQRSelected && transformerRef.current) {
@@ -268,12 +284,15 @@ const Wallpaper = forwardRef(
       removeDragHandlers();
     }, [deselectAll, removeDragHandlers]);
 
-    const handleStageClick = useCallback((event) => {
-      // Check if we clicked on the stage itself (not a child object)
-      if (event.target === appRef.current?.stage) {
-        deselectAll();
-      }
-    }, [deselectAll]);
+    const handleStageClick = useCallback(
+      (event) => {
+        // Check if we clicked on the stage itself (not a child object)
+        if (event.target === appRef.current?.stage) {
+          deselectAll();
+        }
+      },
+      [deselectAll]
+    );
 
     const generateQRCode = useCallback(() => {
       if (!appRef.current || !qrRef.current) return;
@@ -329,7 +348,11 @@ const Wallpaper = forwardRef(
         qrContainer.y = deviceInfo.size.y * qrConfig.positionPercentages.y;
         qrContainer.rotation = (qrConfig.rotation * Math.PI) / 180;
 
-        if (transformerRef.current && transformerRef.current.visible && isQRSelected) {
+        if (
+          transformerRef.current &&
+          transformerRef.current.visible &&
+          isQRSelected
+        ) {
           requestAnimationFrame(() => {
             transformerRef.current.updateBorder();
           });
@@ -389,6 +412,11 @@ const Wallpaper = forwardRef(
 
         appRef.current = app;
 
+        backgroundRendererRef.current = new BackgroundRenderer(
+          app,
+          deviceInfo.size
+        );
+
         const transformer = new Transformer();
         app.stage.addChild(transformer);
         transformerRef.current = transformer;
@@ -419,7 +447,12 @@ const Wallpaper = forwardRef(
 
         // Make sure the stage can receive clicks everywhere
         app.stage.eventMode = "static";
-        app.stage.hitArea = new Rectangle(0, 0, deviceInfo.size.x + 2, deviceInfo.size.y + 2);
+        app.stage.hitArea = new Rectangle(
+          0,
+          0,
+          deviceInfo.size.x + 2,
+          deviceInfo.size.y + 2
+        );
         app.stage.on("pointerdown", handleStageClick);
 
         setTimeout(generateQRCode, 0);
@@ -428,6 +461,9 @@ const Wallpaper = forwardRef(
       initApp();
 
       return () => {
+        if (backgroundRendererRef.current) {
+          backgroundRendererRef.current.destroy();
+        }
         if (appRef.current) {
           appRef.current.destroy(true);
           appRef.current = null;
@@ -445,12 +481,12 @@ const Wallpaper = forwardRef(
         const qrContainer = qrContainerRef.current;
         if (qrContainer) {
           qrContainer.cursor = "pointer";
-          
+
           if (transformerRef.current) {
             transformerRef.current.forceCleanup();
             transformerRef.current.detach();
           }
-          
+
           removeDragHandlers();
         }
       }
@@ -459,21 +495,27 @@ const Wallpaper = forwardRef(
     // NEW: Simple outside mousedown handler (works with touch too)
     useEffect(() => {
       const handlePointerDownOutside = (event) => {
-        const previewElement = document.getElementById('preview');
-        
+        console.log("Outside click detected:", event.target, event.type);
+        const previewElement = document.getElementById("preview");
+
         // If QR is selected and pointerdown is outside the preview area
-        if (isQRSelected && previewElement && !previewElement.contains(event.target)) {
+        if (
+          isQRSelected &&
+          previewElement &&
+          !previewElement.contains(event.target)
+        ) {
           deselectAll();
+          console.log("Deselected QR");
         }
       };
 
       // Only add listener if QR is selected
       if (isQRSelected) {
         // Use touchstart with passive: false to ensure it works on mobile
-        document.addEventListener('pointerdown', handlePointerDownOutside);
-        
+        document.addEventListener("pointerdown", handlePointerDownOutside);
+
         return () => {
-          document.removeEventListener('pointerdown', handlePointerDownOutside);
+          document.removeEventListener("pointerdown", handlePointerDownOutside);
         };
       }
     }, [isQRSelected, deselectAll]);
@@ -489,14 +531,33 @@ const Wallpaper = forwardRef(
     }, [locked, attachDragHandlers, removeDragHandlers, isQRSelected]);
 
     useEffect(() => {
+      if (backgroundRendererRef.current) {
+        backgroundRendererRef.current.updateDeviceSize(deviceInfo.size);
+        backgroundRendererRef.current.renderBackground(background);
+      }
       if (appRef.current) {
-        appRef.current.renderer.resize(deviceInfo.size.x + 2, deviceInfo.size.y + 2);
+        appRef.current.renderer.resize(
+          deviceInfo.size.x + 2,
+          deviceInfo.size.y + 2
+        );
       }
     }, [deviceInfo.size]);
 
     useEffect(() => {
       generateQRCode();
     }, [generateQRCode]);
+
+    useEffect(() => {
+      if (backgroundRendererRef.current) {
+        backgroundRendererRef.current.renderBackground(background);
+      }
+    }, [
+      background.style,
+      background.color,
+      background.bg,
+      background.gradient,
+      background.grain,
+    ]);
 
     useEffect(() => {
       if (
@@ -517,6 +578,7 @@ const Wallpaper = forwardRef(
       qrConfig.custom.cornerRadiusRatio,
       qrConfig.custom.borderSizeRatio,
     ]);
+    
 
     return (
       <>

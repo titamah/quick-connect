@@ -26,10 +26,12 @@ export const DeviceProvider = ({ children }) => {
 
   // SIMPLE: Just two functions
   const selectQR = useCallback(() => {
+    console.log('🟢 SELECTING QR - called from:', new Error().stack);
     setIsQRSelected(true);
   }, []);
   
   const deselectAll = useCallback(() => {
+    console.log('🔴 DESELECTING QR');
     setIsQRSelected(false);
   }, []);
 
