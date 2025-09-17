@@ -5,7 +5,7 @@ import { Grip } from "lucide-react";
 import chroma from "chroma-js";
 import { useDevice } from "../../contexts/DeviceContext";
 const ColorSelector = ({ panelSize }) => {
-  const { device, background, updateBackground, takeSnapshot, isMobile } =
+  const { device, background, updateBackground, takeSnapshot, isMobile, updateGrain } =
     useDevice();
   const pickerRef = useRef(null);
   const inputRef = useRef(null);
@@ -147,10 +147,7 @@ const ColorSelector = ({ panelSize }) => {
     },
     [inputText, background.color]
   );
-  const toggleGrain = useCallback(() => {
-    takeSnapshot("Toggle grain");
-    updateBackground({ grain: !background.grain });
-  }, [background.grain, updateBackground]);
+  
   const handleTouchStart = () => {
     console.log("📱 Touch start detected on color picker");
     setNeedsSnapshot(true);
@@ -177,16 +174,16 @@ const ColorSelector = ({ panelSize }) => {
           placeholder="#ffffff"
           maxLength={7}
         />
-        <button
-          onClick={toggleGrain}
-          className="opacity-75 hover:opacity-100 cursor-pointer transition-opacity"
-          aria-label={`${background.grain ? "Disable" : "Enable"} grain effect`}
-        >
-          <Grip
-            size={20}
-            color={device.grain ? "var(--accent)" : "var(--text-secondary)"}
-          />
-        </button>
+        <Grip
+              className={`hover:opacity-75 cursor-pointer 
+                ${device.grain ? `text-[var(--accent)]${ device.grain == 1 ? "" : "/50"}` 
+                  : "text-[var(--text-secondary)]"}`}
+              size={20}
+              onClick={() => {
+                takeSnapshot("Toggle grain");
+                updateGrain();
+              }}
+            />
       </div>
       <HexColorPicker
         id="solid"

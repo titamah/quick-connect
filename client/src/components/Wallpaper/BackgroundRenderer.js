@@ -8,7 +8,6 @@ export class BackgroundRenderer {
     this.grainSprite = null;
     this.canvas = null;
     this.ctx = null;
-
     this.canvas = document.createElement("canvas");
     this.ctx = this.canvas.getContext("2d");
   }
@@ -31,7 +30,7 @@ export class BackgroundRenderer {
     }
 
     if (background.grain) {
-      await this.addGrainEffect();
+      await this.addGrainEffect(background.grain);
     }
   }
 
@@ -153,15 +152,15 @@ export class BackgroundRenderer {
     }
   }
 
-  async addGrainEffect() {
+  async addGrainEffect(grain) {
     try {
       const grainTexture = await Assets.load("/grain.jpeg");
       this.grainSprite = new TilingSprite(grainTexture, this.deviceSize.x, this.deviceSize.y);
 
-      this.grainSprite.blendMode = "multiply";
-      this.grainSprite.alpha = 0.25;
+      this.grainSprite.blendMode = "overlay";
+      this.grainSprite.alpha = 0.1 * grain;
 
-      this.app.stage.addChild(this.grainSprite);
+      this.app.stage.addChildAt(this.grainSprite, 1);
     } catch (error) {
       console.error("Failed to load grain texture:", error);
     }

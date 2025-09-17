@@ -8,16 +8,11 @@ import chroma from "chroma-js";
 import { BetweenVerticalEnd, ArrowLeftRight, Grip } from "lucide-react";
 import "./styles.css";
 function GradientSelector() {
-  const { device, updateBackground, takeSnapshot } = useDevice();
+  const { device, updateBackground, takeSnapshot, updateGrain } = useDevice();
   const gradientBar = useRef(null);
   const [frozenPreset, setFrozenPreset] = useState(null);
   const [processedStops, setProcessedStops] = useState([]);
-  const updateGrain = useCallback(
-    (grain) => {
-      updateBackground({ grain });
-    },
-    [updateBackground]
-  );
+
   const [gradientCSS, setGradientCSS] = useState(null);
   useEffect(() => {
     const updatedStops = [];
@@ -147,15 +142,16 @@ function GradientSelector() {
           onChange={handleMenuClick}
         />
         <span className="flex items-center gap-2 pointer-events-auto">
-          <Grip
-            className="opacity-75 hover:opacity-100 cursor-pointer"
-            size={20}
-            color={device.grain ? "var(--accent)" : "var(--text-secondary)"}
-            onClick={() => {
-              takeSnapshot("Toggle grain");
-              updateGrain(!device.grain);
-            }}
-          />
+        <Grip
+              className={`hover:opacity-75 cursor-pointer 
+                ${device.grain ? `text-[var(--accent)]${ device.grain == 1 ? "" : "/50"}` 
+                  : "text-[var(--text-secondary)]"}`}
+              size={20}
+              onClick={() => {
+                takeSnapshot("Toggle grain");
+                updateGrain();
+              }}
+            />
           <BetweenVerticalEnd
             className="opacity-75 hover:opacity-100 cursor-pointer"
             size={20}

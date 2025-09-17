@@ -25,7 +25,6 @@ const Wallpaper = forwardRef(
       updateQRConfig,
       updateQRPositionPercentages,
       takeSnapshot,
-      // NEW: Add selection state from context
       isQRSelected,
       selectQR: contextSelectQR,
       deselectAll,
@@ -254,7 +253,7 @@ const Wallpaper = forwardRef(
       const qrContainer = qrContainerRef.current;
       if (!qrContainer) return;
 
-      contextSelectQR(); // Use context function
+      contextSelectQR();
       qrContainer.cursor = "grab";
 
       if (transformerRef.current) {
@@ -269,24 +268,9 @@ const Wallpaper = forwardRef(
       takeSnapshotRef.current("Select QR Code");
     }, [contextSelectQR, attachDragHandlers]);
 
-    const deselectQR = useCallback(() => {
-      const qrContainer = qrContainerRef.current;
-      if (!qrContainer) return;
-
-      deselectAll(); // Use context function
-      qrContainer.cursor = "pointer";
-
-      if (transformerRef.current) {
-        transformerRef.current.forceCleanup();
-        transformerRef.current.detach();
-      }
-
-      removeDragHandlers();
-    }, [deselectAll, removeDragHandlers]);
 
     const handleStageClick = useCallback(
       (event) => {
-        // Check if we clicked on the stage itself (not a child object)
         if (event.target === appRef.current?.stage) {
           deselectAll();
         }
@@ -360,6 +344,7 @@ const Wallpaper = forwardRef(
 
         qrContainer.eventMode = "static";
         qrContainer.cursor = "pointer";
+
 
         qrContainer.on("pointerdown", (event) => {
           event.stopPropagation();
@@ -441,11 +426,6 @@ const Wallpaper = forwardRef(
           updateQRPositionPercentagesRef.current(newPosition);
         });
 
-        transformer.on("transformend", () => {
-          console.log("Transform ended");
-        });
-
-        // Make sure the stage can receive clicks everywhere
         app.stage.eventMode = "static";
         app.stage.hitArea = new Rectangle(
           0,
@@ -474,10 +454,8 @@ const Wallpaper = forwardRef(
       };
     }, []);
 
-    // NEW: Effect to handle deselection from context
     useEffect(() => {
       if (!isQRSelected) {
-        // If context says QR should not be selected, deselect it
         const qrContainer = qrContainerRef.current;
         if (qrContainer) {
           qrContainer.cursor = "pointer";
@@ -492,26 +470,20 @@ const Wallpaper = forwardRef(
       }
     }, [isQRSelected, removeDragHandlers]);
 
-    // NEW: Simple outside mousedown handler (works with touch too)
     useEffect(() => {
       const handlePointerDownOutside = (event) => {
-        console.log("Outside click detected:", event.target, event.type);
         const previewElement = document.getElementById("preview");
 
-        // If QR is selected and pointerdown is outside the preview area
         if (
           isQRSelected &&
           previewElement &&
           !previewElement.contains(event.target)
         ) {
           deselectAll();
-          console.log("Deselected QR");
         }
       };
 
-      // Only add listener if QR is selected
       if (isQRSelected) {
-        // Use touchstart with passive: false to ensure it works on mobile
         document.addEventListener("pointerdown", handlePointerDownOutside);
 
         return () => {
@@ -578,7 +550,6 @@ const Wallpaper = forwardRef(
       qrConfig.custom.cornerRadiusRatio,
       qrConfig.custom.borderSizeRatio,
     ]);
-    
 
     return (
       <>

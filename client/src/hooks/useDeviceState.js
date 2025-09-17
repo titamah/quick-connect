@@ -73,7 +73,7 @@ export const useDeviceState = () => {
       angle: 0,
       pos: { x: 0.5, y: 0.5 },
     },
-    grain: false,
+    grain: 0,
   });
   const [qrConfig, setQRConfig] = useState({
     url: "www.qrki.xyz",
@@ -305,6 +305,13 @@ export const useDeviceState = () => {
     console.log("🔧 updateGeneratedInfo:", updates);
     setGeneratedInfo((prev) => deepMerge(prev, updates));
   };
+
+  const updateGrain = () => {
+    if (background.grain === 1) background.grain = 0;
+    else background.grain += 0.5;
+    console.log("🔧 updateGrain:", background.grain);
+  };
+  
   const loadTemplateData = useCallback((templateData) => {
     console.log("📋 Loading template data with validation...");
     const qrConfigWithDefaults = {
@@ -357,6 +364,7 @@ export const useDeviceState = () => {
     updateImagePalette,
     updateUploadInfo,
     updateGeneratedInfo,
+    updateGrain,
     takeSnapshot,
     undo,
     redo,
