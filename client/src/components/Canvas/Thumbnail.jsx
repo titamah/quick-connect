@@ -75,7 +75,7 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
     // Create a simple red background - full size, no scaling issues
     const background = new Graphics();
     background.rect(0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-    background.fill(`${dark ? "#000000" : "#FFFFFF"}`); // Bright red
+    background.fill(`${dark ? "#232323" : "#F0F0F0"}`);
     app.stage.addChild(background);
 
     const style = new TextStyle({
