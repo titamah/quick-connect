@@ -12,6 +12,7 @@ import { useDevice } from "../../contexts/DeviceContext";
 import { useToast } from "../Toast";
 import chroma from "chroma-js";
 const Thumbnail = React.lazy(() => import("./Thumbnail.jsx"));
+const ThumbOg = React.lazy(() => import("./ThumbOg.jsx"));
 const ShareButton = ({
   wallpaperRef,
   getBackgroundImage,
@@ -27,6 +28,7 @@ const ShareButton = ({
   const [activeState, setActiveState] = useState(null);
   const [linkError, setLinkError] = useState(null);
   const thumbnailRef = useRef(null);
+  const thumbnailOgRef = useRef(null);
   const [shouldRenderThumbnail, setShouldRenderThumbnail] = useState(false);
   const buttonRef = useRef(null);
   const createDeviceStateSchema = useCallback(() => {
@@ -129,25 +131,28 @@ const ShareButton = ({
     return new File([u8arr], filename, { type: mime });
   };
   const generateRemixLink = async () => {
-    if (remixLink) return remixLink; 
+    if (remixLink) return remixLink;
     setIsGeneratingLink(true);
     try {
       const { default: remixService } = await import(
         "../../services/remixService"
       );
       const deviceStateSchema = createDeviceStateSchema();
-    let thumbnailUrl = null;
-    if (thumbnailRef.current?.exportAsBlob) {
-      try {
-        console.log('🖼️ Generating thumbnail...');
-        const thumbnailBlob = await thumbnailRef.current.exportAsBlob();
-        thumbnailUrl = await remixService.uploadThumbnail(thumbnailBlob);
-        console.log('✅ Thumbnail uploaded:', thumbnailUrl);
-      } catch (error) {
-        console.warn('⚠️ Thumbnail upload failed, continuing without:', error);
+      let thumbnailUrl = null;
+      if (thumbnailRef.current?.exportAsBlob) {
+        try {
+          console.log("🖼️ Generating thumbnail...");
+          const thumbnailBlob = await thumbnailRef.current.exportAsBlob();
+          thumbnailUrl = await remixService.uploadThumbnail(thumbnailBlob);
+          console.log("✅ Thumbnail uploaded:", thumbnailUrl);
+        } catch (error) {
+          console.warn(
+            "⚠️ Thumbnail upload failed, continuing without:",
+            error
+          );
+        }
       }
-    }
-    console.log("🖼️ Thumbnail URL:", thumbnailUrl);
+      console.log("🖼️ Thumbnail URL:", thumbnailUrl);
       let backgroundImageFile = null;
       if (
         background.style === "image" &&
@@ -183,7 +188,7 @@ const ShareButton = ({
       console.error("Failed to create remix link:", error);
       let errorMessage = "Failed to create share link. Please try again.";
       if (error.message.includes("wait")) {
-        errorMessage = error.message; 
+        errorMessage = error.message;
       } else if (error.message.includes("too large")) {
         errorMessage = "Design is too complex to share. Try simplifying it.";
       } else if (error.message.includes("upload")) {
@@ -312,6 +317,16 @@ const ShareButton = ({
                   ).luminance() > 0.5
                 }
               />
+              {/* <ThumbOg
+                ref={thumbnailOgRef}
+                activeState={activeState}
+                backgroundImage={backgroundImage}
+                dark={
+                  chroma(
+                    activeState?.qr.primaryColor || "#000000"
+                  ).luminance() > 0.5
+                }
+              /> */}
             </React.Suspense>
           )}
           {}
