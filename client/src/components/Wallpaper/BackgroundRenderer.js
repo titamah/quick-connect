@@ -158,7 +158,7 @@ export class BackgroundRenderer {
       this.grainSprite = new TilingSprite(grainTexture, this.deviceSize.x, this.deviceSize.y);
 
       this.grainSprite.blendMode = "overlay";
-      this.grainSprite.alpha = 0.1 * grain;
+      this.grainSprite.alpha = 0.075 * grain;
 
       this.app.stage.addChildAt(this.grainSprite, 1);
     } catch (error) {

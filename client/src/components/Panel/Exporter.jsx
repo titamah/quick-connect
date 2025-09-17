@@ -9,8 +9,8 @@ const Exporter = forwardRef(({ wallpaperRef }, ref) => {
   const { toast } = useToast();
   const [downloadSettings, setDownloadSettings] = useState({
     isPng: true,
-    size: 1.0, // Default to 1x for high quality
-    quality: 0.9, // Higher default quality
+    size: 1.0, 
+    quality: 1, 
   });
 
   function downloadBlob(blob, filename) {
