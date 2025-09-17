@@ -308,7 +308,7 @@ const ShareButton = ({
               }
             >
               <Thumbnail
-                ref={thumbnailRef}
+                wallpaperRef={wallpaperRef}
                 activeState={activeState}
                 backgroundImage={backgroundImage}
                 dark={

@@ -23,7 +23,7 @@ const THUMBNAIL_PADDING = THUMBNAIL_WIDTH / 10;
 const THUMBNAIL_TEXT_SIZE = THUMBNAIL_HEIGHT * 0.1;
 
 const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
-  const { qrConfig } = useDevice();
+  const { qrConfig, deviceInfo } = useDevice();
   const containerRef = useRef(null);
   const appRef = useRef(null);
 
@@ -60,33 +60,72 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
 
   useImperativeHandle(ref, () => ({ exportAsBlob }));
 
-  const setupBasicScene = async () => {
+  const createThumbnail = async () => {
+    if (!wallpaperRef.current.exportImage) {
+      console.log("exportImage not ready");
+      setupBasicScene(null);
+      return;
+    }
+    if (!appRef.current) {
+      console.log("app ref not ready");
+      setupBasicScene(null);
+      return;
+    }
+
+    try {
+      // Export the main wallpaper at a reasonable size for thumbnail
+      const wallpaperBlob = await wallpaperRef.current.exportImage({
+        format: "png",
+        quality: 0.8,
+        scale: 1, // Smaller for performance
+      });
+
+      // Convert blob to image
+      const wallpaperImage = new Image();
+      wallpaperImage.onload = () => {
+        setupBasicScene(wallpaperImage);
+      };
+      wallpaperImage.onerror = () => {
+        console.log("Failed to load wallpaper image, using fallback");
+        setupBasicScene(null);
+      };
+      wallpaperImage.src = URL.createObjectURL(wallpaperBlob);
+    } catch (error) {
+      console.log("Failed to create thumbnail from wallpaper:", error);
+      setupBasicScene(null);
+    }
+  };
+
+  const setupBasicScene = async (wallpaperImage) => {
+    const qrYPercent = qrConfig.positionPercentages.y;
+    const aspectRatio = deviceInfo.size.y / deviceInfo.size.x;
+    const PHONE_WIDTH = THUMBNAIL_WIDTH * 0.3525;
+    const PHONE_HEIGHT = PHONE_WIDTH * aspectRatio;
+    const qrOffset = (0.5 - qrYPercent) * PHONE_HEIGHT;
+    const strokeWidth = PHONE_WIDTH * 0.075;
+    const phoneX =
+      THUMBNAIL_WIDTH - (PHONE_WIDTH + strokeWidth) - THUMBNAIL_PADDING;
+    const phoneY = (THUMBNAIL_HEIGHT - PHONE_HEIGHT) / 2 + qrOffset;
+
     const app = appRef.current;
     if (!app) {
       console.error("❌ No app in setupBasicScene");
       return;
     }
 
-    console.log("🎨 Setting up basic scene...");
-
-    // Clear stage
     app.stage.removeChildren();
 
-    // Create a simple red background - full size, no scaling issues
     const background = new Graphics();
     background.rect(0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
     background.fill(`${dark ? "#232323" : "#F0F0F0"}`);
     app.stage.addChild(background);
 
-    const style = new TextStyle({
+    const text = new Text("MADE WITH", {
       fontFamily: "Rubik",
       fontSize: `${THUMBNAIL_TEXT_SIZE}px`,
       fontWeight: "800",
       fill: `${!dark ? "#000000" : "#FFFFFF"}`,
     });
-
-    // Blue square in top-left corner
-    const text = new Text("MADE WITH", style);
     text.x = THUMBNAIL_PADDING;
     text.y = THUMBNAIL_HEIGHT * 0.2;
     app.stage.addChild(text);
@@ -101,16 +140,13 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
         const blob = new Blob([coloredSVG], { type: "image/svg+xml" });
         const blobUrl = URL.createObjectURL(blob);
 
-        // Create an Image element and wait for it to load
         const image = new Image();
 
         const logoTexture = await new Promise((resolve, reject) => {
           image.onload = () => {
             try {
-              // Create texture source with the loaded image
               const source = new ImageSource({ resource: image });
 
-              // Create texture from source
               const texture = new Texture({ source });
 
               resolve(texture);
@@ -131,7 +167,6 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
       }
     };
 
-    // Then in your try block:
     try {
       const logoTexture = await loadColoredLogo(
         qrConfig?.custom?.primaryColor || "#FC6524"
@@ -142,35 +177,94 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
       }
 
       const logoSprite = new Sprite(logoTexture);
-      const desiredHeight = THUMBNAIL_HEIGHT * 0.5; // Or whatever size you want
+      const desiredHeight = THUMBNAIL_HEIGHT * 0.5;
       const scale = desiredHeight / 525;
       logoSprite.scale.set(scale);
 
       logoSprite.x = THUMBNAIL_PADDING * 1.2;
       logoSprite.y = THUMBNAIL_HEIGHT * 0.3375;
 
-      // Scale to desired size
       const logoScale = (THUMBNAIL_HEIGHT * 0.3) / logoSprite.height;
       logoSprite.scale.set(logoScale);
 
       app.stage.addChild(logoSprite);
-
-      console.log("✅ Logo loaded successfully");
     } catch (error) {
       console.error("❌ Failed to load logo:", error);
     }
 
-    console.log("✅ Added background to stage", {
-      stageChildren: app.stage.children.length,
-      backgroundWidth: background.width,
-      backgroundHeight: background.height,
-      appWidth: app.renderer.width,
-      appHeight: app.renderer.height,
-    });
+    const phoneShadow = new Graphics();
+    phoneShadow.roundRect(
+      phoneX - strokeWidth / 2 - 25, // Offset shadow slightly
+      phoneY - strokeWidth / 2 - 25,
+      PHONE_WIDTH + strokeWidth + 50,
+      PHONE_HEIGHT + strokeWidth + 50,
+      THUMBNAIL_HEIGHT * 0.1
+    );
+    phoneShadow.fill({ color: 0x000000, alpha: 0.025 }); // Semi-transparent black
+    app.stage.addChild(phoneShadow);
 
-    // Force a render
+    const phoneFrame = new Graphics();
+    phoneFrame.roundRect(
+      phoneX - strokeWidth / 2,
+      phoneY - strokeWidth / 2,
+      PHONE_WIDTH + strokeWidth,
+      PHONE_HEIGHT + strokeWidth,
+      THUMBNAIL_HEIGHT * 0.075
+    );
+    phoneFrame.stroke({ color: 0x000000, width: strokeWidth });
+    phoneFrame.fill(0x000000);
+    app.stage.addChild(phoneFrame);
+
+    // Phone screen content
+    if (wallpaperImage) {
+      try {
+        // Create ImageSource and Texture manually for the wallpaper
+        const wallpaperSource = new ImageSource({ resource: wallpaperImage });
+        const wallpaperTexture = new Texture({ source: wallpaperSource });
+        const wallpaperSprite = new Sprite(wallpaperTexture);
+
+        // Scale to fit phone screen (cover the entire screen)
+        const scaleX = PHONE_WIDTH / wallpaperImage.width;
+        const scaleY = PHONE_HEIGHT / wallpaperImage.height;
+        const scale = Math.max(scaleX, scaleY); // Cover entire screen
+
+        wallpaperSprite.scale.set(scale);
+        wallpaperSprite.x = phoneX;
+        wallpaperSprite.y = phoneY;
+
+        // Create clipping mask for phone screen
+        const phoneMask = new Graphics();
+        phoneMask.roundRect(
+          phoneX,
+          phoneY,
+          PHONE_WIDTH,
+          PHONE_HEIGHT,
+          THUMBNAIL_HEIGHT * 0.06
+        );
+        phoneMask.fill(0xffffff);
+
+        wallpaperSprite.mask = phoneMask;
+
+        app.stage.addChild(wallpaperSprite);
+        app.stage.addChild(phoneMask);
+      } catch (error) {
+        console.error("Failed to create wallpaper sprite:", error);
+        // Fallback to gray screen
+        const phoneScreen = new Graphics();
+        phoneScreen.rect(phoneX, phoneY, PHONE_WIDTH, PHONE_HEIGHT);
+        phoneScreen.fill(0xcccccc);
+        app.stage.addChild(phoneScreen);
+      }
+    } else {
+      // Fallback phone screen
+      console.log("🔴 Fallback phone screen for some reason");
+      const phoneScreen = new Graphics();
+      phoneScreen.rect(phoneX, phoneY, PHONE_WIDTH, PHONE_HEIGHT);
+      phoneScreen.fill(0xf0f0f0);
+      app.stage.addChild(phoneScreen);
+    }
+
     app.render();
-    console.log("🖼️ Forced render complete");
   };
 
   useEffect(() => {
@@ -189,6 +283,8 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
           height: THUMBNAIL_HEIGHT,
           backgroundColor: 0x000000,
           antialias: true,
+          preference: "webgl", // or 'webgpu'
+          powerPreference: "default", // Add this
         });
 
         console.log("✅ Pixi app initialized", {
@@ -214,7 +310,7 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
         appRef.current = app;
 
         // Setup scene immediately
-        setupBasicScene();
+        createThumbnail();
       } catch (error) {
         console.error("❌ Failed to initialize Pixi app:", error);
       }
