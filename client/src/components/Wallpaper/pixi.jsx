@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef, useCallback } from "react";
+import { forwardRef, useEffect, useRef, useCallback, useImperativeHandle } from "react";
 import {
   Application,
   Graphics,
@@ -46,6 +46,96 @@ const Wallpaper = forwardRef(
     const takeSnapshotRef = useRef(takeSnapshot);
     const updateQRConfigRef = useRef(updateQRConfig);
     const updateQRPositionPercentagesRef = useRef(updateQRPositionPercentages);
+
+    useImperativeHandle(ref, () => ({
+        exportImage: (options = {}) => {
+          const {
+            format = 'png',
+            quality = 0.9,
+            scale = 1,
+            width,
+            height
+          } = options;
+  
+          return new Promise((resolve, reject) => {
+            try {
+              const pixiApp = appRef.current;
+              if (!pixiApp || !pixiApp.renderer) {
+                throw new Error("Pixi application not found or not initialized");
+              }
+  
+              // Calculate export dimensions
+              const exportWidth = width || Math.floor(deviceInfo.size.x * scale);
+              const exportHeight = height || Math.floor(deviceInfo.size.y * scale);
+              
+              // Store original size
+              const originalWidth = pixiApp.renderer.width;
+              const originalHeight = pixiApp.renderer.height;
+              
+              // Temporarily resize renderer for high-quality export
+              pixiApp.renderer.resize(exportWidth, exportHeight);
+              
+              // Force a render
+              pixiApp.render();
+              
+              // Extract the canvas
+              const canvas = pixiApp.renderer.extract.canvas(pixiApp.stage);
+              
+              // Convert to blob
+              const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
+              canvas.toBlob((blob) => {
+                try {
+                  // Restore original size
+                  pixiApp.renderer.resize(originalWidth, originalHeight);
+                  pixiApp.render();
+                  
+                  if (!blob) {
+                    reject(new Error("Failed to generate image blob"));
+                    return;
+                  }
+                  
+                  resolve(blob);
+                } catch (error) {
+                  // Restore original size even on error
+                  pixiApp.renderer.resize(originalWidth, originalHeight);
+                  pixiApp.render();
+                  reject(error);
+                }
+              }, mimeType, quality);
+              
+            } catch (error) {
+              reject(error);
+            }
+          });
+        },
+  
+        // You can also expose other useful methods
+        getPixiApp: () => appRef.current,
+        
+        // Method to get current canvas as data URL (simpler alternative)
+        toDataURL: (options = {}) => {
+          const {
+            format = 'png',
+            quality = 0.9,
+            scale = 1
+          } = options;
+  
+          try {
+            const pixiApp = appRef.current;
+            if (!pixiApp || !pixiApp.renderer) {
+              throw new Error("Pixi application not found or not initialized");
+            }
+  
+            const canvas = pixiApp.renderer.extract.canvas(pixiApp.stage);
+            const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
+            return canvas.toDataURL(mimeType, quality);
+          } catch (error) {
+            console.error("toDataURL failed:", error);
+            return null;
+          }
+        }
+      }), [deviceInfo.size]);
+  
 
     useEffect(() => {
       takeSnapshotRef.current = takeSnapshot;

@@ -2,31 +2,17 @@ import { useState, forwardRef, useEffect } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import { usePreview } from "../../contexts/PreviewContext";
 import { useToast } from "../Toast";
-const Exporter = forwardRef(({}, ref) => {
+
+const Exporter = forwardRef(({ wallpaperRef }, ref) => {
   const { device, updateDeviceInfo, takeSnapshot, isMobile } = useDevice();
   const { setExportState } = usePreview();
   const { toast } = useToast();
   const [downloadSettings, setDownloadSettings] = useState({
     isPng: true,
-    size: 0.5,
-    quality: 0.5,
+    size: 1.0, // Default to 1x for high quality
+    quality: 0.9, // Higher default quality
   });
-  function dataURLtoBlob(dataURL) {
-    if (!dataURL) throw new Error("Invalid data URL");
-    const arr = dataURL.split(",");
-    if (arr.length < 2) throw new Error("Invalid data URL format");
-    const mimeMatch = arr[0].match(/:(.*?);/);
-    if (!mimeMatch)
-      throw new Error("Could not extract MIME type from data URL");
-    const mime = mimeMatch[1];
-    const bstr = atob(arr[1]);
-    let n = bstr.length;
-    const u8arr = new Uint8Array(n);
-    while (n--) {
-      u8arr[n] = bstr.charCodeAt(n);
-    }
-    return new Blob([u8arr], { type: mime });
-  }
+
   function downloadBlob(blob, filename) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -40,43 +26,57 @@ const Exporter = forwardRef(({}, ref) => {
       setTimeout(() => URL.revokeObjectURL(url), 100);
     }, 0);
   }
-  const exportImage = () => {
+
+  const exportImage = async () => {
+    if (!wallpaperRef?.current?.exportImage) {
+      toast.error("Export function not available. Please wait for the canvas to load.", {
+        position: "bottom-right",
+        autoClose: 3000,
+      });
+      return;
+    }
+
     setExportState(true);
-    setTimeout(() => {
-      try {
-        const mimeType = downloadSettings.isPng ? "image/png" : "image/jpeg";
-        const extension = downloadSettings.isPng ? ".png" : ".jpg";
-        const dataURL = ref.current.toDataURL({
-          mimeType,
-          pixelRatio: downloadSettings.size,
-          quality: downloadSettings.quality,
-        });
-        if (!dataURL) throw new Error("Failed to generate image data");
-        const blob = dataURLtoBlob(dataURL);
-        const filename = device.name + extension;
-        downloadBlob(blob, filename);
-        toast.success("Download complete", {
-          position: "bottom-right",
-          autoClose: 2000,
-        });
-      } catch (error) {
-        console.error("Export failed:", error);
-        toast.error("Failed to export image. Please try again.", {
-          position: "bottom-right",
-          autoClose: 3000,
-        });
-      } finally {
-        setExportState(false);
-      }
-    }, 0);
+    
+    try {
+      const format = downloadSettings.isPng ? 'png' : 'jpeg';
+      const extension = downloadSettings.isPng ? '.png' : '.jpg';
+
+      // Call the exposed exportImage method
+      const blob = await wallpaperRef.current.exportImage({
+        format,
+        quality: downloadSettings.quality,
+        scale: parseFloat(downloadSettings.size)
+      });
+
+      const filename = device.name + extension;
+      downloadBlob(blob, filename);
+      
+      toast.success("Download complete", {
+        position: "bottom-right",
+        autoClose: 2000,
+      });
+    } catch (error) {
+      console.error("Export failed:", error);
+      toast.error("Failed to export image. Please try again.", {
+        position: "bottom-right",
+        autoClose: 3000,
+      });
+    } finally {
+      setExportState(false);
+    }
   };
+
   const [name, setName] = useState(device.name);
+  
   useEffect(() => {
     setName(device.name);
   }, [device.name]);
+
   return (
-    <div  className={` w-full${isMobile ? "rounded-t-2xl h-full" : ""} flex-1 overflow-y-scroll min-h-0 gap-y-3.5 p-3.5`}>
-      <h2 className={`${isMobile ? "hidden" : ""}`}> Save Wallpaper</h2>
+    <div className={`w-full${isMobile ? "rounded-t-2xl h-full" : ""} flex-1 overflow-y-scroll min-h-0 gap-y-3.5 p-3.5`}>
+      <h2 className={`${isMobile ? "hidden" : ""}`}>Save Wallpaper</h2>
+      
       <div>
         <h4 className="py-1.5">File Name</h4>
         <input
@@ -100,7 +100,8 @@ const Exporter = forwardRef(({}, ref) => {
           }}
         />
       </div>
-      <div className="flex-col rounded-lg ">
+
+      <div className="flex-col rounded-lg">
         <h4 className="py-1.5">File Type</h4>
         <ul className="flex flex-row bg-black/5 dark:bg-black/15 rounded-lg">
           <li
@@ -143,10 +144,11 @@ const Exporter = forwardRef(({}, ref) => {
           </li>
         </ul>
       </div>
+
       <div className="flex-col text-xs py-1.5">
         <span className="flex place-content-between">
           <h4>Size</h4>
-          <span className="text-xs"> x{downloadSettings.size} </span>
+          <span className="text-xs">x{downloadSettings.size}</span>
         </span>
         <input
           type="range"
@@ -183,9 +185,9 @@ const Exporter = forwardRef(({}, ref) => {
   [&::-moz-range-track]:rounded-full"
           id="steps-range-slider-usage"
           aria-orientation="horizontal"
-          min=".25"
+          min="0.25"
           max="3"
-          step=".25"
+          step="0.25"
           value={downloadSettings.size}
           title={downloadSettings.size}
           onChange={(e) =>
@@ -194,15 +196,15 @@ const Exporter = forwardRef(({}, ref) => {
               size: e.target.value,
             })
           }
-        ></input>
+        />
         <span className="flex place-content-end w-full">
           <span className="italic opacity-50 text-[10px] h-2">
-            {" "}
             ({Math.ceil(device.size.x * downloadSettings.size)} x{" "}
             {Math.ceil(device.size.y * downloadSettings.size)})
           </span>
         </span>
       </div>
+
       {!downloadSettings.isPng && (
         <div className="flex-col text-xs pt-1.5">
           <span className="flex place-content-between">
@@ -248,26 +250,28 @@ const Exporter = forwardRef(({}, ref) => {
             aria-orientation="horizontal"
             min="0.1"
             max="1"
-            step=".01"
+            step="0.01"
             value={downloadSettings.quality}
             title={downloadSettings.quality}
             onChange={(e) =>
               setDownloadSettings({
                 ...downloadSettings,
-                quality: e.target.value,
+                quality: parseFloat(e.target.value),
               })
             }
-          ></input>
+          />
         </div>
       )}
+
       <button
         type="button"
         onClick={exportImage}
-        class="p-1 mt-5 mb-2.5 inline-flex justify-center w-full text-sm font-medium rounded-2xl bg-[var(--accent)] text-white hover:opacity-80 cursor-pointer transition-opacity duration-200 ease-in-out"
+        className="p-1 mt-5 mb-2.5 inline-flex justify-center w-full text-sm font-medium rounded-2xl bg-[var(--accent)] text-white hover:opacity-80 cursor-pointer transition-opacity duration-200 ease-in-out"
       >
         Download
       </button>
     </div>
   );
 });
+
 export default Exporter;

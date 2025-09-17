@@ -75,7 +75,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
     {
       key: "4",
       label: <Download className={`size-7.5 m-2 w-full cursor-pointer ${activeTab === "4" ? "text-[var(--accent)]" : ""}`} onClick={() => {setActiveTab("4"); !isOpen && togglePanel()}}/>,
-      children: <Exporter ref={wallpaperRef} />,
+      children: <Exporter wallpaperRef={wallpaperRef} />,
     },
   ];
 
