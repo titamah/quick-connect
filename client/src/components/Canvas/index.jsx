@@ -1,8 +1,7 @@
 import { useEffect, useState, useRef, useMemo, useCallback, Suspense, lazy } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
-// Removed D3 - using custom zoom/drag implementation
+import FullscreenPreview from "../Wallpaper/FullscreenPreview";
 import Konva from "konva";
-import { Loader } from "lucide-react";
 import PreviewButton from "./PreviewButton";
 import UndoRedoButton from "./UndoRedoButton";
 import { useStageCalculations } from "../../hooks/useStageCalculations";
@@ -339,6 +338,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
                 ></div>
               </div>
             ) : (
+              <FullscreenPreview wallpaperRef={wallpaperRef}>
               <Suspense fallback={<WallpaperSkeleton previewSize={previewSize} />}>
                 <WallpaperPixi
                   ref={wallpaperRef}
@@ -349,6 +349,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
                   backgroundLayerRef={backgroundLayerRef}
                 />
               </Suspense>
+              </FullscreenPreview>
             )}
           </figure>
         </span>

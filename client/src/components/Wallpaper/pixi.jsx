@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useRef, useCallback, useImperativeHandle } from "react";
+import { forwardRef, useState, useEffect, useRef, useCallback, useImperativeHandle } from "react";
 import {
   Application,
   Graphics,
@@ -8,10 +8,12 @@ import {
   Rectangle,
 } from "pixi.js";
 import { useDevice } from "../../contexts/DeviceContext";
+import { usePreview } from "../../contexts/PreviewContext";
 import { useStageCalculations } from "../../hooks/useStageCalculations";
 import { QRCodeSVG } from "qrcode.react";
 import { Transformer } from "./QRTransformer";
 import { BackgroundRenderer } from "./BackgroundRenderer";
+import { PhoneUIRenderer } from "./PhoneUIRenderer";
 
 const Wallpaper = forwardRef(
   (
@@ -28,7 +30,15 @@ const Wallpaper = forwardRef(
       isQRSelected,
       selectQR: contextSelectQR,
       deselectAll,
+      isMobile,
     } = useDevice();
+
+    const {
+      isPreviewVisible,
+      isHovered,
+      isExporting,
+      setIsPreviewVisible,
+    } = usePreview();
 
     const containerRef = useRef(null);
     const appRef = useRef(null);
@@ -38,6 +48,10 @@ const Wallpaper = forwardRef(
     const transformerRef = useRef(null);
     const guidesRef = useRef(null);
     const backgroundRendererRef = useRef(null);
+    const phoneUIRendererRef = useRef(null);
+
+    // Fullscreen state for mobile
+    const [isFullscreen, setIsFullscreen] = useState(false);
 
     const currentConfigRef = useRef(qrConfig);
     const currentDeviceRef = useRef(deviceInfo);
@@ -47,6 +61,87 @@ const Wallpaper = forwardRef(
     const updateQRConfigRef = useRef(updateQRConfig);
     const updateQRPositionPercentagesRef = useRef(updateQRPositionPercentages);
 
+    // Mobile fullscreen handlers
+    const enterFullscreen = useCallback(() => {
+      if (!document.fullscreenElement && isMobile) {
+        const element = containerRef.current?.parentElement || document.documentElement;
+        if (element.requestFullscreen) {
+          element.requestFullscreen().then(() => {
+            setIsFullscreen(true);
+            phoneUIRendererRef.current?.show(1, true);
+          }).catch(console.error);
+        } else if (element.webkitRequestFullscreen) {
+          element.webkitRequestFullscreen();
+          setIsFullscreen(true);
+          phoneUIRendererRef.current?.show(1, true);
+        }
+      }
+    }, [isMobile]);
+
+    const exitFullscreen = useCallback(() => {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().then(() => {
+            setIsFullscreen(false);
+            phoneUIRendererRef.current?.hide(true);
+          }).catch(console.error);
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+          setIsFullscreen(false);
+          phoneUIRendererRef.current?.hide(true);
+        }
+      } else {
+        setIsFullscreen(false);
+        phoneUIRendererRef.current?.hide(true);
+      }
+    }, []);
+
+    // Handle preview state changes
+    useEffect(() => {
+      const phoneUI = phoneUIRendererRef.current;
+      if (!phoneUI) return;
+
+      if (isMobile) {
+        // Mobile behavior: fullscreen on preview
+        if (isPreviewVisible && !isFullscreen) {
+          enterFullscreen();
+        } else if (!isPreviewVisible && isFullscreen) {
+          exitFullscreen();
+        }
+      } else {
+        // Desktop behavior: hover/click states
+        if (isPreviewVisible) {
+          phoneUI.show(1, true);
+        } else if (isHovered) {
+          phoneUI.show(0.5, true);
+        } else {
+          phoneUI.hide(true);
+        }
+      }
+    }, [isPreviewVisible, isHovered, isMobile, isFullscreen, enterFullscreen, exitFullscreen]);
+
+    // Listen for fullscreen changes
+    useEffect(() => {
+      const handleFullscreenChange = () => {
+        const isCurrentlyFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
+        
+        if (!isCurrentlyFullscreen && isFullscreen) {
+          // User exited fullscreen (e.g., via escape key)
+          setIsFullscreen(false);
+          setIsPreviewVisible(false);
+          phoneUIRendererRef.current?.hide(true);
+        }
+      };
+
+      document.addEventListener('fullscreenchange', handleFullscreenChange);
+      document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+      return () => {
+        document.removeEventListener('fullscreenchange', handleFullscreenChange);
+        document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      };
+    }, [isFullscreen, setIsPreviewVisible]);
+
     useImperativeHandle(ref, () => ({
         exportImage: (options = {}) => {
           const {
@@ -54,7 +149,8 @@ const Wallpaper = forwardRef(
             quality = 0.9,
             scale = 1,
             width,
-            height
+            height,
+            includePhoneUI = false
           } = options;
   
           return new Promise((resolve, reject) => {
@@ -62,6 +158,14 @@ const Wallpaper = forwardRef(
               const pixiApp = appRef.current;
               if (!pixiApp || !pixiApp.renderer) {
                 throw new Error("Pixi application not found or not initialized");
+              }
+
+              // Hide phone UI during export unless explicitly requested
+              const phoneUI = phoneUIRendererRef.current;
+              const wasPhoneUIVisible = phoneUI?.container.visible;
+              
+              if (phoneUI && !includePhoneUI) {
+                phoneUI.container.visible = false;
               }
   
               // Calculate export dimensions
@@ -85,8 +189,11 @@ const Wallpaper = forwardRef(
               const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
               canvas.toBlob((blob) => {
                 try {
-                  // Restore original size
+                  // Restore original size and phone UI state
                   pixiApp.renderer.resize(originalWidth, originalHeight);
+                  if (phoneUI && wasPhoneUIVisible) {
+                    phoneUI.container.visible = true;
+                  }
                   pixiApp.render();
                   
                   if (!blob) {
@@ -98,6 +205,9 @@ const Wallpaper = forwardRef(
                 } catch (error) {
                   // Restore original size even on error
                   pixiApp.renderer.resize(originalWidth, originalHeight);
+                  if (phoneUI && wasPhoneUIVisible) {
+                    phoneUI.container.visible = true;
+                  }
                   pixiApp.render();
                   reject(error);
                 }
@@ -117,7 +227,8 @@ const Wallpaper = forwardRef(
           const {
             format = 'png',
             quality = 0.9,
-            scale = 1
+            scale = 1,
+            includePhoneUI = false
           } = options;
   
           try {
@@ -125,18 +236,43 @@ const Wallpaper = forwardRef(
             if (!pixiApp || !pixiApp.renderer) {
               throw new Error("Pixi application not found or not initialized");
             }
+
+            // Handle phone UI visibility
+            const phoneUI = phoneUIRendererRef.current;
+            const wasPhoneUIVisible = phoneUI?.container.visible;
+            
+            if (phoneUI && !includePhoneUI) {
+              phoneUI.container.visible = false;
+            }
   
             const canvas = pixiApp.renderer.extract.canvas(pixiApp.stage);
             const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
+            
+            // Restore phone UI state
+            if (phoneUI && wasPhoneUIVisible) {
+              phoneUI.container.visible = true;
+            }
+            
             return canvas.toDataURL(mimeType, quality);
           } catch (error) {
             console.error("toDataURL failed:", error);
             return null;
           }
-        }
-      }), [deviceInfo.size]);
-  
+        },
 
+        // Methods to control phone UI
+        showPhoneUI: (opacity = 1) => phoneUIRendererRef.current?.show(opacity),
+        hidePhoneUI: () => phoneUIRendererRef.current?.hide(),
+        toggleFullscreen: () => {
+          if (isFullscreen) {
+            exitFullscreen();
+          } else {
+            enterFullscreen();
+          }
+        }
+      }), [deviceInfo.size, isFullscreen, enterFullscreen, exitFullscreen]);
+
+    // ... (keep all your existing useEffect hooks for refs)
     useEffect(() => {
       takeSnapshotRef.current = takeSnapshot;
     }, [takeSnapshot]);
@@ -161,6 +297,7 @@ const Wallpaper = forwardRef(
       currentLockedRef.current = locked;
     }, [locked]);
 
+    // ... (keep all your existing callback functions - createGuides, showGuides, hideGuides, etc.)
     const createGuides = useCallback(() => {
       if (!appRef.current) return;
 
@@ -358,7 +495,6 @@ const Wallpaper = forwardRef(
       takeSnapshotRef.current("Select QR Code");
     }, [contextSelectQR, attachDragHandlers]);
 
-
     const handleStageClick = useCallback(
       (event) => {
         if (event.target === appRef.current?.stage) {
@@ -435,7 +571,6 @@ const Wallpaper = forwardRef(
         qrContainer.eventMode = "static";
         qrContainer.cursor = "pointer";
 
-
         qrContainer.on("pointerdown", (event) => {
           event.stopPropagation();
 
@@ -492,6 +627,12 @@ const Wallpaper = forwardRef(
           deviceInfo.size
         );
 
+        // Initialize Phone UI Renderer
+        phoneUIRendererRef.current = new PhoneUIRenderer(
+            app,
+            deviceInfo.size
+          );
+
         const transformer = new Transformer();
         app.stage.addChild(transformer);
         transformerRef.current = transformer;
@@ -525,12 +666,18 @@ const Wallpaper = forwardRef(
         );
         app.stage.on("pointerdown", handleStageClick);
 
+        backgroundRendererRef.current?.updateDeviceSize(deviceInfo.size);
+        backgroundRendererRef.current?.renderBackground(background);
+
         setTimeout(generateQRCode, 0);
       };
 
       initApp();
 
       return () => {
+        if (phoneUIRendererRef.current) {
+          phoneUIRendererRef.current.destroy();
+        }
         if (backgroundRendererRef.current) {
           backgroundRendererRef.current.destroy();
         }
@@ -593,6 +740,9 @@ const Wallpaper = forwardRef(
     }, [locked, attachDragHandlers, removeDragHandlers, isQRSelected]);
 
     useEffect(() => {
+        if (phoneUIRendererRef.current) {
+          phoneUIRendererRef.current.updateDeviceSize(deviceInfo.size);
+        }
       if (backgroundRendererRef.current) {
         backgroundRendererRef.current.updateDeviceSize(deviceInfo.size);
         backgroundRendererRef.current.renderBackground(background);
@@ -672,6 +822,18 @@ const Wallpaper = forwardRef(
             transform: `scale(${stageScale})`,
             transformOrigin: "center center",
             pointerEvents: "auto",
+            ...(isFullscreen && {
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                width: "100vw",
+                height: "100vh",
+                zIndex: 9999,
+                backgroundColor: "#000",
+                transform: "none",
+              }),
           }}
           ref={containerRef}
         ></div>

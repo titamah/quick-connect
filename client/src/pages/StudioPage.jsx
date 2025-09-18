@@ -3,6 +3,7 @@ import { useDevice } from "../contexts/DeviceContext";
 import useWindowSize from "../hooks/useWindowSize";
 import Panel from "../components/Panel/index";
 import Canvas from "../components/Canvas/index.jsx";
+import FullscreenPreview from "../components/Wallpaper/FullscreenPreview";
 
 const StudioPage = () => {
   const { isMobile, undo, redo, canUndo, canRedo } = useDevice();
@@ -85,6 +86,8 @@ const StudioPage = () => {
 
   return (
     <div className="">
+                <FullscreenPreview wallpaperRef={wallpaperRef}>
+
       <Panel
         setIsOpen={setIsOpen}
         isOpen={isOpen}
@@ -97,6 +100,7 @@ const StudioPage = () => {
         panelSize={panelSize}
         wallpaperRef={wallpaperRef}
       />
+      </FullscreenPreview>
     </div>
   );
 };
