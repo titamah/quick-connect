@@ -63,11 +63,11 @@ const PhoneUI = ({ fullscreen = false }) => {
 
   if (!isPreviewVisible) return null;
   return (
-    <div className="pointer-events-none absolute top-0 p-[2%] left-0 w-full h-full flex flex-col items-center justify-between z-[2000]">
-      <span className="w-[95%] h-[30%] flex flex-col items-center justify-between">
-        
+    <div className="pointer-events- absolute top-0 p-[2%] left-0 w-full h-full flex flex-col items-center justify-between z-[2000]">
+      <span className={`w-[95%] h-[30%] flex flex-col items-center ${showToolbars ? "justify-between" :"justify-end"}`}>
+        {showToolbars && 
          <div className="w-full h-[10%] flex flex-row justify-around items-center text-white">
-          {showToolbars && <><div className="w-[25%] h-full flex items-center justify-center">
+          <div className="w-[25%] h-full flex items-center justify-center">
             <svg viewBox="0 0 100 20" className="w-full h-full">
               <text
                 x="50"
@@ -89,8 +89,8 @@ const PhoneUI = ({ fullscreen = false }) => {
             <Signal />
             <Wifi />
             <Battery />
-          </div></>}
-        </div>
+          </div>
+        </div>}
 
         <div className="w-[100%] h-[45%] flex items-center justify-center">
           <svg viewBox="0 0 200 60" className="w-full h-full">
@@ -160,7 +160,7 @@ const PhoneUI = ({ fullscreen = false }) => {
           </div>
         </div>
 
-        <div className="w-[40%] h-[2.5%] rounded-full mb-[1%] bg-white/50"></div>
+        {showToolbars && <div className="w-[40%] h-[2.5%] rounded-full mb-[1%] bg-white/50"></div>}
       </span>
     </div>
   );

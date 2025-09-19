@@ -17,6 +17,7 @@ const FullscreenPreview = ({ children, wallpaperRef }) => {
   const overlayRef = useRef(null);
   const [orientation, setOrientation] = useState('portrait');
   const [isLandscape, setIsLandscape] = useState(false);
+  const [browserUIHeight, setBrowserUIHeight] = useState(0);
 
   // Handle orientation changes
   useEffect(() => {
@@ -170,6 +171,20 @@ const FullscreenPreview = ({ children, wallpaperRef }) => {
     };
   }, [isPreviewVisible, wallpaperRef]);
 
+  useEffect(() => {
+    const detectBrowserUI = () => {
+      const visualViewport = window.visualViewport;
+      if (visualViewport) {
+        const uiHeight = window.innerHeight - visualViewport.height;
+        setBrowserUIHeight(uiHeight);
+      }
+    };
+    
+    detectBrowserUI();
+    window.addEventListener('resize', detectBrowserUI);
+    return () => window.removeEventListener('resize', detectBrowserUI);
+  }, []);
+
   const calculateWallpaperDimensions = () => {
     if (!isPreviewVisible) return {};
 
@@ -238,14 +253,26 @@ const FullscreenPreview = ({ children, wallpaperRef }) => {
         {wallpaperImgSrc && (
             <div className="w-full h-full">
             <PhoneUI fullscreen={true}/>
-          <img
-            src={wallpaperImgSrc}
-            alt="Wallpaper preview"
-            className="w-full h-auto max-w-full"
+          <div 
+            className="fixed flex items-center justify-center bg-black"
             style={{
-              aspectRatio: `${deviceInfo.size.x} / ${deviceInfo.size.y}`
+              top: `-${browserUIHeight}px`, // Negative offset to go ABOVE the browser UI
+              left: 0,
+              right: 0,
+              bottom: 0,
+              width: '100vw',
+              height: `${window.innerHeight}px` // Use full screen height
+            }}
+          >
+            <img
+              src={wallpaperImgSrc}
+              alt="Wallpaper preview"
+              className="w-full h-auto max-w-full"
+              style={{
+                aspectRatio: `${deviceInfo.size.x} / ${deviceInfo.size.y}`
               }}
             />
+            </div>
           </div>
         )}
 
