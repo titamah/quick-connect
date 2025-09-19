@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { X, RotateCcw } from 'lucide-react';
 import { usePreview } from '../../contexts/PreviewContext';
 import { useDevice } from '../../contexts/DeviceContext';
+import PhoneUI from './PhoneUI';
 
 const FullscreenPreview = ({ children, wallpaperRef }) => {
   const { 
@@ -224,28 +225,6 @@ const FullscreenPreview = ({ children, wallpaperRef }) => {
       >
         {/* Exit Instructions */}
         <div className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between">
-          <div className="flex items-center space-x-2 text-white/70 text-sm">
-            {isLandscape ? (
-              <>
-                <div className="flex items-center space-x-1">
-                  <div className="w-6 h-4 border border-white/50 rounded flex items-center justify-center">
-                    <div className="w-3 h-1 bg-white/50 rounded"></div>
-                  </div>
-                  <span>Swipe right to exit</span>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="flex flex-col items-center space-y-1">
-                  <div className="w-4 h-6 border border-white/50 rounded flex items-center justify-center">
-                    <div className="w-1 h-3 bg-white/50 rounded"></div>
-                  </div>
-                  <span className="text-xs">Swipe down to exit</span>
-                </div>
-              </>
-            )}
-          </div>
-
           {/* Close button */}
           <button
             onClick={handleExitPreview}
@@ -257,40 +236,26 @@ const FullscreenPreview = ({ children, wallpaperRef }) => {
 
         {/* Wallpaper Image at 100% width */}
         {wallpaperImgSrc && (
+            <div className="w-full h-full">
+            <PhoneUI fullscreen={true}/>
           <img
             src={wallpaperImgSrc}
             alt="Wallpaper preview"
             className="w-full h-auto max-w-full"
             style={{
               aspectRatio: `${deviceInfo.size.x} / ${deviceInfo.size.y}`
-            }}
-          />
+              }}
+            />
+          </div>
         )}
 
         {/* Bottom Controls */}
         <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
-          <div className="flex items-center space-x-4 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full">
-            <button
-              onClick={() => {
-                // Rotate device preview (optional feature)
-                setIsLandscape(!isLandscape);
-              }}
-              className="p-2 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-              title="Rotate preview"
-            >
-              <RotateCcw size={18} />
-            </button>
-            
-            <div className="text-white/70 text-sm">
-              {deviceInfo.name} • {Math.round(scale * 100)}%
-            </div>
+          <div className="flex items-center space-x-4 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-white/70 text-sm">
+            Swipe down to exit
           </div>
         </div>
 
-        {/* Gesture indicator */}
-        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
-          <div className="w-12 h-1 bg-white/30 rounded-full"></div>
-        </div>
       </div>
     </>
   );

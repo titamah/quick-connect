@@ -13,9 +13,10 @@ import { useEffect, useRef } from "react";
 import { useState } from "react";
 import chroma from 'chroma-js';
 
-const PhoneUI = () => {
+const PhoneUI = ({ fullscreen = false }) => {
   const { isPreviewVisible } = usePreview();
   const { background } = useDevice();
+  const showToolbars = !fullscreen;
   
   const getTextColorForBackground = () => {
     let bgColors = [];
@@ -64,8 +65,9 @@ const PhoneUI = () => {
   return (
     <div className="pointer-events-none absolute top-0 p-[2%] left-0 w-full h-full flex flex-col items-center justify-between z-[2000]">
       <span className="w-[95%] h-[30%] flex flex-col items-center justify-between">
-        <div className="w-full h-[10%] flex flex-row justify-around items-center text-white">
-          <div className="w-[25%] h-full flex items-center justify-center">
+        
+         <div className="w-full h-[10%] flex flex-row justify-around items-center text-white">
+          {showToolbars && <><div className="w-[25%] h-full flex items-center justify-center">
             <svg viewBox="0 0 100 20" className="w-full h-full">
               <text
                 x="50"
@@ -87,7 +89,7 @@ const PhoneUI = () => {
             <Signal />
             <Wifi />
             <Battery />
-          </div>
+          </div></>}
         </div>
 
         <div className="w-[100%] h-[45%] flex items-center justify-center">
