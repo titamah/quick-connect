@@ -1,4 +1,5 @@
 import { usePreview } from "../../contexts/PreviewContext";
+import { useDevice } from "../../contexts/DeviceContext";
 import {
   Wifi,
   Signal,
@@ -10,18 +11,41 @@ import {
 } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useState } from "react";
+import chroma from 'chroma-js';
 
 const PhoneUI = () => {
   const { isPreviewVisible } = usePreview();
-  if (!isPreviewVisible) return null;
-
+  const { background } = useDevice();
+  
+  const getTextColorForBackground = () => {
+    let bgColors = [];
+    
+    if (background.style === "solid" && background.color) {
+      bgColors = [background.color];
+    } else if (background.style === "gradient" && background.gradient.stops) {
+      bgColors = background.gradient.stops
+        .filter((_, i) => i % 2 === 1)
+        .map(color => color);
+    }
+    
+    if (bgColors.length === 0) return 'white';
+    
+    // Use chroma to determine if background is dark
+    const luminances = bgColors.map(color => chroma(color).luminance());
+    const averageLuminance = luminances.reduce((sum, lum) => sum + lum, 0) / luminances.length;
+    
+    return averageLuminance < 0.5 ? 'white' : 'black';
+  };
+  
+  const textColor = getTextColorForBackground();
+  
   const containerRef = useRef(null);
   const [borderRadius, setBorderRadius] = useState('8px');
 
   useEffect(() => {
     if (containerRef.current) {
       const updateRadius = () => {
-        if (containerRef.current) { // Add this null check
+        if (containerRef.current) {
           const width = containerRef.current.offsetWidth;
           const radius = width * 0.05;
           containerRef.current.style.borderRadius = `${radius}px`;
@@ -36,6 +60,7 @@ const PhoneUI = () => {
     }
   }, []);
 
+  if (!isPreviewVisible) return null;
   return (
     <div className="pointer-events-none absolute top-0 p-[2%] left-0 w-full h-full flex flex-col items-center justify-between z-[2000]">
       <span className="w-[95%] h-[30%] flex flex-col items-center justify-between">
@@ -46,7 +71,7 @@ const PhoneUI = () => {
                 x="50"
                 y="19"
                 textAnchor="middle"
-                fill="white"
+                fill={textColor}
                 fontSize="21"
                 fontWeight="300"
                 fontFamily="Rubik"
@@ -58,7 +83,7 @@ const PhoneUI = () => {
 
           <div className="h-full w-[32%] rounded-full bg-black"> </div>
 
-          <div className="flex w-[25%] flex-row items-center gap-[10%]">
+          <div className={`flex w-[25%] flex-row items-center gap-[10%] text-${textColor}`}>
             <Signal />
             <Wifi />
             <Battery />
@@ -71,7 +96,7 @@ const PhoneUI = () => {
               x="100"
               y="45"
               textAnchor="middle"
-              fill="white"
+              fill={textColor}
               fontSize="64"
               fontWeight="450"
               fontFamily="Rubik"

@@ -12,7 +12,6 @@ const Wallpaper = lazy(() => import("../Wallpaper/index"));
 const WallpaperPixi = lazy(() => import("../Wallpaper/pixi"));
 const ShareButton = lazy(() => import("./ShareButton"));
 
-// Import skeleton
 import WallpaperSkeleton from "../WallpaperSkeleton";
 
 function Canvas({ isOpen, panelSize, wallpaperRef }) {
@@ -23,7 +22,6 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isZoomEnabled, setIsZoomEnabled] = useState(false);
   
-  // Custom zoom/drag state
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -54,7 +52,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
       );
     }
   }, [panelSize.width, panelSize.height]);
-  // Custom zoom/drag handlers
+
   const handleMouseDown = useCallback((e) => {
     if (!isZoomEnabled) return;
     setIsDragging(true);
@@ -88,11 +86,9 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   }, [isZoomEnabled, transform.scale]);
 
   const handleDoubleClick = useCallback(() => {
-    // Reset to original position/scale with smooth transition
     setTransform({ x: 0, y: 0, scale: 1 });
   }, []);
 
-  // Touch handlers for mobile
   const getTouchDistance = (touches) => {
     const dx = touches[0].clientX - touches[1].clientX;
     const dy = touches[0].clientY - touches[1].clientY;
@@ -201,14 +197,12 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
     const canvasElement = canvasRef.current;
     if (!canvasElement) return;
 
-    // Add custom event listeners
     canvasElement.addEventListener("mousedown", handleMouseDown);
     canvasElement.addEventListener("mousemove", handleMouseMove);
     canvasElement.addEventListener("mouseup", handleMouseUp);
     canvasElement.addEventListener("wheel", handleWheel, { passive: false });
     canvasElement.addEventListener("dblclick", handleDoubleClick);
     
-    // Touch events for mobile
     canvasElement.addEventListener("touchstart", handleTouchStart, { passive: false });
     canvasElement.addEventListener("touchmove", handleTouchMove, { passive: false });
     canvasElement.addEventListener("touchend", handleTouchEnd);
@@ -219,7 +213,6 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
     return () => {
       window.removeEventListener("resize", handleResize);
       
-      // Remove custom event listeners
       canvasElement.removeEventListener("mousedown", handleMouseDown);
       canvasElement.removeEventListener("mousemove", handleMouseMove);
       canvasElement.removeEventListener("mouseup", handleMouseUp);
@@ -261,34 +254,31 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
     }),
     [isZoomEnabled, transform]
   );
-  // Add a ref for the element with border radius
+
   const figureRef = useRef(null);
   const [dynamicBorderRadius, setDynamicBorderRadius] = useState('20px');
-  // Add state for dynamic outline width
   const [dynamicOutlineWidth, setDynamicOutlineWidth] = useState('1px');
 
-  // Update the existing useEffect to handle both
   useEffect(() => {
     if (figureRef.current) {
-      const updateStyles = () => { // Rename the function to be more generic
+      const updateStyles = () => { 
         if (figureRef.current) {
           const width = figureRef.current.offsetWidth;
           const radius = width * 0.1;
           const outlineWidth = Math.max(1, width * 0.05);
           setDynamicBorderRadius(`${radius}px`);
-          setDynamicOutlineWidth(`${outlineWidth}px`); // Add this line
+          setDynamicOutlineWidth(`${outlineWidth}px`);
         }
       };
       
-      updateStyles(); // Update the function call name
-      const resizeObserver = new ResizeObserver(updateStyles); // Same observer
+      updateStyles();
+      const resizeObserver = new ResizeObserver(updateStyles);
       resizeObserver.observe(figureRef.current);
       
       return () => resizeObserver.disconnect();
     }
   }, []);
 
-  // Update the figureStyles to use the dynamic border radius
   const figureStyles = useMemo(
     () => ({
       position: "relative",
