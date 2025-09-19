@@ -21,9 +21,11 @@ const PhoneUI = () => {
   useEffect(() => {
     if (containerRef.current) {
       const updateRadius = () => {
-        const width = containerRef.current.offsetWidth;
-        const radius = width * 0.05;
-        containerRef.current.style.borderRadius = `${radius}px`;
+        if (containerRef.current) { // Add this null check
+          const width = containerRef.current.offsetWidth;
+          const radius = width * 0.05;
+          containerRef.current.style.borderRadius = `${radius}px`;
+        }
       };
       
       updateRadius();

@@ -261,18 +261,46 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
     }),
     [isZoomEnabled, transform]
   );
+  // Add a ref for the element with border radius
+  const figureRef = useRef(null);
+  const [dynamicBorderRadius, setDynamicBorderRadius] = useState('20px');
+  // Add state for dynamic outline width
+  const [dynamicOutlineWidth, setDynamicOutlineWidth] = useState('1px');
+
+  // Update the existing useEffect to handle both
+  useEffect(() => {
+    if (figureRef.current) {
+      const updateStyles = () => { // Rename the function to be more generic
+        if (figureRef.current) {
+          const width = figureRef.current.offsetWidth;
+          const radius = width * 0.1;
+          const outlineWidth = Math.max(1, width * 0.05);
+          setDynamicBorderRadius(`${radius}px`);
+          setDynamicOutlineWidth(`${outlineWidth}px`); // Add this line
+        }
+      };
+      
+      updateStyles(); // Update the function call name
+      const resizeObserver = new ResizeObserver(updateStyles); // Same observer
+      resizeObserver.observe(figureRef.current);
+      
+      return () => resizeObserver.disconnect();
+    }
+  }, []);
+
+  // Update the figureStyles to use the dynamic border radius
   const figureStyles = useMemo(
     () => ({
       position: "relative",
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
-      outline: `${Math.max(1, previewSize.x * 0.05)}px solid black`,
-      borderRadius: `${Math.max(20, previewSize.x * 0.1)}px`,
+      outline: `${dynamicOutlineWidth} solid black`,
+      borderRadius: dynamicBorderRadius,
       backgroundColor: "rgba(0,0,0,0)",
       overflow: "hidden",
     }),
-    [previewSize.x, previewSize.y]
+    [previewSize.x, previewSize.y, dynamicBorderRadius, dynamicOutlineWidth]
   );
   return (
     <div
@@ -320,6 +348,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
           style={previewStyles}
         >
           <figure
+            ref={figureRef}
             className="flex items-center justify-center pointer-events-auto z-1"
             style={figureStyles}
           >
