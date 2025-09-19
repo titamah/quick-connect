@@ -41,7 +41,7 @@ const PhoneUI = ({ fullscreen = false }) => {
   const textColor = getTextColorForBackground();
   
   const containerRef = useRef(null);
-  const [borderRadius, setBorderRadius] = useState('8px');
+  const [borderRadius, setBorderRadius] = useState('12px');
 
   useEffect(() => {
     if (containerRef.current) {
@@ -64,7 +64,7 @@ const PhoneUI = ({ fullscreen = false }) => {
   if (!isPreviewVisible) return null;
   return (
     <div className="pointer-events- absolute top-0 p-[2%] left-0 w-full h-full flex flex-col items-center justify-between z-[2000]">
-      <span className={`w-[95%] h-[30%] flex flex-col items-center ${showToolbars ? "justify-between" :"justify-end"}`}>
+      <span className={`w-[95%] h-[25%] flex flex-col items-center ${showToolbars ? "justify-between" :"justify-end"}`}>
         {showToolbars && 
          <div className="w-full h-[10%] flex flex-row justify-around items-center text-white">
           <div className="w-[25%] h-full flex items-center justify-center">
@@ -96,7 +96,7 @@ const PhoneUI = ({ fullscreen = false }) => {
           <svg viewBox="0 0 200 60" className="w-full h-full">
             <text
               x="100"
-              y="45"
+              y="47"
               textAnchor="middle"
               fill={textColor}
               fontSize="64"
@@ -112,11 +112,11 @@ const PhoneUI = ({ fullscreen = false }) => {
           </svg>
         </div>
       </span>
-      <span className="w-[95%] h-[30%] flex flex-col items-center justify-between">
+      <span className="w-[95%] h-[27.5%] flex flex-col items-center justify-between">
         <div 
           ref={containerRef}
           style={{ borderRadius }}
-          className="w-full h-[75%] py-[3.5%] px-[5%] mb-[1%] bg-[#F0F0F0]/50 backdrop-blur-md border-white/10 border-1 flex flex-col text-black justify-between" 
+          className="w-full h-[70%] py-[3.5%] px-[5%] mb-[1%] bg-[#F0F0F0]/50 backdrop-blur-md border-white/10 border-1 flex flex-col text-black justify-between" 
         >
           <span className="w-full h-[45%] flex flex-row items-center justify-start gap-[2%]">
             <img

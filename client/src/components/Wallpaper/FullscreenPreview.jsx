@@ -18,6 +18,7 @@ const FullscreenPreview = ({ children, wallpaperRef }) => {
   const [orientation, setOrientation] = useState('portrait');
   const [isLandscape, setIsLandscape] = useState(false);
   const [browserUIHeight, setBrowserUIHeight] = useState(0);
+  const [totalOffset, setTotalOffset] = useState(0);
 
   // Handle orientation changes
   useEffect(() => {
@@ -172,17 +173,19 @@ const FullscreenPreview = ({ children, wallpaperRef }) => {
   }, [isPreviewVisible, wallpaperRef]);
 
   useEffect(() => {
-    const detectBrowserUI = () => {
+    const detectOffsets = () => {
       const visualViewport = window.visualViewport;
       if (visualViewport) {
-        const uiHeight = window.innerHeight - visualViewport.height;
-        setBrowserUIHeight(uiHeight);
+        const browserUIHeight = window.innerHeight - visualViewport.height;
+        const safeAreaTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sai') || '0');
+        const totalOffset = browserUIHeight + safeAreaTop;
+        setTotalOffset(totalOffset);
       }
     };
     
-    detectBrowserUI();
-    window.addEventListener('resize', detectBrowserUI);
-    return () => window.removeEventListener('resize', detectBrowserUI);
+    detectOffsets();
+    window.addEventListener('resize', detectOffsets);
+    return () => window.removeEventListener('resize', detectOffsets);
   }, []);
 
   const calculateWallpaperDimensions = () => {
@@ -256,7 +259,7 @@ const FullscreenPreview = ({ children, wallpaperRef }) => {
           <div 
             className="fixed flex items-center justify-center bg-black"
             style={{
-              top: `-${browserUIHeight}px`, // Negative offset to go ABOVE the browser UI
+              top: `-${totalOffset}px`, // Offset for both browser UI AND notch
               left: 0,
               right: 0,
               bottom: 0,
@@ -277,8 +280,8 @@ const FullscreenPreview = ({ children, wallpaperRef }) => {
         )}
 
         {/* Bottom Controls */}
-        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
-          <div className="flex items-center space-x-4 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-white/70 text-sm">
+        <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2">
+          <div className="flex items-center space-x-4 px-4 py-2 bg-neutral-900/33 backdrop-blur-sm rounded-full text-white/70 text-sm">
             Swipe down to exit
           </div>
         </div>
