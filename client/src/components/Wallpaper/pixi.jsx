@@ -13,7 +13,7 @@ import { useStageCalculations } from "../../hooks/useStageCalculations";
 import { QRCodeSVG } from "qrcode.react";
 import { Transformer } from "./QRTransformer";
 import { BackgroundRenderer } from "./BackgroundRenderer";
-import { PhoneUIRenderer } from "./PhoneUIRenderer";
+import PhoneUI from "./PhoneUI";
 
 const Wallpaper = forwardRef(
   (
@@ -48,7 +48,6 @@ const Wallpaper = forwardRef(
     const transformerRef = useRef(null);
     const guidesRef = useRef(null);
     const backgroundRendererRef = useRef(null);
-    const phoneUIRendererRef = useRef(null);
 
     // Fullscreen state for mobile
     const [isFullscreen, setIsFullscreen] = useState(false);
@@ -68,12 +67,10 @@ const Wallpaper = forwardRef(
         if (element.requestFullscreen) {
           element.requestFullscreen().then(() => {
             setIsFullscreen(true);
-            phoneUIRendererRef.current?.show(1, true);
           }).catch(console.error);
         } else if (element.webkitRequestFullscreen) {
           element.webkitRequestFullscreen();
           setIsFullscreen(true);
-          phoneUIRendererRef.current?.show(1, true);
         }
       }
     }, [isMobile]);
@@ -83,24 +80,18 @@ const Wallpaper = forwardRef(
         if (document.exitFullscreen) {
           document.exitFullscreen().then(() => {
             setIsFullscreen(false);
-            phoneUIRendererRef.current?.hide(true);
           }).catch(console.error);
         } else if (document.webkitExitFullscreen) {
           document.webkitExitFullscreen();
           setIsFullscreen(false);
-          phoneUIRendererRef.current?.hide(true);
         }
       } else {
         setIsFullscreen(false);
-        phoneUIRendererRef.current?.hide(true);
       }
     }, []);
 
     // Handle preview state changes
     useEffect(() => {
-      const phoneUI = phoneUIRendererRef.current;
-      if (!phoneUI) return;
-
       if (isMobile) {
         // Mobile behavior: fullscreen on preview
         if (isPreviewVisible && !isFullscreen) {
@@ -108,16 +99,7 @@ const Wallpaper = forwardRef(
         } else if (!isPreviewVisible && isFullscreen) {
           exitFullscreen();
         }
-      } else {
-        // Desktop behavior: hover/click states
-        if (isPreviewVisible) {
-          phoneUI.show(1, true);
-        } else if (isHovered) {
-          phoneUI.show(0.5, true);
-        } else {
-          phoneUI.hide(true);
-        }
-      }
+    }
     }, [isPreviewVisible, isHovered, isMobile, isFullscreen, enterFullscreen, exitFullscreen]);
 
     // Listen for fullscreen changes
@@ -129,7 +111,6 @@ const Wallpaper = forwardRef(
           // User exited fullscreen (e.g., via escape key)
           setIsFullscreen(false);
           setIsPreviewVisible(false);
-          phoneUIRendererRef.current?.hide(true);
         }
       };
 
@@ -150,7 +131,6 @@ const Wallpaper = forwardRef(
             scale = 1,
             width,
             height,
-            includePhoneUI = false
           } = options;
   
           return new Promise((resolve, reject) => {
@@ -160,13 +140,7 @@ const Wallpaper = forwardRef(
                 throw new Error("Pixi application not found or not initialized");
               }
 
-              // Hide phone UI during export unless explicitly requested
-              const phoneUI = phoneUIRendererRef.current;
-              const wasPhoneUIVisible = phoneUI?.container.visible;
-              
-              if (phoneUI && !includePhoneUI) {
-                phoneUI.container.visible = false;
-              }
+           
   
               // Calculate export dimensions
               const exportWidth = width || Math.floor(deviceInfo.size.x * scale);
@@ -191,9 +165,7 @@ const Wallpaper = forwardRef(
                 try {
                   // Restore original size and phone UI state
                   pixiApp.renderer.resize(originalWidth, originalHeight);
-                  if (phoneUI && wasPhoneUIVisible) {
-                    phoneUI.container.visible = true;
-                  }
+
                   pixiApp.render();
                   
                   if (!blob) {
@@ -205,9 +177,7 @@ const Wallpaper = forwardRef(
                 } catch (error) {
                   // Restore original size even on error
                   pixiApp.renderer.resize(originalWidth, originalHeight);
-                  if (phoneUI && wasPhoneUIVisible) {
-                    phoneUI.container.visible = true;
-                  }
+               
                   pixiApp.render();
                   reject(error);
                 }
@@ -228,7 +198,6 @@ const Wallpaper = forwardRef(
             format = 'png',
             quality = 0.9,
             scale = 1,
-            includePhoneUI = false
           } = options;
   
           try {
@@ -237,21 +206,10 @@ const Wallpaper = forwardRef(
               throw new Error("Pixi application not found or not initialized");
             }
 
-            // Handle phone UI visibility
-            const phoneUI = phoneUIRendererRef.current;
-            const wasPhoneUIVisible = phoneUI?.container.visible;
             
-            if (phoneUI && !includePhoneUI) {
-              phoneUI.container.visible = false;
-            }
-  
             const canvas = pixiApp.renderer.extract.canvas(pixiApp.stage);
             const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
             
-            // Restore phone UI state
-            if (phoneUI && wasPhoneUIVisible) {
-              phoneUI.container.visible = true;
-            }
             
             return canvas.toDataURL(mimeType, quality);
           } catch (error) {
@@ -260,9 +218,6 @@ const Wallpaper = forwardRef(
           }
         },
 
-        // Methods to control phone UI
-        showPhoneUI: (opacity = 1) => phoneUIRendererRef.current?.show(opacity),
-        hidePhoneUI: () => phoneUIRendererRef.current?.hide(),
         toggleFullscreen: () => {
           if (isFullscreen) {
             exitFullscreen();
@@ -627,11 +582,6 @@ const Wallpaper = forwardRef(
           deviceInfo.size
         );
 
-        // Initialize Phone UI Renderer
-        phoneUIRendererRef.current = new PhoneUIRenderer(
-            app,
-            deviceInfo.size
-          );
 
         const transformer = new Transformer();
         app.stage.addChild(transformer);
@@ -675,9 +625,6 @@ const Wallpaper = forwardRef(
       initApp();
 
       return () => {
-        if (phoneUIRendererRef.current) {
-          phoneUIRendererRef.current.destroy();
-        }
         if (backgroundRendererRef.current) {
           backgroundRendererRef.current.destroy();
         }
@@ -740,9 +687,6 @@ const Wallpaper = forwardRef(
     }, [locked, attachDragHandlers, removeDragHandlers, isQRSelected]);
 
     useEffect(() => {
-        if (phoneUIRendererRef.current) {
-          phoneUIRendererRef.current.updateDeviceSize(deviceInfo.size);
-        }
       if (backgroundRendererRef.current) {
         backgroundRendererRef.current.updateDeviceSize(deviceInfo.size);
         backgroundRendererRef.current.renderBackground(background);
@@ -798,6 +742,8 @@ const Wallpaper = forwardRef(
             position: "absolute",
             left: "-9999px",
             visibility: "hidden",
+            width: `${deviceInfo.size.x * stageScale}px`,
+            height: `${deviceInfo.size.y * stageScale}px`,
           }}
           ref={qrRef}
         >
@@ -809,7 +755,8 @@ const Wallpaper = forwardRef(
             level="M"
           />
         </div>
-
+ 
+        <PhoneUI />
         <div
           id="preview"
           style={{
@@ -822,21 +769,10 @@ const Wallpaper = forwardRef(
             transform: `scale(${stageScale})`,
             transformOrigin: "center center",
             pointerEvents: "auto",
-            ...(isFullscreen && {
-                position: "fixed",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                width: "100vw",
-                height: "100vh",
-                zIndex: 9999,
-                backgroundColor: "#000",
-                transform: "none",
-              }),
           }}
           ref={containerRef}
-        ></div>
+        >
+        </div>
       </>
     );
   }
