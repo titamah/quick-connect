@@ -10,6 +10,7 @@ export class BackgroundRenderer {
     this.ctx = null;
     this.canvas = document.createElement("canvas");
     this.ctx = this.canvas.getContext("2d");
+    this.objectUrls = new Set(); // Track object URLs for cleanup
   }
 
   async renderBackground(background) {
@@ -120,8 +121,12 @@ export class BackgroundRenderer {
   async renderImageBackground(imageData) {
     try {
       let imageUrl;
+      let isObjectUrl = false;
+      
       if (imageData instanceof File) {
         imageUrl = URL.createObjectURL(imageData);
+        isObjectUrl = true;
+        this.objectUrls.add(imageUrl); // Track for cleanup
       } else if (typeof imageData === "string") {
         imageUrl = imageData;
       } else {
@@ -143,8 +148,10 @@ export class BackgroundRenderer {
 
       this.app.stage.addChildAt(this.backgroundSprite, 0);
 
-      if (imageData instanceof File) {
+      // Clean up object URL after texture is loaded
+      if (isObjectUrl) {
         URL.revokeObjectURL(imageUrl);
+        this.objectUrls.delete(imageUrl);
       }
     } catch (error) {
       console.error("Failed to load background image:", error);
@@ -184,7 +191,18 @@ export class BackgroundRenderer {
     this.deviceSize = newSize;
   }
 
+  // Clean up all object URLs
+  cleanupObjectUrls() {
+    this.objectUrls.forEach(url => {
+      URL.revokeObjectURL(url);
+    });
+    this.objectUrls.clear();
+  }
+
   destroy() {
+    // Clean up object URLs first
+    this.cleanupObjectUrls();
+    
     this.clearBackground();
     if (this.canvas) {
       this.canvas = null;

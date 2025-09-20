@@ -63,7 +63,7 @@ const PhoneUI = ({ fullscreen = false }) => {
 
 //   if (!isPreviewVisible) return null;
   return (
-    <div className={`pointer-events- absolute top-0 p-[2%] left-0 w-full h-full flex flex-col items-center justify-between z-[2000] transition-opacity duration-300 ease-in-out ${isHovered ? "opacity-50" : isPreviewVisible ? "opacity-100" :"opacity-0"}`}>
+    <div className={`pointer-events-none absolute top-0 p-[2%] left-0 w-full h-full flex flex-col items-center justify-between z-[2000] transition-opacity duration-300 ease-in-out ${isHovered ? "opacity-50" : isPreviewVisible ? "opacity-100" :"opacity-0"}`}>
       <span className={`w-[95%] h-[25%] flex flex-col items-center ${showToolbars ? "justify-between" :"justify-end"}`}>
         {showToolbars && 
          <div className="w-full h-[10%] flex flex-row justify-around items-center text-white">

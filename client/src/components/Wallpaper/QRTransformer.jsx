@@ -37,7 +37,7 @@ export class Transformer extends Container {
       handle
         .rect(-this.handleSize / 2, -this.handleSize / 2, this.handleSize, this.handleSize)
         .fill({ color: this.handleColor })
-        .stroke({ color: this.lineColor, width: 1 });
+        .stroke({ color: this.lineColor, width: 8 });
       
       handle.eventMode = 'static';
       handle.cursor = 'pointer';
@@ -54,7 +54,7 @@ export class Transformer extends Container {
     this.rotationHandle
       .circle(0, 0, this.handleSize / 2)
       .fill({ color: this.handleColor })
-      .stroke({ color: this.lineColor, width: 1 });
+      .stroke({ color: this.lineColor, width: 8 });
     
     this.rotationHandle.eventMode = 'static';
     this.rotationHandle.cursor = 'pointer';

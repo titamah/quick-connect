@@ -302,7 +302,7 @@ function ImageGenerator({
               isGenerating ? cancelGeneration() : generateImage()
             }
                          disabled={(!prompt.trim() && !selectedVibe) || !canGenerate()}
-            class={`p-1 inline-flex justify-center items-center gap-2 w-full text-sm  rounded-2xl text-white hover:opacity-80 cursor-pointer opacity-100 hover:opacity-80 transition-opacity duration-200 ease-in-out"
+            className={`p-1 inline-flex justify-center items-center gap-2 w-full text-sm  rounded-2xl text-white hover:opacity-80 cursor-pointer opacity-100 hover:opacity-80 transition-opacity duration-200 ease-in-out"
           ${isGenerating ? "bg-red-500" : "bg-[var(--accent)]"}`}
           >
             {isGenerating ? (
@@ -342,7 +342,7 @@ function ImageGenerator({
               isGenerating ? cancelGeneration() : useImage(currentImage)
             }
             disabled={!prompt.trim() && !selectedVibe}
-            class={`p-1 inline-flex justify-center items-center gap-2 w-full text-sm rounded-2xl text-white hover:opacity-80 cursor-pointer opacity-100 hover:opacity-80 transition-opacity duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`p-1 inline-flex justify-center items-center gap-2 w-full text-sm rounded-2xl text-white hover:opacity-80 cursor-pointer opacity-100 hover:opacity-80 transition-opacity duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
           ${isGenerating ? "bg-red-500" : "bg-[var(--brand-green)]"}`}
           >
             {isGenerating ? (

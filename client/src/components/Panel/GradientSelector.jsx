@@ -157,14 +157,29 @@ function GradientSelector() {
             size={20}
             onClick={() => {
               takeSnapshot("Evenly spaced gradient");
-              const stopsCount = device.gradient.stops.length / 2;
-              const stopsInterval = 1 / (stopsCount - 1);
-              let val = -stopsInterval;
-              const newStops = [];
+              
+              // First, extract and sort stops by position
+              const stopsArray = [];
               for (let i = 0; i < device.gradient.stops.length; i += 2) {
-                val += stopsInterval;
-                newStops.push(val, device.gradient.stops[i + 1]);
+                stopsArray.push({
+                  position: device.gradient.stops[i],
+                  color: device.gradient.stops[i + 1]
+                });
               }
+              
+              // Sort by position to maintain gradient order
+              stopsArray.sort((a, b) => a.position - b.position);
+              
+              // Now create evenly spaced positions
+              const stopsCount = stopsArray.length;
+              const stopsInterval = 1 / (stopsCount - 1);
+              const newStops = [];
+              
+              for (let i = 0; i < stopsCount; i++) {
+                const newPosition = i * stopsInterval;
+                newStops.push(newPosition, stopsArray[i].color);
+              }
+              
               updateBackground({
                 gradient: {
                   ...device.gradient,

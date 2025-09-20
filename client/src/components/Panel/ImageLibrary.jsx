@@ -1,9 +1,11 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import { Wand2, RotateCcw, History, X, Loader2 } from "lucide-react";
 import { API_CONFIG } from "../../config/api";
+
 function ImageLibrary({ setOriginalFile }) {
   const { device } = useDevice();
+  
   const [prompt, setPrompt] = useState("");
   const [selectedVibe, setSelectedVibe] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -11,7 +13,19 @@ function ImageLibrary({ setOriginalFile }) {
   const [currentImage, setCurrentImage] = useState(null);
   const [imageHistory, setImageHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  
   const abortControllerRef = useRef(null);
+
+  // Cleanup AbortController on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+    };
+  }, []);
+
   const vibes = [
     { id: "professional", name: "Professional", emoji: "💼" },
     { id: "creative", name: "Creative", emoji: "🎨" },
@@ -19,8 +33,11 @@ function ImageLibrary({ setOriginalFile }) {
     { id: "nature", name: "Nature", emoji: "🌿" },
     { id: "abstract", name: "Abstract", emoji: "🔮" }
   ];
+
   const buildPrompt = (userPrompt, vibe) => {
     let basePrompt = userPrompt || "abstract background";
+    
+    // Add vibe-specific modifiers
     const vibeModifiers = {
       professional: "professional, clean, corporate, minimal, elegant",
       creative: "creative, artistic, dynamic, colorful, expressive", 
@@ -28,22 +45,33 @@ function ImageLibrary({ setOriginalFile }) {
       nature: "natural, organic, nature-inspired, earthy, serene",
       abstract: "abstract, geometric, flowing, modern, artistic"
     };
+
     if (vibe && vibeModifiers[vibe]) {
       basePrompt += `, ${vibeModifiers[vibe]}`;
     }
+
+    // Add wallpaper-specific terms
     basePrompt += ", wallpaper background, high quality, smooth gradients, mobile wallpaper, vertical orientation";
+    
     return basePrompt;
   };
+
   const generateImage = async (isRegenerate = false) => {
     if (!API_CONFIG.FAL_API_KEY) {
       setError("AI generation not configured. Add your Fal API key.");
       return;
     }
+
     setIsGenerating(true);
     setError(null);
+    
+    // Create abort controller for cancellation
     abortControllerRef.current = new AbortController();
+
     try {
       const finalPrompt = buildPrompt(prompt, selectedVibe);
+      
+      // Fal uses different API structure
       const response = await fetch(`${API_CONFIG.FAL_BASE_URL}/${API_CONFIG.FAL_MODEL}`, {
         method: 'POST',
         headers: {
@@ -54,19 +82,30 @@ function ImageLibrary({ setOriginalFile }) {
           prompt: finalPrompt,
           negative_prompt: "text, letters, words, logos, watermarks, people, faces, low quality, blurry, horizontal",
           image_size: {width: device.size.x, height: device.size.y},
+          // num_inference_steps: 25,
+          // guidance_scale: 7.5,
+          // num_images: 1,
+          // enable_safety_checker: false,
           seed: Math.floor(Math.random() * 1000000)
         }),
         signal: abortControllerRef.current.signal
       });
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.detail || 'Generation failed');
       }
+
       const data = await response.json();
+      
+      // Fal returns direct image URLs
       const imageUrl = data.images[0].url;
+      
+      // Fetch the actual image to create a blob
       const imageResponse = await fetch(imageUrl);
       const blob = await imageResponse.blob();
       const localImageUrl = URL.createObjectURL(blob);
+      
       const newImage = {
         id: Date.now(),
         url: localImageUrl,
@@ -75,12 +114,17 @@ function ImageLibrary({ setOriginalFile }) {
         vibe: selectedVibe,
         timestamp: Date.now()
       };
+
       setCurrentImage(newImage);
+      
+      // Add to history (limit to last 5)
       if (!isRegenerate) {
         setImageHistory(prev => [newImage, ...prev.slice(0, 4)]);
       } else {
+        // Replace current in history
         setImageHistory(prev => [newImage, ...prev.slice(1)]);
       }
+
     } catch (err) {
       if (err.name === 'AbortError') {
         console.log('Generation cancelled');
@@ -93,30 +137,37 @@ function ImageLibrary({ setOriginalFile }) {
       abortControllerRef.current = null;
     }
   };
+
   const cancelGeneration = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
   };
+
   const useImage = (image) => {
+    // Convert blob to File for your existing workflow
     const file = new File([image.blob], `ai-generated-${image.id}.png`, { 
       type: 'image/png' 
     });
     setOriginalFile(file);
   };
+
   const selectFromHistory = (image) => {
     setCurrentImage(image);
     setShowHistory(false);
   };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!isGenerating) {
       generateImage();
     }
   };
+
   return (
     <div className="pb-1 pointer-events-auto pt-2 w-full h-full flex flex-col gap-2 overflow-y-scroll relative">
-      {}
+      
+      {/* Search Input */}
       <form onSubmit={handleSubmit} className="w-full">
         <input
           type="text"
@@ -127,7 +178,8 @@ function ImageLibrary({ setOriginalFile }) {
           className="dark:text-white text-xs w-[98%] mx-[1px] h-4 mb-2 px-2 rounded-full sticky !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)] disabled:opacity-50"
         />
       </form>
-      {}
+
+      {/* Vibe Buttons */}
       <div className="flex flex-wrap gap-1 mb-2">
         {vibes.map((vibe) => (
           <button
@@ -144,7 +196,8 @@ function ImageLibrary({ setOriginalFile }) {
           </button>
         ))}
       </div>
-      {}
+
+      {/* Generate/Cancel Button */}
       <button
         onClick={() => isGenerating ? cancelGeneration() : generateImage()}
         disabled={!prompt.trim() && !selectedVibe}
@@ -166,7 +219,8 @@ function ImageLibrary({ setOriginalFile }) {
           </>
         )}
       </button>
-      {}
+
+      {/* Loading State */}
       {isGenerating && (
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <Loader2 className="animate-spin mb-2" size={24} />
@@ -174,13 +228,15 @@ function ImageLibrary({ setOriginalFile }) {
           <p className="text-xs text-gray-400 mt-1">Usually takes 5-15 seconds</p>
         </div>
       )}
-      {}
+
+      {/* Error State */}
       {error && (
         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
           <p className="text-xs text-red-600 dark:text-red-400">{error}</p>
         </div>
       )}
-      {}
+
+      {/* Generated Image */}
       {currentImage && !isGenerating && (
         <div className="space-y-2">
           <div className="relative group" onClick={() => useImage(currentImage)}>
@@ -195,7 +251,8 @@ function ImageLibrary({ setOriginalFile }) {
               </span>
             </div>
           </div>
-          {}
+          
+          {/* Action Buttons */}
           <div className="flex gap-2">
             <button
               onClick={() => useImage(currentImage)}
@@ -203,6 +260,7 @@ function ImageLibrary({ setOriginalFile }) {
             >
               Use This Image
             </button>
+            
             <button
               onClick={() => generateImage(true)}
               className="bg-gray-500 hover:bg-gray-600 text-white text-xs py-2 px-3 rounded-md transition-all"
@@ -210,6 +268,7 @@ function ImageLibrary({ setOriginalFile }) {
             >
               <RotateCcw size={14} />
             </button>
+            
             {imageHistory.length > 1 && (
               <button
                 onClick={() => setShowHistory(!showHistory)}
@@ -222,7 +281,8 @@ function ImageLibrary({ setOriginalFile }) {
           </div>
         </div>
       )}
-      {}
+
+      {/* History Panel */}
       {showHistory && imageHistory.length > 1 && (
         <div className="space-y-2 border-t pt-2">
           <h4 className="text-xs font-medium text-gray-600 dark:text-gray-400">Recent Generations</h4>
@@ -242,7 +302,8 @@ function ImageLibrary({ setOriginalFile }) {
           ))}
         </div>
       )}
-      {}
+
+      {/* No Image State */}
       {!currentImage && !isGenerating && !error && (
         <div className="text-center py-12 text-gray-400">
           <Wand2 size={32} className="mx-auto mb-2 opacity-50" />
@@ -253,4 +314,5 @@ function ImageLibrary({ setOriginalFile }) {
     </div>
   );
 }
+
 export default ImageLibrary;
