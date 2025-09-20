@@ -12,7 +12,6 @@ import { useDevice } from "../../contexts/DeviceContext";
 import { useToast } from "../Toast";
 import chroma from "chroma-js";
 const Thumbnail = React.lazy(() => import("./Thumbnail.jsx"));
-const ThumbOg = React.lazy(() => import("./ThumbOg.jsx"));
 const ShareButton = ({
   wallpaperRef,
   getBackgroundImage,
@@ -28,7 +27,6 @@ const ShareButton = ({
   const [activeState, setActiveState] = useState(null);
   const [linkError, setLinkError] = useState(null);
   const thumbnailRef = useRef(null);
-  const thumbnailOgRef = useRef(null);
   const [shouldRenderThumbnail, setShouldRenderThumbnail] = useState(false);
   const buttonRef = useRef(null);
   const createDeviceStateSchema = useCallback(() => {
@@ -317,16 +315,6 @@ const ShareButton = ({
                   ).luminance() > 0.5
                 }
               />
-              {/* <ThumbOg
-                ref={thumbnailOgRef}
-                activeState={activeState}
-                backgroundImage={backgroundImage}
-                dark={
-                  chroma(
-                    activeState?.qr.primaryColor || "#000000"
-                  ).luminance() > 0.5
-                }
-              /> */}
             </React.Suspense>
           )}
           {}

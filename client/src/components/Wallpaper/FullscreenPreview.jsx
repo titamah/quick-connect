@@ -246,7 +246,7 @@ const FullscreenPreview = ({ children, wallpaperRef }) => {
           {/* Close button */}
           <button
             onClick={handleExitPreview}
-            className="p-2 rounded-full bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 transition-colors"
+            className="p-2 rounded-full bg-neutral-900/33 backdrop-blur-sm text-white/70  hover:bg-white/20 transition-colors"
           >
             <X size={20} />
           </button>

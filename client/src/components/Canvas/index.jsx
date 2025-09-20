@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef, useMemo, useCallback, Suspense, lazy } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import FullscreenPreview from "../Wallpaper/FullscreenPreview";
-import Konva from "konva";
 import PreviewButton from "./PreviewButton";
 import UndoRedoButton from "./UndoRedoButton";
 import { useStageCalculations } from "../../hooks/useStageCalculations";
@@ -9,7 +8,6 @@ import LoadingSpinner from "../LoadingSpinner";
 
 // Lazy load heavy components
 const Wallpaper = lazy(() => import("../Wallpaper/index"));
-const WallpaperPixi = lazy(() => import("../Wallpaper/pixi"));
 const ShareButton = lazy(() => import("./ShareButton"));
 
 import WallpaperSkeleton from "../WallpaperSkeleton";
@@ -359,7 +357,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
             ) : (
               <FullscreenPreview wallpaperRef={wallpaperRef}>
               <Suspense fallback={<WallpaperSkeleton previewSize={previewSize} />}>
-                <WallpaperPixi
+                <Wallpaper
                   ref={wallpaperRef}
                   panelSize={panelSize}
                   isOpen={isOpen}
