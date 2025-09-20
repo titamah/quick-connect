@@ -52,13 +52,13 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   }, [panelSize.width, panelSize.height]);
 
   const handleMouseDown = useCallback((e) => {
-    if (!isZoomEnabled) return;
+    // if (!isZoomEnabled) return;
     setIsDragging(true);
     setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
   }, [isZoomEnabled, transform]);
 
   const handleMouseMove = useCallback((e) => {
-    if (!isDragging || !isZoomEnabled) return;
+    if (!isDragging) return;
     setTransform(prev => ({
       ...prev,
       x: e.clientX - dragStart.x,
@@ -71,7 +71,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   }, []);
 
   const handleWheel = useCallback((e) => {
-    if (!isZoomEnabled) return;
+    // if (!isZoomEnabled) return;
     e.preventDefault();
     
     const delta = e.deltaY * -0.01;
@@ -94,7 +94,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   };
 
   const handleTouchStart = useCallback((e) => {
-    if (!isZoomEnabled) return;
+    // if (!isZoomEnabled) return;
     if (e.touches.length === 1) {
       setIsDragging(true);
       setDragStart({ x: e.touches[0].clientX - transform.x, y: e.touches[0].clientY - transform.y });
@@ -104,7 +104,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   }, [isZoomEnabled, transform]);
 
   const handleTouchMove = useCallback((e) => {
-    if (!isZoomEnabled) return;
+    // if (!isZoomEnabled) return;
     e.preventDefault();
     
     if (e.touches.length === 1 && isDragging) {
@@ -139,7 +139,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
     (event) => {
       try {
         if (
-          isZoomEnabled &&
+          // isZoomEnabled &&
           previewRef?.current &&
           previewRef.current.contains &&
           !previewRef.current.contains(event.target)
