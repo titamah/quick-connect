@@ -158,7 +158,6 @@ function GradientSelector() {
             onClick={() => {
               takeSnapshot("Evenly spaced gradient");
               
-              // First, extract and sort stops by position
               const stopsArray = [];
               for (let i = 0; i < device.gradient.stops.length; i += 2) {
                 stopsArray.push({
@@ -167,10 +166,8 @@ function GradientSelector() {
                 });
               }
               
-              // Sort by position to maintain gradient order
               stopsArray.sort((a, b) => a.position - b.position);
               
-              // Now create evenly spaced positions
               const stopsCount = stopsArray.length;
               const stopsInterval = 1 / (stopsCount - 1);
               const newStops = [];

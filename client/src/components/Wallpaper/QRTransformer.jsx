@@ -19,7 +19,7 @@ export class Transformer extends Container {
     // Store options for styling
     this.lineColor = options.lineColor || 0x7ed03b;
     this.handleColor = options.handleColor || 0xffffff;
-    this.handleSize = options.handleSize || 60;
+    this.handleSize = options.handleSize || 45;
     
     this.cornerHandles = [];
     this.createCornerHandles();
@@ -54,7 +54,7 @@ export class Transformer extends Container {
     this.rotationHandle
       .circle(0, 0, this.handleSize / 2)
       .fill({ color: this.handleColor })
-      .stroke({ color: this.lineColor, width: 8 });
+      .stroke({ color: this.lineColor, width: 8});
     
     this.rotationHandle.eventMode = 'static';
     this.rotationHandle.cursor = 'pointer';
@@ -263,14 +263,15 @@ export class Transformer extends Container {
     });
   }
   
-  attachTo(target, deviceInfo, qrConfig) {
-    console.log("🎯 Attaching to target:", target);
+  attachTo(target, deviceInfo, qrConfig, qrScale = 1) {
+    console.log("🎯 Attaching to target:", target, "with QR scale:", qrScale);
     
     // ✅ Clean up any active drags when attaching to new target
     this.cleanupActiveDrag();
     
     this.target = target;
     this.visible = true;
+    this.qrScale = qrScale; // Store QR scale for handle sizing
     
     this.qrSize = Math.min(deviceInfo.size.x, deviceInfo.size.y);
     this.borderSize = this.qrSize * (qrConfig.custom.borderSizeRatio / 100);
@@ -324,6 +325,9 @@ export class Transformer extends Container {
     
     this.updateCornerHandles(totalSize);
     this.rotationHandle.position.set(0, -totalSize / 2 - 160);
+    
+    // ✅ Apply inverse QR scale to handles to maintain consistent size
+    this.updateHandleScaling();
   }
   
   updateCornerHandles(totalSize) {
@@ -333,6 +337,21 @@ export class Transformer extends Container {
     this.cornerHandles[1].position.set(halfSize, -halfSize);
     this.cornerHandles[2].position.set(halfSize, halfSize);
     this.cornerHandles[3].position.set(-halfSize, halfSize);
+  }
+  
+  updateHandleScaling() {
+    // ✅ Apply inverse QR scale to handles to maintain consistent visual size
+    const inverseScale = this.qrScale ? 1 / this.qrScale : 1;
+    
+    // Apply inverse scale to corner handles
+    this.cornerHandles.forEach(handle => {
+      handle.scale.set(inverseScale, inverseScale);
+    });
+    
+    // Apply inverse scale to rotation handle
+    this.rotationHandle.scale.set(inverseScale, inverseScale);
+    
+    console.log("🎯 Applied inverse QR scale to handles:", inverseScale);
   }
   
   updatePosition() {

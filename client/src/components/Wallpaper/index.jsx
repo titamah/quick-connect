@@ -406,7 +406,8 @@ const Wallpaper = forwardRef(
         transformerRef.current.attachTo(
           qrContainer,
           currentDeviceRef.current,
-          currentConfigRef.current
+          currentConfigRef.current,
+          qrContainer.scale.x // Pass QR scale for handle sizing
         );
       }
     }, [hideGuides, isQRSelected]);
@@ -442,7 +443,8 @@ const Wallpaper = forwardRef(
         transformerRef.current.attachTo(
           qrContainer,
           currentDeviceRef.current,
-          currentConfigRef.current
+          currentConfigRef.current,
+          qrContainer.scale.x // Pass QR scale for handle sizing
         );
       }
 
@@ -605,6 +607,12 @@ const Wallpaper = forwardRef(
 
           updateQRConfigRef.current({ scale: newScale, rotation: newRotation });
           updateQRPositionPercentagesRef.current(newPosition);
+          
+          // ✅ Update transformer with new QR scale for handle sizing
+          if (transformerRef.current && transformerRef.current.visible) {
+            transformerRef.current.qrScale = newScale;
+            transformerRef.current.updateHandleScaling();
+          }
         });
 
         app.stage.eventMode = "static";
