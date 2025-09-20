@@ -469,6 +469,7 @@ const Wallpaper = forwardRef(
       let qrContainer = qrContainerRef.current;
       if (!qrContainer) {
         qrContainer = new Container();
+        qrContainer.name = 'qr-container';
         app.stage.addChild(qrContainer);
         qrContainerRef.current = qrContainer;
       }

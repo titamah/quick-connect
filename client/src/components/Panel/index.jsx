@@ -12,8 +12,8 @@ import "./styles.css";
 const ImageInput = lazy(() => import("./ImageInput"));
 const GradientSelector = lazy(() => import("./GradientSelector"));
 
-function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
-  const { isMobile } = useDevice();
+function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef, canvasRef }) {
+  const { isMobile, deviceInfo, qrConfig } = useDevice();
   const panelRef = useRef(null);
   const [maxHeight, setMaxHeight] = useState(0);
 
@@ -49,32 +49,42 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef }) {
   };
 
   const handleTabClick = (key) => {
+    setActiveTab(key);
+    !isOpen && togglePanel()
     if (key === 1 || key === 2) {
       setPanelSize({ ...panelSize, height: 450 });
     } else if (key === 3) {
       setPanelSize({ ...panelSize, height: 375 });
+    }
+
+    // Auto-center device in visible area when opening QR generator tab on mobile
+    if (key === "2" && isMobile && canvasRef?.current) {
+      // Small delay to ensure panel animation completes first
+      setTimeout(() => {
+        canvasRef.current.centerInVisibleArea(1); // Center device in visible area above panel
+      }, 350); // Match the panel transition duration
     }
   };
 
   const items = [
     {
       key: "1",
-      label: <Proportions className={`size-7.5 m-2 w-full cursor-pointer ${activeTab === "1" ? "text-[var(--accent)]" : ""}`} onClick={() => {setActiveTab("1"); !isOpen && togglePanel()}}/>,
+      label: <Proportions className={`size-7.5 m-2 w-full cursor-pointer ${activeTab === "1" ? "text-[var(--accent)]" : ""}`} onClick={() => { handleTabClick("1")}}/>,
       children: <DeviceTypeSelector />,
     },
     {
       key: "2",
-      label: <QrCode className={`size-7.5 m-2 w-full cursor-pointer ${activeTab === "2" ? "text-[var(--accent)]" : ""}`} onClick={() => {setActiveTab("2"); !isOpen && togglePanel()}}/>,
+      label: <QrCode className={`size-7.5 m-2 w-full cursor-pointer ${activeTab === "2" ? "text-[var(--accent)]" : ""}`} onClick={() => {handleTabClick("2")}}/>,
       children: <QRGenerator panelSize={panelSize} />,
     },
     {
       key: "3",
-      label: <Image className={`size-7.5 m-2 w-full cursor-pointer ${activeTab === "3" ? "text-[var(--accent)]" : ""}`} onClick={() => {setActiveTab("3"); !isOpen && togglePanel()}}/>,
+      label: <Image className={`size-7.5 m-2 w-full cursor-pointer ${activeTab === "3" ? "text-[var(--accent)]" : ""}`} onClick={() => {handleTabClick("3")}}/>,
       children: <CustomBackgroundSelector panelSize={panelSize} />,
     },
     {
       key: "4",
-      label: <Download className={`size-7.5 m-2 w-full cursor-pointer ${activeTab === "4" ? "text-[var(--accent)]" : ""}`} onClick={() => {setActiveTab("4"); !isOpen && togglePanel()}}/>,
+      label: <Download className={`size-7.5 m-2 w-full cursor-pointer ${activeTab === "4" ? "text-[var(--accent)]" : ""}`} onClick={() => {handleTabClick("4")}}/>,
       children: <Exporter wallpaperRef={wallpaperRef} />,
     },
   ];

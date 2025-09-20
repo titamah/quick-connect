@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo, useCallback, Suspense, lazy } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback, Suspense, lazy, useImperativeHandle, forwardRef } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import FullscreenPreview from "../Wallpaper/FullscreenPreview";
 import PreviewButton from "./PreviewButton";
@@ -12,8 +12,8 @@ const ShareButton = lazy(() => import("./ShareButton"));
 
 import WallpaperSkeleton from "../WallpaperSkeleton";
 
-function Canvas({ isOpen, panelSize, wallpaperRef }) {
-  const { device, isMobile } = useDevice();
+const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
+  const { device, isMobile, isQRSelected } = useDevice();
   const previewRef = useRef(null);
   const canvasRef = useRef(null);
   const backgroundLayerRef = useRef(null);
@@ -27,6 +27,101 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
 
   const memoizedSetIsZoomEnabled = useCallback(setIsZoomEnabled, []);
   const scale = useStageCalculations(device.size, panelSize, isOpen);
+
+  // Add the imperative handle for programmatic control
+  useImperativeHandle(ref, () => {
+    const api = {
+      // Method to programmatically set canvas transform
+      setTransform: (x, y, scaleValue, animate = true) => {
+        setTransform({
+          x: x || 0,
+          y: y || 0,
+          scale: scaleValue || 1
+        });
+      },
+      
+      // Method to animate to a specific position (smoother for mobile)
+      animateToTransform: (x, y, scaleValue, duration = 750) => {
+        // Enable transition for smooth animation
+        if (previewRef.current) {
+          previewRef.current.style.transition = `all ${duration}ms ease-in-out`;
+        }
+        
+        setTransform({
+          x: x || 0,
+          y: y || 0,
+          scale: scaleValue || 1
+        });
+        
+        // Remove transition after animation completes
+        setTimeout(() => {
+          if (previewRef.current) {
+            previewRef.current.style.transition = transform.scale === 1 && transform.x === 0 && transform.y === 0 
+              ? "all 0.75s ease-in-out" 
+              : "none";
+          }
+        }, duration);
+      },
+      
+      // Helper method to center device in visible area above panel (mobile)
+      centerInVisibleArea: (scaleValue = 1) => {
+        if (!isMobile) {
+          // On desktop, just center normally
+          api.animateToTransform(0, 0, scaleValue);
+          return;
+        }
+        
+        const canvasElement = canvasRef.current;
+        if (!canvasElement) return;
+        
+        const canvasRect = canvasElement.getBoundingClientRect();
+        const panelHeight = panelSize.height;
+        
+        // Calculate the visible canvas area above the panel
+        const visibleCanvasHeight = canvasRect.height - panelHeight;
+        const visibleCenter = visibleCanvasHeight / 2;
+        
+        // Move device up to center it in the visible area
+        const offsetY = (canvasRect.height / 2) - visibleCenter - panelHeight;
+        
+        api.animateToTransform(0, offsetY, scaleValue);
+      },
+      
+      // Helper method to center QR in viewport
+      centerQRInViewport: (qrPosition, deviceSize, scaleValue = 1.2) => {
+        const canvasElement = canvasRef.current;
+        if (!canvasElement) return;
+        
+        const canvasRect = canvasElement.getBoundingClientRect();
+        const canvasCenter = {
+          x: canvasRect.width / 2,
+          y: canvasRect.height / 2
+        };
+        
+        // Calculate where QR currently is in canvas coordinates
+        const currentQRScreenPos = {
+          x: (deviceSize.x * qrPosition.x) * scale,
+          y: (deviceSize.y * qrPosition.y) * scale
+        };
+        
+        // Calculate offset needed to center QR
+        const offsetX = canvasCenter.x - currentQRScreenPos.x;
+        const offsetY = canvasCenter.y - currentQRScreenPos.y;
+        
+        api.animateToTransform(offsetX, offsetY, scaleValue);
+      },
+      
+      // Reset to default view
+      resetView: () => {
+        api.animateToTransform(0, 0, 1);
+      },
+      
+      // Get current transform (useful for debugging)
+      getCurrentTransform: () => transform
+    };
+    
+    return api;
+  }, [transform, scale, previewRef, canvasRef]);
 
   const previewSize = useMemo(
     () => ({
@@ -52,10 +147,13 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   }, [panelSize.width, panelSize.height]);
 
   const handleMouseDown = useCallback((e) => {
+    // Skip pan/zoom if QR is selected (user is interacting with QR)
+    if (isQRSelected) return;
+    
     // if (!isZoomEnabled) return;
     setIsDragging(true);
     setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
-  }, [isZoomEnabled, transform]);
+  }, [isZoomEnabled, transform, isQRSelected]);
 
   const handleMouseMove = useCallback((e) => {
     if (!isDragging) return;
@@ -71,6 +169,9 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   }, []);
 
   const handleWheel = useCallback((e) => {
+    // Skip zoom if QR is selected (user is interacting with QR)
+    if (isQRSelected) return;
+    
     // if (!isZoomEnabled) return;
     e.preventDefault();
     
@@ -81,7 +182,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
       ...prev,
       scale: newScale
     }));
-  }, [isZoomEnabled, transform.scale]);
+  }, [isZoomEnabled, transform.scale, isQRSelected]);
 
   const handleDoubleClick = useCallback(() => {
     setTransform({ x: 0, y: 0, scale: 1 });
@@ -94,6 +195,9 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
   };
 
   const handleTouchStart = useCallback((e) => {
+    // Skip pan/zoom if QR is selected (user is interacting with QR)
+    if (isQRSelected) return;
+    
     // if (!isZoomEnabled) return;
     if (e.touches.length === 1) {
       setIsDragging(true);
@@ -101,7 +205,7 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
     } else if (e.touches.length === 2) {
       setLastTouchDistance(getTouchDistance(e.touches));
     }
-  }, [isZoomEnabled, transform]);
+  }, [isZoomEnabled, transform, isQRSelected]);
 
   const handleTouchMove = useCallback((e) => {
     // if (!isZoomEnabled) return;
@@ -373,5 +477,8 @@ function Canvas({ isOpen, panelSize, wallpaperRef }) {
       </div>
     </div>
   );
-}
+});
+
+Canvas.displayName = 'Canvas';
+
 export default Canvas;

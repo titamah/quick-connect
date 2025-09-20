@@ -8,6 +8,7 @@ const StudioPage = () => {
   const { isMobile, undo, redo, canUndo, canRedo } = useDevice();
 
   const wallpaperRef = React.useRef(null);
+  const canvasRef = React.useRef(null);
 
   const [isOpen, setIsOpen] = React.useState(true);
   const windowSize = useWindowSize();
@@ -91,8 +92,10 @@ const StudioPage = () => {
         panelSize={panelSize}
         setPanelSize={setPanelSize}
         wallpaperRef={wallpaperRef}
+        canvasRef={canvasRef}
       />
       <Canvas
+        ref={canvasRef}
         isOpen={isOpen}
         panelSize={panelSize}
         wallpaperRef={wallpaperRef}
