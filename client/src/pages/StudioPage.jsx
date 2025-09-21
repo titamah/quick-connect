@@ -15,7 +15,7 @@ const StudioPage = () => {
   const [breakpoint, setBreakpoint] = React.useState(null);
   const [panelSize, setPanelSize] = React.useState({
     width: isMobile ? 0 : 450,
-    height: 450,
+    height: 275,
   });
 
   useEffect(() => {
@@ -25,7 +25,7 @@ const StudioPage = () => {
       if (currentBreakpoint === "mobile" && panelSize.width > 0) {
         setPanelSize((prev) => ({ ...prev, width: 0 }));
       } else if (currentBreakpoint === "desktop" && panelSize.width === 0) {
-        setPanelSize((prev) => ({ ...prev, width: 450 }));
+        setPanelSize((prev) => ({ ...prev, width: 275 }));
       }
 
       setBreakpoint(currentBreakpoint);

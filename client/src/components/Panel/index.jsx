@@ -55,10 +55,13 @@ function Panel({
   const handleTabClick = (key) => {
     setActiveTab(key);
     !isOpen && togglePanel();
-    if (key === 1 || key === 2) {
-      setPanelSize({ ...panelSize, height: 450 });
-    } else if (key === 3) {
-      setPanelSize({ ...panelSize, height: 375 });
+    if (key === "1" || key === "2") {
+      setPanelSize(prev => ({ ...prev, height: 275 }));
+      canvasRef.current.resetView();
+    } else if (key === "3") {
+      setPanelSize(prev => ({ ...prev, height: 325 }));
+    } else if (key === "4") {
+      setPanelSize(prev => ({ ...prev, height: 250 }));
     }
 
     if (isMobile && canvasRef?.current) {
@@ -184,7 +187,6 @@ function Panel({
         </div>
       </CustomResizable>
 
-      {/* Bottom Panel Tab Bar - Always Visible */}
       <div
         className={`fixed bottom-0 left-0 right-0 z-110 ${
           isMobile ? "" : "hidden"

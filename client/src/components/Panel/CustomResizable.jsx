@@ -4,7 +4,7 @@ const CustomResizable = forwardRef(
   (
     {
       children,
-      direction = "side", // 'side' for east, 'bottom' for north
+      direction = "side",
       minSize = 200,
       maxSize = 800,
       panelSize,
@@ -15,10 +15,9 @@ const CustomResizable = forwardRef(
     },
     ref
   ) => {
-    const [isResizing, setIsResizing] = useState(false);
+
     const containerRef = useRef(null);
     
-    // Use refs to store current values to avoid stale closures
     const resizeStateRef = useRef({
       isResizing: false,
       startPos: 0,
@@ -29,17 +28,8 @@ const CustomResizable = forwardRef(
     const isSide = direction === "side";
     const cursor = isSide ? "col-resize" : "row-resize";
     
-    console.log("🔄 CustomResizable render:", { 
-      direction, 
-      panelSize, 
-      isSide,
-      computedWidth: isSide ? `${panelSize.width}px` : "100%",
-      computedHeight: isSide ? "100%" : `${panelSize.height}px`
-    });
-
     const handleMouseMove = useCallback(
       (e) => {
-        console.log("🖱️ MOUSE MOVE TRIGGERED", resizeStateRef.current.isResizing);
         if (!resizeStateRef.current.isResizing) return;
         
         e.preventDefault();
@@ -47,22 +37,9 @@ const CustomResizable = forwardRef(
         const currentPos = isSide ? e.clientX : e.clientY;
         const delta = currentPos - resizeStateRef.current.startPos;
         
-        // For side panels: drag right = bigger, drag left = smaller
-        // For bottom panels: drag up = bigger, drag down = smaller (invert Y axis)
         const adjustedDelta = isSide ? delta : -delta;
         const newSize = Math.max(minSize, Math.min(maxSize, resizeStateRef.current.startSize + adjustedDelta));
         
-        console.log("📏 Mouse Resizing:", { 
-          direction, 
-          currentPos, 
-          startPos: resizeStateRef.current.startPos,
-          delta, 
-          adjustedDelta, 
-          startSize: resizeStateRef.current.startSize,
-          newSize,
-          currentPanelSize: panelSize
-        });
-
         if (isSide) {
           setPanelSize({ width: newSize, height: panelSize.height });
         } else {
@@ -75,19 +52,15 @@ const CustomResizable = forwardRef(
     const handleMouseUp = useCallback(() => {
       if (!resizeStateRef.current.isResizing) return;
       
-      console.log("🖱️ Mouse up, stopping resize");
-      setIsResizing(false);
       resizeStateRef.current.isResizing = false;
       resizeStateRef.current.handleElement = null;
 
-      // Remove global event listeners
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
-      document.body.style.pointerEvents = ""; // Restore pointer events
+      document.body.style.pointerEvents = "";
       
-      // Remove pointer-events manipulation
       if (document.body.style.pointerEvents) {
         document.body.style.pointerEvents = "";
       }
@@ -95,45 +68,35 @@ const CustomResizable = forwardRef(
 
     const handleMouseDown = useCallback(
       (e) => {
-        console.log("🖱️ MOUSE DOWN TRIGGERED");
-        // Check if we're already resizing or if this isn't the primary button
+        
         if (resizeStateRef.current.isResizing || e.button !== 0) {
           return;
         }
         
-        // Prevent default and stop propagation immediately
         e.preventDefault();
         e.stopPropagation();
         
-        // Store the handle element to check later
         const handleElement = e.currentTarget;
         
-        console.log("🖱️ Mouse down on resize handle", { direction, size: isSide ? panelSize.width : panelSize.height });
         
         const startPos = isSide ? e.clientX : e.clientY;
         
-        // Update state immediately
         resizeStateRef.current = {
           isResizing: true,
           startPos,
           startSize: isSide ? panelSize.width : panelSize.height,
           handleElement
         };
-        setIsResizing(true);
 
-        // Add global event listeners with capture phase
         document.addEventListener("mousemove", handleMouseMove, { passive: false });
         document.addEventListener("mouseup", handleMouseUp, { passive: false });
         document.body.style.cursor = cursor;
         document.body.style.userSelect = "none";
-        document.body.style.pointerEvents = "none"; // Prevent text selection everywhere
-        
-        console.log("🖱️ Added event listeners, isResizing:", true);
+        document.body.style.pointerEvents = "none"; 
       },
       [panelSize.width, panelSize.height, isSide, cursor, handleMouseMove, handleMouseUp, direction]
     );
 
-    // Touch support
     const handleTouchMove = useCallback(
       (e) => {
         if (!resizeStateRef.current.isResizing) return;
@@ -159,8 +122,6 @@ const CustomResizable = forwardRef(
     const handleTouchEnd = useCallback(() => {
       if (!resizeStateRef.current.isResizing) return;
       
-      console.log("👆 Touch end, stopping resize");
-      setIsResizing(false);
       resizeStateRef.current.isResizing = false;
       resizeStateRef.current.handleElement = null;
 
@@ -180,7 +141,6 @@ const CustomResizable = forwardRef(
         const touch = e.touches[0];
         const startPos = isSide ? touch.clientX : touch.clientY;
         
-        console.log("👆 Touch start on resize handle", { direction, size: isSide ? panelSize.width : panelSize.height });
         
         resizeStateRef.current = {
           isResizing: true,
@@ -188,18 +148,15 @@ const CustomResizable = forwardRef(
           startSize: isSide ? panelSize.width : panelSize.height,
           handleElement
         };
-        setIsResizing(true);
 
         document.addEventListener("touchmove", handleTouchMove, { passive: false, capture: true });
         document.addEventListener("touchend", handleTouchEnd, true);
         document.body.style.userSelect = "none";
         
-        console.log("👆 Added touch event listeners, isResizing:", true);
       },
       [panelSize.width, panelSize.height, isSide, handleTouchMove, handleTouchEnd, direction]
     );
 
-    // Cleanup on unmount
     useEffect(() => {
       return () => {
         document.removeEventListener("mousemove", handleMouseMove, true);
@@ -226,7 +183,6 @@ const CustomResizable = forwardRef(
       >
         {children}
 
-        {/* Toggle button - only for bottom direction */}
         {toggleButton && direction === "bottom" && (
           <div className="absolute z-50 left-1/2 top-0 cursor-pointer transform -translate-x-1/2 h-[10px] w-[50px] flex items-center justify-center">
             <div className="cursor-pointer" onClick={toggleButton}>
@@ -282,28 +238,24 @@ const CustomResizable = forwardRef(
           </span>
         )}
         
-        {/* Resize handle */}
             <div
               className="absolute z-10"
               style={{
                 cursor: cursor,
                 ...(isSide
                   ? {
-                      // Side/East handle
                       right: 0,
                       top: 0,
                       width: "10px",
                       height: "100%",
                     }
                   : {
-                      // Bottom/North handle
                       top: 0,
                       left: 0,
                       width: "100%",
                       height: "10px",
                     }),
               }}
-              onClick={() => console.log("🎯 RESIZE HANDLE CLICKED!")}
               onMouseDown={handleMouseDown}
               onDrag={handleMouseMove}
               onDragEnd={handleMouseUp}
