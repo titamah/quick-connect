@@ -55,19 +55,18 @@ function Panel({
   const handleTabClick = (key) => {
     setActiveTab(key);
     !isOpen && togglePanel();
-    
+
     let panelHeight = panelSize.height;
     
     if (key === "1" || key === "2") {
-      panelHeight = 275;
-      setPanelSize(prev => ({ ...prev, height: 275 }));
+      panelHeight = 360;
     } else if (key === "3") {
       panelHeight = 325;
-      setPanelSize(prev => ({ ...prev, height: 325 }));
     } else if (key === "4") {
       panelHeight = 250;
-      setPanelSize(prev => ({ ...prev, height: 250 }));
     }
+
+    setPanelSize(prev => ({ ...prev, height: panelHeight }));
 
     if (isMobile && canvasRef?.current) {
       if (key === "2") {
