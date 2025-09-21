@@ -55,12 +55,17 @@ function Panel({
   const handleTabClick = (key) => {
     setActiveTab(key);
     !isOpen && togglePanel();
+    
+    let panelHeight = panelSize.height;
+    
     if (key === "1" || key === "2") {
+      panelHeight = 275;
       setPanelSize(prev => ({ ...prev, height: 275 }));
-      canvasRef.current.resetView();
     } else if (key === "3") {
+      panelHeight = 325;
       setPanelSize(prev => ({ ...prev, height: 325 }));
     } else if (key === "4") {
+      panelHeight = 250;
       setPanelSize(prev => ({ ...prev, height: 250 }));
     }
 
@@ -72,9 +77,13 @@ function Panel({
         } else if (qrConfig.scale > 0.7) {
           deviceScale = 0.9;
         }
-        canvasRef.current.centerInVisibleArea(deviceScale);
-      } else if (key === "3") {
-        canvasRef.current.centerTopInCanvas();
+        setTimeout(() => {
+          canvasRef.current.centerInVisibleArea(deviceScale, panelHeight);
+        }, 50);
+      } else {
+        setTimeout(() => {
+          canvasRef.current.centerTopInCanvas(0.5, panelHeight);
+        }, 50);
       }
     }
   };

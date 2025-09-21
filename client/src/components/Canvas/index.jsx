@@ -69,7 +69,7 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
       },
       
       // Helper method to center device in visible area above panel (mobile)
-      centerInVisibleArea: (scaleValue = 1) => {
+      centerInVisibleArea: (scaleValue = 1, panelHeight = panelSize.height) => {
         if (!isMobile) {
           // On desktop, just center normally
           api.animateToTransform(0, 0, scaleValue);
@@ -80,7 +80,6 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
         if (!canvasElement) return;
         
         const canvasRect = canvasElement.getBoundingClientRect();
-        const panelHeight = panelSize.height;
         
         const visibleCanvasHeight = canvasRect.height - panelHeight;
         const visibleCenter = visibleCanvasHeight / 2;
@@ -90,7 +89,7 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
         api.animateToTransform(0, offsetY, scaleValue);
       },
 
-      centerTopInCanvas: (scaleValue = 0.5) => {
+      centerTopInCanvas: (scaleValue = 0.5, panelHeight = panelSize.height) => {
         if (!isMobile) {
           // On desktop, just center normally
           api.animateToTransform(0, 0, scaleValue);
@@ -101,7 +100,6 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
         if (!canvasElement) return;
         
         const canvasRect = canvasElement.getBoundingClientRect();
-        const panelHeight = panelSize.height;
         
         const visibleCanvasHeight = canvasRect.height - panelHeight;
         const visibleCenter = visibleCanvasHeight / 2;
@@ -376,6 +374,11 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
     updatePanelSize();
     setIsLoading(false);
   }, [updatePanelSize]);
+
+  // Update CSS variables when panelSize changes
+  useEffect(() => {
+    updatePanelSize();
+  }, [panelSize.width, panelSize.height, isMobile]);
   useEffect(() => {
     const canvasElement = canvasRef.current;
     if (!canvasElement) return;
