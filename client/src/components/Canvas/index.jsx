@@ -29,6 +29,7 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
   const [lastTapTime, setLastTapTime] = useState(0);
   const [lastTapPosition, setLastTapPosition] = useState({ x: 0, y: 0 });
   const [touchStartPosition, setTouchStartPosition] = useState({ x: 0, y: 0 });
+  const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
 
   const memoizedSetIsZoomEnabled = useCallback(setIsZoomEnabled, []);
   const scale = useStageCalculations(device.size, panelSize, isOpen);
@@ -169,13 +170,13 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
   }, [panelSize.width, panelSize.height]);
 
   const handleMouseDown = useCallback((e) => {
-    // Skip pan/zoom if QR is selected (user is interacting with QR)
-    if (isQRSelected) return;
+    // Skip pan/zoom if QR is selected or share menu is open
+    if (isQRSelected || isShareMenuOpen) return;
     
     // if (!isZoomEnabled) return;
     setIsDragging(true);
     setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
-  }, [isZoomEnabled, transform, isQRSelected]);
+  }, [isZoomEnabled, transform, isQRSelected, isShareMenuOpen]);
 
   const handleMouseMove = useCallback((e) => {
     if (!isDragging) return;
@@ -191,8 +192,8 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
   }, []);
 
   const handleWheel = useCallback((e) => {
-    // Skip zoom if QR is selected (user is interacting with QR)
-    if (isQRSelected) return;
+    // Skip zoom if QR is selected or share menu is open
+    if (isQRSelected || isShareMenuOpen) return;
     
     // if (!isZoomEnabled) return;
     e.preventDefault();
@@ -204,7 +205,7 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
       ...prev,
       scale: newScale
     }));
-  }, [isZoomEnabled, transform.scale, isQRSelected]);
+  }, [isZoomEnabled, transform.scale, isQRSelected, isShareMenuOpen]);
 
   const handleDoubleClick = useCallback(() => {
     setTransform({ x: 0, y: 0, scale: 1 });
@@ -217,8 +218,8 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
   };
 
   const handleTouchStart = useCallback((e) => {
-    // Skip pan/zoom if QR is selected (user is interacting with QR)
-    if (isQRSelected) return;
+    // Skip pan/zoom if QR is selected or share menu is open
+    if (isQRSelected || isShareMenuOpen) return;
     
     // if (!isZoomEnabled) return;
     if (e.touches.length === 1) {
@@ -232,7 +233,7 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
     } else if (e.touches.length === 2) {
       setLastTouchDistance(getTouchDistance(e.touches));
     }
-  }, [isZoomEnabled, transform, isQRSelected]);
+  }, [isZoomEnabled, transform, isQRSelected, isShareMenuOpen]);
 
   const handleTouchMove = useCallback((e) => {
     // if (!isZoomEnabled) return;
@@ -259,7 +260,7 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
 
   const handleTouchEnd = useCallback((e) => {
     // Skip pan/zoom if QR is selected (user is interacting with QR)
-    if (isQRSelected) {
+    if (isQRSelected || isShareMenuOpen) {
       setIsDragging(false);
       setLastTouchDistance(0);
       return;
@@ -312,7 +313,7 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
     
     setIsDragging(false);
     setLastTouchDistance(0);
-  }, [isQRSelected, lastTapTime, lastTapPosition, touchStartPosition, ref]);
+  }, [isQRSelected, isShareMenuOpen, lastTapTime, lastTapPosition, touchStartPosition, ref]);
   const handleResize = useCallback(() => {
     updatePanelSize();
     // Reset zoom on resize
@@ -513,9 +514,10 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
         <UndoRedoButton />
         <Suspense fallback={<LoadingSpinner size="small" variant="logo" />}>
           <ShareButton
-            wallpaperRef={wallpaperRef}
-            getBackgroundImage={getBackgroundImage}
-            backgroundLayerRef={backgroundLayerRef}
+                wallpaperRef={wallpaperRef}
+                getBackgroundImage={getBackgroundImage}
+                backgroundLayerRef={backgroundLayerRef}
+                onMenuStateChange={setIsShareMenuOpen}
           />
         </Suspense>
         <span
