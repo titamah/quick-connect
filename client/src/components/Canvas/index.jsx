@@ -13,7 +13,7 @@ const ShareButton = lazy(() => import("./ShareButton"));
 import WallpaperSkeleton from "../WallpaperSkeleton";
 
 const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
-  const { device, isMobile, isQRSelected } = useDevice();
+  const { device, isMobile, isQRSelected, qrConfig } = useDevice();
   const previewRef = useRef(null);
   const canvasRef = useRef(null);
   const backgroundLayerRef = useRef(null);
@@ -77,12 +77,31 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
         const canvasRect = canvasElement.getBoundingClientRect();
         const panelHeight = panelSize.height;
         
-        // Calculate the visible canvas area above the panel
         const visibleCanvasHeight = canvasRect.height - panelHeight;
         const visibleCenter = visibleCanvasHeight / 2;
         
-        // Move device up to center it in the visible area
-        const offsetY = (canvasRect.height / 2) - visibleCenter - panelHeight;
+        const offsetY = ((canvasRect.height / 2) - visibleCenter - panelHeight) + (device.size.y * scale * (0.5 - qrConfig.positionPercentages.y));
+        
+        api.animateToTransform(0, offsetY, scaleValue);
+      },
+
+      centerTopInCanvas: (scaleValue = 0.5) => {
+        if (!isMobile) {
+          // On desktop, just center normally
+          api.animateToTransform(0, 0, scaleValue);
+          return;
+        }
+        
+        const canvasElement = canvasRef.current;
+        if (!canvasElement) return;
+        
+        const canvasRect = canvasElement.getBoundingClientRect();
+        const panelHeight = panelSize.height;
+        
+        const visibleCanvasHeight = canvasRect.height - panelHeight;
+        const visibleCenter = visibleCanvasHeight / 2;
+        
+        const offsetY = ((canvasRect.height / 2) - visibleCenter - panelHeight);
         
         api.animateToTransform(0, offsetY, scaleValue);
       },
@@ -459,7 +478,6 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
                 ></div>
               </div>
             ) : (
-              <FullscreenPreview wallpaperRef={wallpaperRef}>
               <Suspense fallback={<WallpaperSkeleton previewSize={previewSize} />}>
                 <Wallpaper
                   ref={wallpaperRef}
@@ -470,7 +488,6 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
                   backgroundLayerRef={backgroundLayerRef}
                 />
               </Suspense>
-              </FullscreenPreview>
             )}
           </figure>
         </span>

@@ -30,7 +30,6 @@ const Wallpaper = forwardRef(
       isQRSelected,
       selectQR: contextSelectQR,
       deselectAll,
-      isMobile,
     } = useDevice();
 
     const {
@@ -49,8 +48,6 @@ const Wallpaper = forwardRef(
     const guidesRef = useRef(null);
     const backgroundRendererRef = useRef(null);
 
-    // Fullscreen state for mobile
-    const [isFullscreen, setIsFullscreen] = useState(false);
 
     const currentConfigRef = useRef(qrConfig);
     const currentDeviceRef = useRef(deviceInfo);
@@ -59,69 +56,6 @@ const Wallpaper = forwardRef(
     const takeSnapshotRef = useRef(takeSnapshot);
     const updateQRConfigRef = useRef(updateQRConfig);
     const updateQRPositionPercentagesRef = useRef(updateQRPositionPercentages);
-
-    // Mobile fullscreen handlers
-    const enterFullscreen = useCallback(() => {
-      if (!document.fullscreenElement && isMobile) {
-        const element = containerRef.current?.parentElement || document.documentElement;
-        if (element.requestFullscreen) {
-          element.requestFullscreen().then(() => {
-            setIsFullscreen(true);
-          }).catch(console.error);
-        } else if (element.webkitRequestFullscreen) {
-          element.webkitRequestFullscreen();
-          setIsFullscreen(true);
-        }
-      }
-    }, [isMobile]);
-
-    const exitFullscreen = useCallback(() => {
-      if (document.fullscreenElement || document.webkitFullscreenElement) {
-        if (document.exitFullscreen) {
-          document.exitFullscreen().then(() => {
-            setIsFullscreen(false);
-          }).catch(console.error);
-        } else if (document.webkitExitFullscreen) {
-          document.webkitExitFullscreen();
-          setIsFullscreen(false);
-        }
-      } else {
-        setIsFullscreen(false);
-      }
-    }, []);
-
-    // Handle preview state changes
-    useEffect(() => {
-      if (isMobile) {
-        // Mobile behavior: fullscreen on preview
-        if (isPreviewVisible && !isFullscreen) {
-          enterFullscreen();
-        } else if (!isPreviewVisible && isFullscreen) {
-          exitFullscreen();
-        }
-    }
-    }, [isPreviewVisible, isHovered, isMobile, isFullscreen, enterFullscreen, exitFullscreen]);
-
-    // Listen for fullscreen changes
-    useEffect(() => {
-      const handleFullscreenChange = () => {
-        const isCurrentlyFullscreen = !!(document.fullscreenElement || document.webkitFullscreenElement);
-        
-        if (!isCurrentlyFullscreen && isFullscreen) {
-          // User exited fullscreen (e.g., via escape key)
-          setIsFullscreen(false);
-          setIsPreviewVisible(false);
-        }
-      };
-
-      document.addEventListener('fullscreenchange', handleFullscreenChange);
-      document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-
-      return () => {
-        document.removeEventListener('fullscreenchange', handleFullscreenChange);
-        document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
-      };
-    }, [isFullscreen, setIsPreviewVisible]);
 
     useImperativeHandle(ref, () => ({
         exportImage: (options = {}) => {
@@ -140,30 +74,21 @@ const Wallpaper = forwardRef(
                 throw new Error("Pixi application not found or not initialized");
               }
 
-           
-  
-              // Calculate export dimensions
               const exportWidth = width || Math.floor(deviceInfo.size.x * scale);
               const exportHeight = height || Math.floor(deviceInfo.size.y * scale);
               
-              // Store original size
               const originalWidth = pixiApp.renderer.width;
               const originalHeight = pixiApp.renderer.height;
               
-              // Temporarily resize renderer for high-quality export
               pixiApp.renderer.resize(exportWidth, exportHeight);
               
-              // Force a render
               pixiApp.render();
               
-              // Extract the canvas
               const canvas = pixiApp.renderer.extract.canvas(pixiApp.stage);
               
-              // Convert to blob
               const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
               canvas.toBlob((blob) => {
                 try {
-                  // Restore original size and phone UI state
                   pixiApp.renderer.resize(originalWidth, originalHeight);
 
                   pixiApp.render();
@@ -175,7 +100,6 @@ const Wallpaper = forwardRef(
                   
                   resolve(blob);
                 } catch (error) {
-                  // Restore original size even on error
                   pixiApp.renderer.resize(originalWidth, originalHeight);
                
                   pixiApp.render();
@@ -189,10 +113,8 @@ const Wallpaper = forwardRef(
           });
         },
   
-        // You can also expose other useful methods
         getPixiApp: () => appRef.current,
         
-        // Method to get current canvas as data URL (simpler alternative)
         toDataURL: (options = {}) => {
           const {
             format = 'png',
@@ -217,17 +139,8 @@ const Wallpaper = forwardRef(
             return null;
           }
         },
+      }), [deviceInfo.size]);
 
-        toggleFullscreen: () => {
-          if (isFullscreen) {
-            exitFullscreen();
-          } else {
-            enterFullscreen();
-          }
-        }
-      }), [deviceInfo.size, isFullscreen, enterFullscreen, exitFullscreen]);
-
-    // ... (keep all your existing useEffect hooks for refs)
     useEffect(() => {
       takeSnapshotRef.current = takeSnapshot;
     }, [takeSnapshot]);
@@ -252,7 +165,6 @@ const Wallpaper = forwardRef(
       currentLockedRef.current = locked;
     }, [locked]);
 
-    // ... (keep all your existing callback functions - createGuides, showGuides, hideGuides, etc.)
     const createGuides = useCallback(() => {
       if (!appRef.current) return;
 
@@ -407,7 +319,7 @@ const Wallpaper = forwardRef(
           qrContainer,
           currentDeviceRef.current,
           currentConfigRef.current,
-          qrContainer.scale.x // Pass QR scale for handle sizing
+          qrContainer.scale.x
         );
       }
     }, [hideGuides, isQRSelected]);
@@ -444,7 +356,7 @@ const Wallpaper = forwardRef(
           qrContainer,
           currentDeviceRef.current,
           currentConfigRef.current,
-          qrContainer.scale.x // Pass QR scale for handle sizing
+          qrContainer.scale.x 
         );
       }
 
@@ -609,7 +521,6 @@ const Wallpaper = forwardRef(
           updateQRConfigRef.current({ scale: newScale, rotation: newRotation });
           updateQRPositionPercentagesRef.current(newPosition);
           
-          // ✅ Update transformer with new QR scale for handle sizing
           if (transformerRef.current && transformerRef.current.visible) {
             transformerRef.current.qrScale = newScale;
             transformerRef.current.updateHandleScaling();

@@ -16,6 +16,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef, canva
   const { isMobile, deviceInfo, qrConfig } = useDevice();
   const panelRef = useRef(null);
   const [maxHeight, setMaxHeight] = useState(0);
+  const resizableRef = useRef(null);
 
   const onResizeSide = (event, { size }) => {
     setPanelSize({ width: size.width, height: panelSize.height });
@@ -57,25 +58,26 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef, canva
       setPanelSize({ ...panelSize, height: 375 });
     }
 
-    // Auto-center device in visible area when opening QR generator tab on mobile
-    if (key === "2" && isMobile && canvasRef?.current) {
-      // Small delay to ensure panel animation completes first
+    if (isMobile && canvasRef?.current) {
+    if (key === "2") {
       let deviceScale = 1.0;
       if (qrConfig.scale < 0.3) {
-        deviceScale = 1.3; // Zoom in for small QR
+        deviceScale = 1.3; 
       } else if (qrConfig.scale > 0.7) {
-        deviceScale = 0.9; // Zoom out for large QR
+        deviceScale = 0.9; 
       }
-      setTimeout(() => {
         canvasRef.current.centerInVisibleArea( deviceScale ); // Center device in visible area above panel
-      }, 350); // Match the panel transition duration
+    } else if (key === "3") {
+      canvasRef.current.centerTopInCanvas();
     }
+  }
   };
 
   useEffect(() => {
     const timer = setTimeout(() => {
     if (isMobile && canvasRef?.current && !isOpen) {
-        canvasRef.current.centerQRInViewport(0, deviceInfo.size, 1);
+        canvasRef.current.resetView();
+        setActiveTab(null);
       }
     }, 350);
     return () => clearTimeout(timer);
@@ -169,7 +171,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef, canva
           </span>
           <div className="h-full flex flex-row w-full">
             <div className="flex-1">
-              {items[activeTab - 1].children}
+              {items[activeTab ? activeTab - 1 : 0].children}
             </div>
           </div>
         </div>
@@ -187,6 +189,7 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef, canva
       </div>
       
       <Resizable
+        ref={resizableRef}
 className=""
         width={panelSize.width}
         height={panelSize.height}
@@ -238,7 +241,7 @@ className=""
           </div>
         </div>
         <div className="h-full flex flex-col w-full">
-          {items[activeTab - 1].children}
+          {items[activeTab ? activeTab - 1 : 0].children}
         </div>
       </div>
       </Resizable>

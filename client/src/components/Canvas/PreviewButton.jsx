@@ -19,17 +19,7 @@ const PreviewButton = forwardRef(({}) => {
     }
   };
 
-  const getButtonText = () => {
-    if (isMobile) {
-      return isPreviewVisible ? "Exit Preview" : "Preview";
-    }
-    return "Preview";
-  };
-
   const getButtonIcon = () => {
-    if (isMobile) {
-      return isPreviewVisible ? <Minimize2 size={16} /> : <Maximize2 size={16} />;
-    }
     return isPreviewVisible ? <Eye size={16} /> : <EyeClosed size={16} />;
   };
 
@@ -45,7 +35,7 @@ const PreviewButton = forwardRef(({}) => {
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        {getButtonText()}
+        Preview
         {getButtonIcon()}
       </button>
     </div>
