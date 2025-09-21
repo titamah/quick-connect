@@ -218,21 +218,15 @@ const ShareButton = ({
     const fullShareText = `${shareText} ${link}`;
     switch (platform) {
       case "twitter":
-        const twitterUrl = `https:
-          fullShareText
-        )}`;
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(fullShareText)}`;
         window.open(twitterUrl, "_blank", "width=600,height=400");
         break;
       case "facebook":
-        const facebookUrl = `https:
-          link
-        )}&quote=${encodeURIComponent(shareText)}`;
+        const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}&quote=${encodeURIComponent(shareText)}`;
         window.open(facebookUrl, "_blank", "width=600,height=400");
         break;
       case "linkedin":
-        const linkedinUrl = `https:
-          link
-        )}&summary=${encodeURIComponent(shareText)}`;
+        const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(link)}&summary=${encodeURIComponent(shareText)}`;
         window.open(linkedinUrl, "_blank", "width=600,height=400");
         break;
       case "copy-link":
