@@ -244,6 +244,7 @@ function GradientSelector() {
                   id={`gradient-slider-${index}`}
                   index={index}
                   stacked
+                  isGradient={true}
                   deleteStop={(e) => {
                     takeSnapshot("Delete gradient stop");
                     const newStops = [...device.gradient.stops];

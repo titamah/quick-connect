@@ -18,7 +18,9 @@ const ColorPicker = forwardRef(({
   disabled = false,
   className = '',
   children,
-  customPosition = null // { x, y } for custom positioning
+  customPosition = null, // { x, y } for custom positioning
+  isGradient = false,
+  onDelete = null
 }, ref) => {
   const { takeSnapshot, isMobile } = useDevice();
   const [isOpen, setIsOpen] = useState(false);
@@ -248,6 +250,22 @@ const ColorPicker = forwardRef(({
           onKeyDown={handleHexEnter}
           className={`flex-1 min-w-0 ${isMobile ? "px-1 py-1" : "px-2 py-2"} bg-transparent outline-none text-xs`}
         />
+        {isGradient && onDelete && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="p-1 hover:text-red-500 transition-colors"
+            title="Delete gradient stop"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 6h18" />
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+            </svg>
+          </button>
+        )}
         {hasAlpha && (
           <>
             <div className="w-px h-5 bg-[var(--border-color)]" />
