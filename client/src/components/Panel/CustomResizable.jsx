@@ -7,115 +7,210 @@ const CustomResizable = forwardRef(
       direction = "side", // 'side' for east, 'bottom' for north
       minSize = 200,
       maxSize = 800,
-      size,
-      onResize,
+      panelSize,
+      setPanelSize,
       className = "",
       style = {},
-      toggleButton = null, // function or null
+      toggleButton = null,
     },
     ref
   ) => {
     const [isResizing, setIsResizing] = useState(false);
-    const [startPos, setStartPos] = useState(0);
-    const [startSize, setStartSize] = useState(size);
     const containerRef = useRef(null);
+    
+    // Use refs to store current values to avoid stale closures
+    const resizeStateRef = useRef({
+      isResizing: false,
+      startPos: 0,
+      startSize: 0,
+      handleElement: null
+    });
 
     const isSide = direction === "side";
     const cursor = isSide ? "col-resize" : "row-resize";
-
-    const handleMouseDown = useCallback(
-      (e) => {
-        console.log("🖱️ Mouse down on resize handle", { direction, size });
-        e.preventDefault();
-        setIsResizing(true);
-        setStartPos(isSide ? e.clientX : e.clientY);
-        setStartSize(size);
-
-        // Add global event listeners
-        document.addEventListener("mousemove", handleMouseMove);
-        document.addEventListener("mouseup", handleMouseUp);
-        document.body.style.cursor = cursor;
-        document.body.style.userSelect = "none";
-      },
-      [size, isSide, cursor]
-    );
+    
+    console.log("🔄 CustomResizable render:", { 
+      direction, 
+      panelSize, 
+      isSide,
+      computedWidth: isSide ? `${panelSize.width}px` : "100%",
+      computedHeight: isSide ? "100%" : `${panelSize.height}px`
+    });
 
     const handleMouseMove = useCallback(
       (e) => {
-        if (!isResizing) return;
-
+        console.log("🖱️ MOUSE MOVE TRIGGERED", resizeStateRef.current.isResizing);
+        if (!resizeStateRef.current.isResizing) return;
+        
+        e.preventDefault();
+        
         const currentPos = isSide ? e.clientX : e.clientY;
-        const delta = isSide ? currentPos - startPos : startPos - currentPos; // Inverted for north/bottom
-        const newSize = Math.max(minSize, Math.min(maxSize, startSize + delta));
+        const delta = currentPos - resizeStateRef.current.startPos;
+        
+        // For side panels: drag right = bigger, drag left = smaller
+        // For bottom panels: drag up = bigger, drag down = smaller (invert Y axis)
+        const adjustedDelta = isSide ? delta : -delta;
+        const newSize = Math.max(minSize, Math.min(maxSize, resizeStateRef.current.startSize + adjustedDelta));
+        
+        console.log("📏 Mouse Resizing:", { 
+          direction, 
+          currentPos, 
+          startPos: resizeStateRef.current.startPos,
+          delta, 
+          adjustedDelta, 
+          startSize: resizeStateRef.current.startSize,
+          newSize,
+          currentPanelSize: panelSize
+        });
 
-        console.log("🖱️ Resizing", { currentPos, delta, newSize, startSize });
-        onResize?.(newSize);
+        if (isSide) {
+          setPanelSize({ width: newSize, height: panelSize.height });
+        } else {
+          setPanelSize({ width: panelSize.width, height: newSize });
+        }
       },
-      [isResizing, startPos, startSize, isSide, minSize, maxSize, onResize]
+      [isSide, minSize, maxSize, setPanelSize, panelSize]
     );
 
     const handleMouseUp = useCallback(() => {
+      if (!resizeStateRef.current.isResizing) return;
+      
+      console.log("🖱️ Mouse up, stopping resize");
       setIsResizing(false);
+      resizeStateRef.current.isResizing = false;
+      resizeStateRef.current.handleElement = null;
 
       // Remove global event listeners
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
+      document.body.style.pointerEvents = ""; // Restore pointer events
+      
+      // Remove pointer-events manipulation
+      if (document.body.style.pointerEvents) {
+        document.body.style.pointerEvents = "";
+      }
     }, [handleMouseMove]);
 
-    // Touch support for mobile
-    const handleTouchStart = useCallback(
+    const handleMouseDown = useCallback(
       (e) => {
+        console.log("🖱️ MOUSE DOWN TRIGGERED");
+        // Check if we're already resizing or if this isn't the primary button
+        if (resizeStateRef.current.isResizing || e.button !== 0) {
+          return;
+        }
+        
+        // Prevent default and stop propagation immediately
         e.preventDefault();
-        const touch = e.touches[0];
+        e.stopPropagation();
+        
+        // Store the handle element to check later
+        const handleElement = e.currentTarget;
+        
+        console.log("🖱️ Mouse down on resize handle", { direction, size: isSide ? panelSize.width : panelSize.height });
+        
+        const startPos = isSide ? e.clientX : e.clientY;
+        
+        // Update state immediately
+        resizeStateRef.current = {
+          isResizing: true,
+          startPos,
+          startSize: isSide ? panelSize.width : panelSize.height,
+          handleElement
+        };
         setIsResizing(true);
-        setStartPos(isSide ? touch.clientX : touch.clientY);
-        setStartSize(size);
 
-        // Add global touch event listeners
-        document.addEventListener("touchmove", handleTouchMove, {
-          passive: false,
-        });
-        document.addEventListener("touchend", handleTouchEnd);
+        // Add global event listeners with capture phase
+        document.addEventListener("mousemove", handleMouseMove, { passive: false });
+        document.addEventListener("mouseup", handleMouseUp, { passive: false });
+        document.body.style.cursor = cursor;
         document.body.style.userSelect = "none";
+        document.body.style.pointerEvents = "none"; // Prevent text selection everywhere
+        
+        console.log("🖱️ Added event listeners, isResizing:", true);
       },
-      [size, isSide]
+      [panelSize.width, panelSize.height, isSide, cursor, handleMouseMove, handleMouseUp, direction]
     );
 
+    // Touch support
     const handleTouchMove = useCallback(
       (e) => {
-        if (!isResizing) return;
+        if (!resizeStateRef.current.isResizing) return;
+        
         e.preventDefault();
-
+        
         const touch = e.touches[0];
         const currentPos = isSide ? touch.clientX : touch.clientY;
-        const delta = isSide ? currentPos - startPos : startPos - currentPos;
-        const newSize = Math.max(minSize, Math.min(maxSize, startSize + delta));
-
-        onResize?.(newSize);
+        const delta = currentPos - resizeStateRef.current.startPos;
+        
+        const adjustedDelta = isSide ? delta : -delta;
+        const newSize = Math.max(minSize, Math.min(maxSize, resizeStateRef.current.startSize + adjustedDelta));
+        
+        if (isSide) {
+          setPanelSize({ width: newSize, height: panelSize.height });
+        } else {
+          setPanelSize({ width: panelSize.width, height: newSize });
+        }
       },
-      [isResizing, startPos, startSize, isSide, minSize, maxSize, onResize]
+      [isSide, minSize, maxSize, setPanelSize, panelSize]
     );
 
     const handleTouchEnd = useCallback(() => {
+      if (!resizeStateRef.current.isResizing) return;
+      
+      console.log("👆 Touch end, stopping resize");
       setIsResizing(false);
+      resizeStateRef.current.isResizing = false;
+      resizeStateRef.current.handleElement = null;
 
-      // Remove global touch event listeners
-      document.removeEventListener("touchmove", handleTouchMove);
-      document.removeEventListener("touchend", handleTouchEnd);
+      document.removeEventListener("touchmove", handleTouchMove, true);
+      document.removeEventListener("touchend", handleTouchEnd, true);
       document.body.style.userSelect = "";
     }, [handleTouchMove]);
+
+    const handleTouchStart = useCallback(
+      (e) => {
+        if (resizeStateRef.current.isResizing) return;
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const handleElement = e.currentTarget;
+        const touch = e.touches[0];
+        const startPos = isSide ? touch.clientX : touch.clientY;
+        
+        console.log("👆 Touch start on resize handle", { direction, size: isSide ? panelSize.width : panelSize.height });
+        
+        resizeStateRef.current = {
+          isResizing: true,
+          startPos,
+          startSize: isSide ? panelSize.width : panelSize.height,
+          handleElement
+        };
+        setIsResizing(true);
+
+        document.addEventListener("touchmove", handleTouchMove, { passive: false, capture: true });
+        document.addEventListener("touchend", handleTouchEnd, true);
+        document.body.style.userSelect = "none";
+        
+        console.log("👆 Added touch event listeners, isResizing:", true);
+      },
+      [panelSize.width, panelSize.height, isSide, handleTouchMove, handleTouchEnd, direction]
+    );
 
     // Cleanup on unmount
     useEffect(() => {
       return () => {
-        document.removeEventListener("mousemove", handleMouseMove);
-        document.removeEventListener("mouseup", handleMouseUp);
-        document.removeEventListener("touchmove", handleTouchMove);
-        document.removeEventListener("touchend", handleTouchEnd);
+        document.removeEventListener("mousemove", handleMouseMove, true);
+        document.removeEventListener("mouseup", handleMouseUp, true);
+        document.removeEventListener("touchmove", handleTouchMove, true);
+        document.removeEventListener("touchend", handleTouchEnd, true);
         document.body.style.cursor = "";
         document.body.style.userSelect = "";
+        if (document.body.style.pointerEvents) {
+          document.body.style.pointerEvents = "";
+        }
       };
     }, [handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd]);
 
@@ -124,8 +219,8 @@ const CustomResizable = forwardRef(
         ref={ref || containerRef}
         className={`relative ${className}`}
         style={{
-          width: isSide ? `${size}px` : "100%",
-          height: isSide ? "100%" : `${size}px`,
+          width: isSide ? `${panelSize.width}px` : "100%",
+          height: isSide ? "100%" : `${panelSize.height}px`,
           ...style,
         }}
       >
@@ -160,58 +255,65 @@ const CustomResizable = forwardRef(
           </div>
         )}
 
-{toggleButton && direction === "side" && (
-        <span
-          className="absolute top-1/2 cursor-pointer right-0 translate-x-1/2 block w-5 h-7 flex items-center border border-[var(--border-color)] text-[var(--contrast)]/50 rounded-md bg-[var(--bg-main)] hover:text-[var(--contrast-sheer)] z-275"
-          onClick={toggleButton}
-        >
-          <svg
-            className="shrink-0 size-4.5"
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        {toggleButton && direction === "side" && (
+          <span
+            className="absolute top-1/2 cursor-pointer right-0 translate-x-1/2 block w-5 h-7 flex items-center border border-[var(--border-color)] text-[var(--contrast)]/50 rounded-md bg-[var(--bg-main)] hover:text-[var(--contrast-sheer)] z-275"
+            onClick={toggleButton}
           >
-            <circle cx="8" cy="12" r="1" />
-            <circle cx="8" cy="5" r="1" />
-            <circle cx="8" cy="19" r="1" />
-            <circle cx="16" cy="12" r="1" />
-            <circle cx="16" cy="5" r="1" />
-            <circle cx="16" cy="19" r="1" />
-          </svg>
-        </span>
+            <svg
+              className="shrink-0 size-4.5"
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="8" cy="12" r="1" />
+              <circle cx="8" cy="5" r="1" />
+              <circle cx="8" cy="19" r="1" />
+              <circle cx="16" cy="12" r="1" />
+              <circle cx="16" cy="5" r="1" />
+              <circle cx="16" cy="19" r="1" />
+            </svg>
+          </span>
         )}
-        <div
-          className="absolute z-10"
-          style={{
-            cursor: cursor,
-            ...(isSide
-              ? {
-                  // Side/East handle
-                  right: 0,
-                  top: 0,
-                  width: "10px",
-                  height: "100%",
-                }
-              : {
-                  // Bottom/North handle
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "10px",
-                }),
-          }}
-          onMouseDown={handleMouseDown}
-          onTouchStart={handleTouchStart}
-        />
+        
+        {/* Resize handle */}
+            <div
+              className="absolute z-10"
+              style={{
+                cursor: cursor,
+                ...(isSide
+                  ? {
+                      // Side/East handle
+                      right: 0,
+                      top: 0,
+                      width: "10px",
+                      height: "100%",
+                    }
+                  : {
+                      // Bottom/North handle
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: "10px",
+                    }),
+              }}
+              onClick={() => console.log("🎯 RESIZE HANDLE CLICKED!")}
+              onMouseDown={handleMouseDown}
+              onDrag={handleMouseMove}
+              onDragEnd={handleMouseUp}
+              onTouchStart={handleTouchStart}
+            />
       </div>
     );
   }
 );
+
+CustomResizable.displayName = "CustomResizable";
 
 export default CustomResizable;

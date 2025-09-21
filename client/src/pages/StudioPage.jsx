@@ -30,7 +30,7 @@ const StudioPage = () => {
 
       setBreakpoint(currentBreakpoint);
     }
-  }, [windowSize.width, breakpoint, panelSize.width]);
+  }, [windowSize.width, breakpoint]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
