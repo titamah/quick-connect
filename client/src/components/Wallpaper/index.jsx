@@ -307,14 +307,17 @@ const Wallpaper = forwardRef(
       const qrContainer = qrContainerRef.current;
       if (!qrContainer) return;
 
-      if (!qrContainer.isDragging) return;
-
+      const wasDragging = qrContainer.isDragging;
+      
       qrContainer.isDragging = false;
       qrContainer.cursor = "grab";
 
-      hideGuides();
+      if (wasDragging) {
+        hideGuides();
+      }
 
-      if (isQRSelected && transformerRef.current) {
+      // Always show transformer after any interaction (drag or click)
+      if (transformerRef.current) {
         transformerRef.current.attachTo(
           qrContainer,
           currentDeviceRef.current,
@@ -322,7 +325,7 @@ const Wallpaper = forwardRef(
           qrContainer.scale.x
         );
       }
-    }, [hideGuides, isQRSelected]);
+    }, [hideGuides]);
 
     const attachDragHandlers = useCallback(() => {
       const qrContainer = qrContainerRef.current;
@@ -444,8 +447,24 @@ const Wallpaper = forwardRef(
         qrContainer.on("pointerdown", (event) => {
           event.stopPropagation();
 
-          if (!isQRSelected) {
-            selectQR();
+          // Always start dragging immediately, no selection requirement
+          if (!qrContainer.isDragging) {
+            handlePointerDown(event);
+          }
+        });
+
+        // Show transformer on simple clicks (without drag)
+        qrContainer.on("pointerup", (event) => {
+          if (!qrContainer.isDragging) {
+            // This was just a click, not a drag - show transformer
+            if (transformerRef.current) {
+              transformerRef.current.attachTo(
+                qrContainer,
+                currentDeviceRef.current,
+                currentConfigRef.current,
+                qrContainer.scale.x
+              );
+            }
           }
         });
       });
@@ -597,14 +616,13 @@ const Wallpaper = forwardRef(
     }, [isQRSelected, deselectAll]);
 
     useEffect(() => {
-      if (isQRSelected) {
-        if (locked) {
-          attachDragHandlers();
-        } else {
-          removeDragHandlers();
-        }
+      // Always attach drag handlers when locked, regardless of selection state
+      if (locked) {
+        attachDragHandlers();
+      } else {
+        removeDragHandlers();
       }
-    }, [locked, attachDragHandlers, removeDragHandlers, isQRSelected]);
+    }, [locked, attachDragHandlers, removeDragHandlers]);
 
     useEffect(() => {
       if (backgroundRendererRef.current) {
