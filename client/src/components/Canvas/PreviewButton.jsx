@@ -1,42 +1,34 @@
-import { forwardRef, useRef } from "react";
-import { Eye, EyeClosed, Maximize2, Minimize2 } from "lucide-react";
+import { useRef } from "react";
+import { Eye, EyeClosed } from "lucide-react";
 import { usePreview } from "../../contexts/PreviewContext";
-import { useDevice } from "../../contexts/DeviceContext";
 
-const PreviewButton = forwardRef(({}) => {
+const PreviewButton = () => {
   const { isPreviewVisible, togglePreview, setHovered } = usePreview();
-  const { isMobile } = useDevice();
 
-  // Detect if device has touch capability (not screen size)
   const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
   
-  // Prevent double-firing on touch devices
   const touchHandledRef = useRef(false);
 
-  // Mouse handlers - always work regardless of device
   const handleMouseEnter = () => {
-    setHovered(true); // Show 50% preview on hover
+    setHovered(true); 
   };
 
   const handleMouseLeave = () => {
     setHovered(false);
   };
 
-  // Touch handlers - only add behavior if device supports touch
   const handleTouchStart = (e) => {
     if (hasTouch) {
-      touchHandledRef.current = true; // Mark that touch is being handled
-      setHovered(true); // Show preview at 50% opacity
+      touchHandledRef.current = true;
+      setHovered(true); 
     }
   };
 
   const handleTouchEnd = (e) => {
     if (hasTouch) {
-      setHovered(false); // Hide preview
-      // Small delay to ensure user sees the preview before toggling
+      setHovered(false); 
       setTimeout(() => {
-        togglePreview(); // Toggle full preview on release
-        // Reset touch flag after a short delay to allow click event to be blocked
+        togglePreview(); 
         setTimeout(() => {
           touchHandledRef.current = false;
         }, 300);
@@ -46,21 +38,18 @@ const PreviewButton = forwardRef(({}) => {
 
   const handleTouchCancel = () => {
     if (hasTouch) {
-      setHovered(false); // Hide preview if touch is cancelled
-      touchHandledRef.current = false; // Reset touch flag
+      setHovered(false); 
+      touchHandledRef.current = false;
     }
   };
 
-  // Click handler - always work, but prevent double-firing after touch
   const handleClick = () => {
-    // If touch was just handled, ignore the click event
     if (touchHandledRef.current) {
       return;
     }
     togglePreview();
   };
 
-  // Prevent context menu on long press for touch devices
   const handleContextMenu = (e) => {
     if (hasTouch) {
       e.preventDefault();
@@ -84,7 +73,7 @@ const PreviewButton = forwardRef(({}) => {
           WebkitTapHighlightColor: 'transparent',
           userSelect: 'none'
         }}
-        onClick={handleClick} // Always allow click
+        onClick={handleClick}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
         onTouchCancel={handleTouchCancel}
@@ -97,6 +86,6 @@ const PreviewButton = forwardRef(({}) => {
       </button>
     </div>
   );
-});
+};
 
 export default PreviewButton;
