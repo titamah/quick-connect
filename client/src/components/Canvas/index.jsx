@@ -24,6 +24,11 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [lastTouchDistance, setLastTouchDistance] = useState(0);
+  
+  // Double tap detection for mobile
+  const [lastTapTime, setLastTapTime] = useState(0);
+  const [lastTapPosition, setLastTapPosition] = useState({ x: 0, y: 0 });
+  const [touchStartPosition, setTouchStartPosition] = useState({ x: 0, y: 0 });
 
   const memoizedSetIsZoomEnabled = useCallback(setIsZoomEnabled, []);
   const scale = useStageCalculations(device.size, panelSize, isOpen);
@@ -219,8 +224,13 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
     
     // if (!isZoomEnabled) return;
     if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      
+      // Store touch start position for movement detection
+      setTouchStartPosition({ x: touch.clientX, y: touch.clientY });
+      
       setIsDragging(true);
-      setDragStart({ x: e.touches[0].clientX - transform.x, y: e.touches[0].clientY - transform.y });
+      setDragStart({ x: touch.clientX - transform.x, y: touch.clientY - transform.y });
     } else if (e.touches.length === 2) {
       setLastTouchDistance(getTouchDistance(e.touches));
     }
@@ -249,10 +259,62 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
     }
   }, [isZoomEnabled, isDragging, dragStart, lastTouchDistance, transform.scale]);
 
-  const handleTouchEnd = useCallback(() => {
+  const handleTouchEnd = useCallback((e) => {
+    // Skip pan/zoom if QR is selected (user is interacting with QR)
+    if (isQRSelected) {
+      setIsDragging(false);
+      setLastTouchDistance(0);
+      return;
+    }
+    
+    const currentTime = Date.now();
+    const timeDiff = currentTime - lastTapTime;
+    
+    // Only check for double tap if this was a single touch that just ended
+    if (e.changedTouches.length === 1) {
+      const touch = e.changedTouches[0];
+      
+      // Calculate how much the finger moved during this touch
+      const movementDistance = Math.sqrt(
+        Math.pow(touch.clientX - touchStartPosition.x, 2) + 
+        Math.pow(touch.clientY - touchStartPosition.y, 2)
+      );
+      
+      // Only consider it a tap if finger didn't move much (< 10px)
+      const wasTap = movementDistance < 10;
+      
+      if (wasTap) {
+        const touchDistance = Math.sqrt(
+          Math.pow(touch.clientX - lastTapPosition.x, 2) + 
+          Math.pow(touch.clientY - lastTapPosition.y, 2)
+        );
+        
+        // Double tap detected: time within 500ms and touch within 50px of last tap
+        if (timeDiff < 500 && touchDistance < 50) {
+          console.log('🎯 Double tap detected - resetting view');
+          
+          // Use the centerInVisibleArea method for mobile-optimized centering
+          if (ref.current?.resetView) {
+            ref.current.resetView(); // Reset to scale 1
+          } else {
+            // Fallback to direct transform reset
+            setTransform({ x: 0, y: 0, scale: 1 });
+          }
+          
+          // Reset tap tracking to prevent triple-tap issues
+          setLastTapTime(0);
+          setLastTapPosition({ x: 0, y: 0 });
+        } else {
+          // Store this tap for potential future double tap
+          setLastTapTime(currentTime);
+          setLastTapPosition({ x: touch.clientX, y: touch.clientY });
+        }
+      }
+    }
+    
     setIsDragging(false);
     setLastTouchDistance(0);
-  }, []);
+  }, [isQRSelected, lastTapTime, lastTapPosition, touchStartPosition, ref]);
   const handleResize = useCallback(() => {
     updatePanelSize();
     // Reset zoom on resize
