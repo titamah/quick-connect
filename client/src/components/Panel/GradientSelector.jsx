@@ -105,18 +105,22 @@ function GradientSelector() {
   const handleColorPickerClose = () => {
     setFrozenPreset(null);
   };
-  const getPresetForGradientStop = (stopIndex) => {
-    const currentStopColor = device.gradient.stops[stopIndex * 2 + 1];
-    if (!currentStopColor) return frozenPreset || device.palette;
-    const hexColor = currentStopColor.startsWith("rgb")
-      ? currentStopColor
-          .match(/\d+/g)
-          ?.map((num) => parseInt(num).toString(16).padStart(2, "0"))
-          .join("")
-      : currentStopColor.replace("#", "");
-    const fullHexColor = hexColor ? `#${hexColor}` : currentStopColor;
-    const normalizedExclude = fullHexColor.toLowerCase();
+  // Copy EXACT function from QR Generator
+  const getPaletteForColor = (currentColor) => {
     const paletteToUse = frozenPreset || device.palette;
+    if (!currentColor) return paletteToUse;
+    let normalizedColor = currentColor;
+    if (currentColor.startsWith("rgb")) {
+      const match = currentColor.match(/\d+/g);
+      if (match) {
+        normalizedColor = `#${match
+          .map((num) => parseInt(num).toString(16).padStart(2, "0"))
+          .join("")}`;
+      }
+    } else if (!currentColor.startsWith("#")) {
+      normalizedColor = `#${currentColor}`;
+    }
+    const normalizedExclude = normalizedColor.toLowerCase();
     return paletteToUse.filter(
       (color) => color.toLowerCase() !== normalizedExclude
     );
@@ -259,12 +263,7 @@ function GradientSelector() {
                   min="0"
                   max="100"
                   color={color}
-                  presets={[
-                    {
-                      label: "Active Colors",
-                      colors: getPresetForGradientStop(index),
-                    },
-                  ]}
+                  presets={getPaletteForColor(color)}
                   onColorPickerOpen={() => handleColorPickerOpen(index)}
                   onColorPickerClose={handleColorPickerClose}
                   value={percent * 100}
