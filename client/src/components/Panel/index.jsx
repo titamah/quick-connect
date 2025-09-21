@@ -60,11 +60,26 @@ function Panel({ isOpen, setIsOpen, panelSize, setPanelSize, wallpaperRef, canva
     // Auto-center device in visible area when opening QR generator tab on mobile
     if (key === "2" && isMobile && canvasRef?.current) {
       // Small delay to ensure panel animation completes first
+      let deviceScale = 1.0;
+      if (qrConfig.scale < 0.3) {
+        deviceScale = 1.3; // Zoom in for small QR
+      } else if (qrConfig.scale > 0.7) {
+        deviceScale = 0.9; // Zoom out for large QR
+      }
       setTimeout(() => {
-        canvasRef.current.centerInVisibleArea(1); // Center device in visible area above panel
+        canvasRef.current.centerInVisibleArea( deviceScale ); // Center device in visible area above panel
       }, 350); // Match the panel transition duration
     }
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+    if (isMobile && canvasRef?.current && !isOpen) {
+        canvasRef.current.centerQRInViewport(0, deviceInfo.size, 1);
+      }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [isMobile, isOpen]);
 
   const items = [
     {
