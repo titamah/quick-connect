@@ -8,13 +8,14 @@ const StudioPage = () => {
   const { isMobile, undo, redo, canUndo, canRedo } = useDevice();
 
   const wallpaperRef = React.useRef(null);
+  const canvasRef = React.useRef(null);
 
   const [isOpen, setIsOpen] = React.useState(true);
   const windowSize = useWindowSize();
   const [breakpoint, setBreakpoint] = React.useState(null);
   const [panelSize, setPanelSize] = React.useState({
     width: isMobile ? 0 : 450,
-    height: 450,
+    height: 275,
   });
 
   useEffect(() => {
@@ -24,12 +25,12 @@ const StudioPage = () => {
       if (currentBreakpoint === "mobile" && panelSize.width > 0) {
         setPanelSize((prev) => ({ ...prev, width: 0 }));
       } else if (currentBreakpoint === "desktop" && panelSize.width === 0) {
-        setPanelSize((prev) => ({ ...prev, width: 450 }));
+        setPanelSize((prev) => ({ ...prev, width: 275 }));
       }
 
       setBreakpoint(currentBreakpoint);
     }
-  }, [windowSize.width, breakpoint, panelSize.width]);
+  }, [windowSize.width, breakpoint]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -91,8 +92,10 @@ const StudioPage = () => {
         panelSize={panelSize}
         setPanelSize={setPanelSize}
         wallpaperRef={wallpaperRef}
+        canvasRef={canvasRef}
       />
       <Canvas
+        ref={canvasRef}
         isOpen={isOpen}
         panelSize={panelSize}
         wallpaperRef={wallpaperRef}

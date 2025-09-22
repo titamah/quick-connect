@@ -10,8 +10,11 @@ import { useThrottledCallback } from "../../hooks/useDebounce";
 function QRGenerator(panelSize) {
   const { device, updateQRConfig, qrConfig, takeSnapshot, isMobile } =
     useDevice();
-  const qrCodeRef = useRef(null);
+  
+    const qrCodeRef = useRef(null);
+  
   const [frozenPreset, setFrozenPreset] = useState(null);
+  
   const handleColorPickerOpen = (currentColor) => {
     if (currentColor) {
       let normalizedColor = currentColor;
@@ -34,9 +37,11 @@ function QRGenerator(panelSize) {
       setFrozenPreset([...device.palette]);
     }
   };
+  
   const handleColorPickerClose = () => {
     setFrozenPreset(null);
   };
+  
   const getPaletteForColor = (currentColor) => {
     const paletteToUse = frozenPreset || device.palette;
     if (!currentColor) return paletteToUse;
@@ -56,6 +61,7 @@ function QRGenerator(panelSize) {
       (color) => color.toLowerCase() !== normalizedExclude
     );
   };
+  
   useEffect(() => {
     const svgElement = qrCodeRef.current?.querySelector("svg");
     if (svgElement && qrCodeRef.current) {
@@ -69,8 +75,10 @@ function QRGenerator(panelSize) {
       qrCodeRef.current.style.height = `${currWidth}px`;
     }
   }, [panelSize]);
+  
   const currentQRCustomRef = useRef(qrConfig.custom);
   currentQRCustomRef.current = qrConfig.custom;
+ 
   function combineHexWithOpacity(color, opacity) {
     if (!color || opacity === undefined) {
       return "#000000";
@@ -85,26 +93,31 @@ function QRGenerator(panelSize) {
       .padStart(2, "0");
     return hex + alpha;
   }
-  const throttledUpdateBorderSize = useThrottledCallback((size) => {
-    updateQRConfig({
-      custom: {
-        ...currentQRCustomRef.current,
-        borderSizeRatio: size,
-      },
-    });
-  }, 16);
-  const throttledUpdateCornerRadius = useThrottledCallback((radius) => {
-    updateQRConfig({
-      custom: {
-        ...currentQRCustomRef.current,
-        cornerRadiusRatio: radius,
-      },
-    });
-  }, 16);
+
+  const handleBorderSizeChange = (e) => {
+  updateQRConfig({
+    custom: {
+      ...currentQRCustomRef.current,
+      borderSizeRatio: e,
+    },
+  });
+};
+
+const handleCornerRadiusChange = (e) => {
+  updateQRConfig({
+    custom: {
+      ...currentQRCustomRef.current,
+      cornerRadiusRatio: e,
+    },
+  });
+};
+  
   const [url, setUrl] = useState(qrConfig.url);
+  
   useEffect(() => {
     setUrl(qrConfig.url);
   }, [qrConfig.url]);
+  
   return (
     <div
       id={`qr-input-box`}
@@ -196,7 +209,6 @@ function QRGenerator(panelSize) {
             }
             onColorPickerClose={handleColorPickerClose}
             onChange={(c) => {
-              // c is now a plain hex string from react-colorful, just like ColorSelector
               let color = chroma(c);
               let hex = color.hex().slice(0, 7).toUpperCase();
               let alpha = Math.round(color.alpha() * 100);
@@ -240,7 +252,6 @@ function QRGenerator(panelSize) {
             }
             onColorPickerClose={handleColorPickerClose}
             onChange={(c) => {
-              // c is now a plain hex string from react-colorful, just like ColorSelector
               let color = chroma(c);
               let hex = color.hex().slice(0, 7).toUpperCase();
               let alpha = Math.round(color.alpha() * 100);
@@ -276,7 +287,6 @@ function QRGenerator(panelSize) {
             }
             onColorPickerClose={handleColorPickerClose}
             onChange={(c) => {
-              // c is now a plain hex string from react-colorful, just like ColorSelector
               let color = chroma(c);
               let hex = color.hex().slice(0, 7).toUpperCase();
               let alpha = Math.round(color.alpha() * 100);
@@ -292,13 +302,13 @@ function QRGenerator(panelSize) {
         <div className="flex items-center pb-1.5 px-3.5">
           <h4> Width</h4>
           <Slider
-            min="-1"
-            max="200"
+            min="0"
+            max="100"
             step="0.5"
             value={qrConfig.custom.borderSizeRatio}
             onChange={(e) => {
               const newValue = parseFloat(e.target.value);
-              throttledUpdateBorderSize(newValue);
+              handleBorderSizeChange(newValue);
             }}
           />
         </div>
@@ -306,12 +316,12 @@ function QRGenerator(panelSize) {
           <h4> Radius</h4>
           <Slider
             min="0"
-            max="100"
+            max="50"
             step="1"
             value={qrConfig.custom.cornerRadiusRatio}
             onChange={(e) => {
               const newValue = parseFloat(e.target.value);
-              throttledUpdateCornerRadius(newValue);
+              handleCornerRadiusChange(newValue);
             }}
           />
         </div>

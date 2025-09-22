@@ -16,8 +16,9 @@ const ShareButton = ({
   wallpaperRef,
   getBackgroundImage,
   backgroundLayerRef,
+  onMenuStateChange,
 }) => {
-  const { qrConfig, background } = useDevice();
+  const { qrConfig, background, sessionRemixId } = useDevice();
   const { toast } = useToast();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [remixLink, setRemixLink] = useState(null);
@@ -63,6 +64,7 @@ const ShareButton = ({
   useEffect(() => {
     if (isMenuOpen && !shouldRenderThumbnail) {
       const generateThumbnailData = async () => {
+        console.log("🖼️ Starting thumbnail data generation...");
         setIsGeneratingThumbnail(true);
         setShouldRenderThumbnail(true);
         try {
@@ -88,6 +90,7 @@ const ShareButton = ({
       const timeoutId = setTimeout(generateThumbnailData, 100);
       return () => clearTimeout(timeoutId);
     } else if (!isMenuOpen) {
+      console.log("🖼️ Menu closed, cleaning up thumbnail data");
       setBackgroundImage(null);
       setActiveState(null);
       setRemixLink(null);
@@ -99,12 +102,12 @@ const ShareButton = ({
     getBackgroundImage,
     background.style,
     background.bg,
-    createDeviceStateSchema,
   ]);
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (buttonRef.current && !buttonRef.current.contains(event.target)) {
         setIsMenuOpen(false);
+        onMenuStateChange?.(false); 
       }
     };
     if (isMenuOpen) {
@@ -129,25 +132,39 @@ const ShareButton = ({
     return new File([u8arr], filename, { type: mime });
   };
   const generateRemixLink = async () => {
-    if (remixLink) return remixLink; 
+    if (remixLink) return remixLink;
     setIsGeneratingLink(true);
     try {
       const { default: remixService } = await import(
         "../../services/remixService"
       );
       const deviceStateSchema = createDeviceStateSchema();
-    let thumbnailUrl = null;
-    if (thumbnailRef.current?.exportAsBlob) {
-      try {
-        console.log('🖼️ Generating thumbnail...');
-        const thumbnailBlob = await thumbnailRef.current.exportAsBlob();
-        thumbnailUrl = await remixService.uploadThumbnail(thumbnailBlob);
-        console.log('✅ Thumbnail uploaded:', thumbnailUrl);
-      } catch (error) {
-        console.warn('⚠️ Thumbnail upload failed, continuing without:', error);
+      let thumbnailUrl = null;
+      
+      // Wait for thumbnail to be ready
+      console.log("🖼️ Waiting for thumbnail to be ready...");
+      let attempts = 0;
+      const maxAttempts = 50; // 5 seconds max wait
+      while (attempts < maxAttempts && !thumbnailRef.current?.exportAsBlob) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
       }
-    }
-    console.log("🖼️ Thumbnail URL:", thumbnailUrl);
+      
+      if (thumbnailRef.current?.exportAsBlob) {
+        console.log("🖼️ Thumbnail ready, generating blob...");
+        const thumbnailBlob = await thumbnailRef.current.exportAsBlob();
+        console.log("🖼️ Thumbnail blob created:", thumbnailBlob?.size, "bytes");
+        
+        if (thumbnailBlob && thumbnailBlob.size > 0) {
+          console.log("🖼️ Uploading thumbnail to Supabase bucket...");
+          thumbnailUrl = await remixService.uploadThumbnail(thumbnailBlob);
+          console.log("✅ Thumbnail uploaded to bucket:", thumbnailUrl);
+        } else {
+          console.warn("⚠️ Thumbnail blob is empty, skipping upload");
+        }
+      } else {
+        console.warn("⚠️ Thumbnail not ready after waiting, skipping upload");
+      }
       let backgroundImageFile = null;
       if (
         background.style === "image" &&
@@ -173,7 +190,8 @@ const ShareButton = ({
       const remixId = await remixService.createRemix(
         deviceStateSchema,
         backgroundImageFile,
-        thumbnailUrl
+        thumbnailUrl,
+        sessionRemixId
       );
       const link = `${window.location.origin}/remix/${remixId}`;
       setRemixLink(link);
@@ -183,7 +201,7 @@ const ShareButton = ({
       console.error("Failed to create remix link:", error);
       let errorMessage = "Failed to create share link. Please try again.";
       if (error.message.includes("wait")) {
-        errorMessage = error.message; 
+        errorMessage = error.message;
       } else if (error.message.includes("too large")) {
         errorMessage = "Design is too complex to share. Try simplifying it.";
       } else if (error.message.includes("upload")) {
@@ -198,40 +216,34 @@ const ShareButton = ({
       setIsGeneratingLink(false);
     }
   };
-  const handleShareClick = () => {
-    setIsMenuOpen(!isMenuOpen);
+  const handleShareClick = async () => {
+    const newMenuState = !isMenuOpen;
+    setIsMenuOpen(newMenuState);
+    onMenuStateChange?.(newMenuState);
+
+    if (newMenuState && !remixLink && !isGeneratingLink) {
+      console.log("🖼️ Share menu opened, generating remix link...");
+      await generateRemixLink();
+    }
   };
+  
   const handleShareOption = async (platform) => {
-    const link = await generateRemixLink();
+    let link = remixLink;
+
     if (!link) {
-      toast.error("Failed to generate share link. Please try again.", {
-        position: "bottom-right",
-        autoClose: 3000,
-      });
-      return;
+      link = await generateRemixLink();
+      if (!link) {
+        toast.error("Failed to generate share link. Please try again.", {
+          position: "bottom-right",
+          autoClose: 3000,
+        });
+        return;
+      }
     }
     setIsMenuOpen(false);
     const shareText = "Check out my QReation! Remix it yourself";
     const fullShareText = `${shareText} ${link}`;
     switch (platform) {
-      case "twitter":
-        const twitterUrl = `https:
-          fullShareText
-        )}`;
-        window.open(twitterUrl, "_blank", "width=600,height=400");
-        break;
-      case "facebook":
-        const facebookUrl = `https:
-          link
-        )}&quote=${encodeURIComponent(shareText)}`;
-        window.open(facebookUrl, "_blank", "width=600,height=400");
-        break;
-      case "linkedin":
-        const linkedinUrl = `https:
-          link
-        )}&summary=${encodeURIComponent(shareText)}`;
-        window.open(linkedinUrl, "_blank", "width=600,height=400");
-        break;
       case "copy-link":
         try {
           await navigator.clipboard.writeText(fullShareText);
@@ -272,55 +284,46 @@ const ShareButton = ({
     }
   };
   return (
-    <div className="absolute bottom-6 right-6 z-50" ref={buttonRef}>
+    <div className="pointer-events-all absolute bottom-6 right-6 z-50" ref={buttonRef}>
       {}
       {isMenuOpen && (
         <div className="absolute bottom-13 right-0 mb-2 bg-[var(--bg-main)] border border-[var(--border-color)] rounded-lg shadow-lg w-[350px] max-w-[90vw]">
-          <h3 className="text-sm font-medium text-[var(--text-primary)] px-4 py-3">
-            Share your Qreation
-          </h3>
+          <div className="px-4 py-3">
+            <h3 className="text-sm font-medium text-[var(--text-primary)] ">
+              Share your Qreation
+            </h3>
+          </div>
           {}
-          {isGeneratingThumbnail && (
+          {shouldRenderThumbnail && activeState && (
             <div className="relative">
-              <div className="absolute inset-0 bg-[var(--bg-main)] bg-opacity-90 flex items-center justify-center z-10 rounded-lg">
-                <div className="flex flex-col items-center gap-2">
-                  <div className="animate-spin size-6 border-2 border-current border-t-transparent text-[var(--accent)] rounded-full"></div>
-                  <span className="text-sm text-[var(--text-secondary)]">
-                    Generating preview...
-                  </span>
-                </div>
-              </div>
-              <div className="h-40 bg-[var(--bg-secondary)] rounded-md mx-3.5 mb-3.5 opacity-30"></div>
-            </div>
-          )}
-          {}
-          {!isGeneratingThumbnail && shouldRenderThumbnail && activeState && (
-            <React.Suspense
-              fallback={
-                <div className="h-40 bg-[var(--bg-secondary)] rounded-md mx-3.5 mb-3.5 flex items-center justify-center">
+              {isGeneratingLink && (
+                <div className="absolute top-0 left-3.5 right-3.5 bottom-3.5 bg-[var(--bg-secondary)] bg-opacity-75 flex items-center justify-center z-10 rounded-md h-full">
                   <div className="animate-spin size-6 border-2 border-current border-t-transparent text-[var(--accent)] rounded-full"></div>
                 </div>
-              }
-            >
-              <Thumbnail
-                ref={thumbnailRef}
-                activeState={activeState}
-                backgroundImage={backgroundImage}
-                dark={
-                  chroma(
-                    activeState?.qr.primaryColor || "#000000"
-                  ).luminance() > 0.5
+              )}
+              <React.Suspense
+                fallback={
+                  <div className="h-40 bg-[var(--bg-secondary)] rounded-md mx-3.5 mb-3.5 flex items-center justify-center">
+                    <div className="animate-spin size-6 border-2 border-current border-t-transparent text-[var(--accent)] rounded-full"></div>
+                  </div>
                 }
-              />
-            </React.Suspense>
-          )}
-          {}
-          {isGeneratingLink && (
-            <div className="px-4 py-2 text-sm text-[var(--text-secondary)] flex items-center gap-2">
-              <div className="animate-spin size-4 border-2 border-current border-t-transparent text-[var(--accent)] rounded-full"></div>
-              Generating share link...
+              >
+                <Thumbnail
+                  ref={thumbnailRef}
+                  wallpaperRef={wallpaperRef}
+                  activeState={activeState}
+                  backgroundImage={backgroundImage}
+                  dark={
+                    chroma(
+                      activeState?.qr.primaryColor || "#000000"
+                    ).luminance() > 0.5
+                  }
+                />
+              </React.Suspense>
             </div>
           )}
+          {}
+
           {}
           {linkError && (
             <div className="mx-4 mb-3 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
@@ -330,79 +333,36 @@ const ShareButton = ({
             </div>
           )}
           <div className="border-t border-[var(--border-color)] my-1"></div>
-          <div className="flex flex-row-wrap w-full space-y-0.5 px-2 pt-1 pb-3">
-            <button
-              onClick={() => handleShareOption("copy-link")}
-              disabled={isGeneratingLink}
-              className="w-full justify-center text-left px-1 py-1 text-sm text-[var(--text-secondary)] rounded transition-colors flex items-center gap-2 disabled:opacity-50"
-            >
-              <div className="flex flex-col items-center gap-1">
-                <Copy
-                  size={28}
-                  aria-label="Copy Link"
-                  className="hover:text-[var(--accent)] hover:cursor-pointer"
-                />
-                <span className="text-[10px] text-center">Copy Link</span>
-              </div>
-            </button>
-            <button
-              onClick={() => handleShareOption("twitter")}
-              disabled={isGeneratingLink}
-              className="w-full justify-center px-1 py-1 text-sm text-[var(--text-secondary)] rounded transition-colors flex items-center gap-2 disabled:opacity-50"
-            >
-              <div className="flex flex-col items-center gap-1">
-                <Twitter
-                  size={28}
-                  aria-label="Twitter"
-                  className="hover:text-[var(--accent)] hover:cursor-pointer"
-                />
-                <span className="text-[10px] text-center">Twitter</span>
-              </div>
-            </button>
-            <button
-              onClick={() => handleShareOption("facebook")}
-              disabled={isGeneratingLink}
-              className="w-full justify-center px-1 py-1 text-sm text-[var(--text-secondary)] rounded transition-colors flex items-center gap-2 disabled:opacity-50"
-            >
-              <div className="flex flex-col items-center gap-1">
-                <Facebook
-                  size={28}
-                  aria-label="Facebook"
-                  className="hover:text-[var(--accent)] hover:cursor-pointer"
-                />
-                <span className="text-[10px] text-center">Facebook</span>
-              </div>
-            </button>
-            <button
-              onClick={() => handleShareOption("linkedin")}
-              disabled={isGeneratingLink}
-              className="w-full justify-center px-1 py-1 text-sm text-[var(--text-secondary)] rounded transition-colors flex items-center gap-2 disabled:opacity-50"
-            >
-              <div className="flex flex-col items-center gap-1">
-                <Linkedin
-                  size={28}
-                  aria-label="LinkedIn"
-                  className="hover:text-[var(--accent)] hover:cursor-pointer"
-                />
-                <span className="text-[10px] text-center">LinkedIn</span>
-              </div>
-            </button>
-            <button
-              onClick={() => handleShareOption("native")}
-              disabled={isGeneratingLink}
-              className="w-full justify-center px-1 py-1 text-sm text-[var(--text-secondary)] rounded transition-colors flex items-center gap-2 disabled:opacity-50"
-            >
-              <div className="flex flex-col items-center gap-1">
-                <Share
-                  size={28}
-                  aria-label="More Options"
-                  className="hover:text-[var(--accent)] hover:cursor-pointer"
-                />
-                <span className="text-[10px] leading-none text-center">
-                  More Options
-                </span>
-              </div>
-            </button>
+          <div className="px-3 pt-1.5 pb-3">
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                readOnly
+                value={
+                  isGeneratingLink ? "" : remixLink || "Generating link..."
+                }
+                placeholder={isGeneratingLink ? "Generating link..." : ""}
+                className="flex-1 px-2 py-1 text-xs bg-[var(--bg-main)] border border-[var(--border-color)]/50 rounded-xl focus:outline-none text-[var(--text-primary)] cursor-pointer select-all"
+                onClick={(e) => e.target.select()}
+              />
+              <button
+                onClick={() => handleShareOption("copy-link")}
+                disabled={!remixLink || isGeneratingLink}
+                className="flex flex-col cursor-pointer items-center gap-0.5 px-1.5 py-1 rounded-lg text-[var(--text-secondary)] hover:text-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Copy size={16} />
+                <span className="text-[10px] ">Copy</span>
+              </button>
+
+              <button
+                onClick={() => handleShareOption("native")}
+                disabled={!remixLink || isGeneratingLink}
+                className="flex flex-col cursor-pointer items-center gap-0.5 px-1.5 py-1 rounded-lg text-[var(--text-secondary)] hover:text-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Share size={16} />
+                <span className="text-[10px] ">Share</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

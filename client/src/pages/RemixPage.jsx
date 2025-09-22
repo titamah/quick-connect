@@ -75,7 +75,7 @@ const RemixPage = () => {
                 angle: 0,
                 pos: { x: 0.5, y: 0.5 },
               },
-        grain: device_state.bg.grain || false,
+        grain: device_state.bg.grain || 0,
       },
       qrConfig: {
         url: "www.qrki.xyz",

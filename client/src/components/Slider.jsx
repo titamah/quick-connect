@@ -16,6 +16,7 @@ const Slider = ({
   onColorPickerOpen,
   onColorPickerClose,
   onBlur,
+  isGradient = false,
 }) => {
   const { takeSnapshot } = useDevice();
   const [showTooltip, setShowTooltip] = useState(false);
@@ -160,6 +161,8 @@ const Slider = ({
                   x: (sliderRef.current?.getBoundingClientRect().left || 0) + thumbLeft,
                   y: sliderRef.current?.getBoundingClientRect().top || 0
                 }}
+                isGradient={isGradient}
+                onDelete={deleteStop}
               />
             </div>
           </div>

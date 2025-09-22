@@ -9,7 +9,7 @@ const getHeaders = (method = "GET") => ({
   apikey: SUPABASE_ANON_KEY,
   Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
   "Content-Type": "application/json",
-  Prefer: method === "POST" ? "return=representation" : undefined,
+  Prefer: (method === "POST" || method === "PATCH") ? "return=representation" : undefined,
 });
 const getStorageHeaders = () => ({
   apikey: SUPABASE_ANON_KEY,
@@ -189,11 +189,18 @@ export const remixService = {
       throw error;
     }
   },
-  async createRemix(deviceState, backgroundImageFile = null, thumbnailUrl = null) {
+  async createRemix(deviceStateSchema, backgroundImageFile = null, thumbnailUrl = null, remixId = null) {
     try {
       checkRateLimit();
-      const cuteId = await generateUniqueId();
-      const processedDeviceState = JSON.parse(JSON.stringify(deviceState));
+      
+      // Use provided ID or generate new one
+      const cuteId = remixId || await generateUniqueId();
+      
+      // Check if this ID already exists
+      const idExists = remixId ? await checkIdExists(remixId) : false;
+      
+      // Use the schema directly (it's already processed)
+      const processedDeviceState = JSON.parse(JSON.stringify(deviceStateSchema));
       if (backgroundImageFile && processedDeviceState.bg.type === "image") {
         console.log("🖼️ Uploading background image for remix...");
         const imageUrl = await this.uploadImage(backgroundImageFile);
@@ -211,28 +218,45 @@ export const remixService = {
         processedDeviceState.bg.activeTypeValue = "";
       }
       validateDeviceState(processedDeviceState);
-      console.log("🚀 Creating remix with cute ID:", cuteId);
-      const response = await fetch(`${API_BASE}/remixes`, {
-        method: "POST",
-        headers: getHeaders("POST"),
+      
+      // Use PATCH if exists, POST if new
+      const method = idExists ? "PATCH" : "POST";
+      const url = idExists 
+        ? `${API_BASE}/remixes?id=eq.${cuteId}`
+        : `${API_BASE}/remixes`;
+      
+      console.log(`🚀 ${idExists ? 'Updating' : 'Creating'} remix with cute ID:`, cuteId);
+      
+      const response = await fetch(url, {
+        method: method,
+        headers: getHeaders(method),
         body: JSON.stringify({
-            id: cuteId,
-            device_state: processedDeviceState,
-            thumbnail_url: thumbnailUrl  
-          })
+          id: cuteId,
+          device_state: processedDeviceState,
+          thumbnail_url: thumbnailUrl  
+        })
       });
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("❌ Create remix failed:", response.status, errorText);
+        console.error(`❌ ${method} remix failed:`, response.status, errorText);
         if (response.status === 413) {
           throw new Error("Design too large to share");
         }
-        throw new Error(`Failed to create remix: ${response.status}`);
+        throw new Error(`Failed to ${idExists ? 'update' : 'create'} remix: ${response.status}`);
       }
-      const data = await response.json();
-      const remixId = data[0].id;
-      console.log("✅ Remix created successfully with cute ID:", remixId);
-      return remixId;
+      let finalRemixId = cuteId;
+      
+      if (idExists) {
+        // PATCH requests often return empty responses, use the original ID
+        console.log(`✅ Remix updated successfully with cute ID:`, finalRemixId);
+      } else {
+        // POST requests return the created data
+        const data = await response.json();
+        finalRemixId = data[0].id;
+        console.log(`✅ Remix created successfully with cute ID:`, finalRemixId);
+      }
+      
+      return finalRemixId;
     } catch (error) {
       console.error("Error creating remix:", error);
       throw error;

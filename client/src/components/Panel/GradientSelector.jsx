@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
+import { useThrottledCallback } from "../../hooks/useDebounce";
 import Slider from "../Slider";
 import Dropdown from "./Dropdown";
 import PositionInput from "./PositionInput";
@@ -8,16 +9,16 @@ import chroma from "chroma-js";
 import { BetweenVerticalEnd, ArrowLeftRight, Grip } from "lucide-react";
 import "./styles.css";
 function GradientSelector() {
-  const { device, updateBackground, takeSnapshot } = useDevice();
+  const { device, updateBackground, takeSnapshot, updateGrain } = useDevice();
+  
+  // RAF-based updateBackground to prevent mobile crashes - browser optimized timing
+  const rafUpdateBackground = useCallback((updates) => {
+    requestAnimationFrame(() => updateBackground(updates));
+  }, [updateBackground]);
   const gradientBar = useRef(null);
   const [frozenPreset, setFrozenPreset] = useState(null);
   const [processedStops, setProcessedStops] = useState([]);
-  const updateGrain = useCallback(
-    (grain) => {
-      updateBackground({ grain });
-    },
-    [updateBackground]
-  );
+
   const [gradientCSS, setGradientCSS] = useState(null);
   useEffect(() => {
     const updatedStops = [];
@@ -110,18 +111,22 @@ function GradientSelector() {
   const handleColorPickerClose = () => {
     setFrozenPreset(null);
   };
-  const getPresetForGradientStop = (stopIndex) => {
-    const currentStopColor = device.gradient.stops[stopIndex * 2 + 1];
-    if (!currentStopColor) return frozenPreset || device.palette;
-    const hexColor = currentStopColor.startsWith("rgb")
-      ? currentStopColor
-          .match(/\d+/g)
-          ?.map((num) => parseInt(num).toString(16).padStart(2, "0"))
-          .join("")
-      : currentStopColor.replace("#", "");
-    const fullHexColor = hexColor ? `#${hexColor}` : currentStopColor;
-    const normalizedExclude = fullHexColor.toLowerCase();
+
+  const getPaletteForColor = (currentColor) => {
     const paletteToUse = frozenPreset || device.palette;
+    if (!currentColor) return paletteToUse;
+    let normalizedColor = currentColor;
+    if (currentColor.startsWith("rgb")) {
+      const match = currentColor.match(/\d+/g);
+      if (match) {
+        normalizedColor = `#${match
+          .map((num) => parseInt(num).toString(16).padStart(2, "0"))
+          .join("")}`;
+      }
+    } else if (!currentColor.startsWith("#")) {
+      normalizedColor = `#${currentColor}`;
+    }
+    const normalizedExclude = normalizedColor.toLowerCase();
     return paletteToUse.filter(
       (color) => color.toLowerCase() !== normalizedExclude
     );
@@ -147,28 +152,41 @@ function GradientSelector() {
           onChange={handleMenuClick}
         />
         <span className="flex items-center gap-2 pointer-events-auto">
-          <Grip
-            className="opacity-75 hover:opacity-100 cursor-pointer"
-            size={20}
-            color={device.grain ? "var(--accent)" : "var(--text-secondary)"}
-            onClick={() => {
-              takeSnapshot("Toggle grain");
-              updateGrain(!device.grain);
-            }}
-          />
+        <Grip
+              className={`hover:opacity-75 cursor-pointer 
+                ${device.grain ? `text-[var(--accent)]${ device.grain == 1 ? "" : "/50"}` 
+                  : "text-[var(--text-secondary)]"}`}
+              size={20}
+              onClick={() => {
+                takeSnapshot("Toggle grain");
+                updateGrain();
+              }}
+            />
           <BetweenVerticalEnd
             className="opacity-75 hover:opacity-100 cursor-pointer"
             size={20}
             onClick={() => {
               takeSnapshot("Evenly spaced gradient");
-              const stopsCount = device.gradient.stops.length / 2;
-              const stopsInterval = 1 / (stopsCount - 1);
-              let val = -stopsInterval;
-              const newStops = [];
+              
+              const stopsArray = [];
               for (let i = 0; i < device.gradient.stops.length; i += 2) {
-                val += stopsInterval;
-                newStops.push(val, device.gradient.stops[i + 1]);
+                stopsArray.push({
+                  position: device.gradient.stops[i],
+                  color: device.gradient.stops[i + 1]
+                });
               }
+              
+              stopsArray.sort((a, b) => a.position - b.position);
+              
+              const stopsCount = stopsArray.length;
+              const stopsInterval = 1 / (stopsCount - 1);
+              const newStops = [];
+              
+              for (let i = 0; i < stopsCount; i++) {
+                const newPosition = i * stopsInterval;
+                newStops.push(newPosition, stopsArray[i].color);
+              }
+              
               updateBackground({
                 gradient: {
                   ...device.gradient,
@@ -236,11 +254,12 @@ function GradientSelector() {
                   id={`gradient-slider-${index}`}
                   index={index}
                   stacked
+                  isGradient={true}
                   deleteStop={(e) => {
                     takeSnapshot("Delete gradient stop");
                     const newStops = [...device.gradient.stops];
                     newStops.splice(index * 2, 2);
-                    updateBackground({
+                    rafUpdateBackground({
                       gradient: {
                         ...device.gradient,
                         stops: newStops,
@@ -250,12 +269,7 @@ function GradientSelector() {
                   min="0"
                   max="100"
                   color={color}
-                  presets={[
-                    {
-                      label: "Active Colors",
-                      colors: getPresetForGradientStop(index),
-                    },
-                  ]}
+                  presets={getPaletteForColor(color)}
                   onColorPickerOpen={() => handleColorPickerOpen(index)}
                   onColorPickerClose={handleColorPickerClose}
                   value={percent * 100}
@@ -263,7 +277,7 @@ function GradientSelector() {
                     const newPercent = Number(e.target.value) / 100;
                     const newStops = [...device.gradient.stops];
                     newStops[index * 2] = newPercent;
-                    updateBackground({
+                    rafUpdateBackground({
                       gradient: {
                         ...device.gradient,
                         stops: newStops,
@@ -271,18 +285,13 @@ function GradientSelector() {
                     });
                   }}
                   onBlur={() => {
-                    updateBackground({
-                      gradient: {
-                        ...device.gradient,
-                        stops: device.gradient.stops,
-                      },
-                    });
+                    // Remove redundant blur update - debounced updates handle this
                   }}
                   changeColor={(e) => {
                     // e is now a plain hex string from react-colorful, just like ColorSelector
                     const newStops = [...device.gradient.stops];
                     newStops[index * 2 + 1] = e;
-                    updateBackground({
+                    rafUpdateBackground({
                       gradient: {
                         ...device.gradient,
                         stops: newStops,
@@ -290,12 +299,7 @@ function GradientSelector() {
                     });
                   }}
                   onColorBlur={() => {
-                    updateBackground({
-                      gradient: {
-                        ...device.gradient,
-                        stops: device.gradient.stops,
-                      },
-                    });
+                    // Remove redundant blur update - debounced updates handle this
                   }}
                 />
               ));

@@ -7,10 +7,13 @@ const validatePosition = (pos) => ({
   x: Math.max(0, Math.min(1, pos?.x ?? 0.5)),
   y: Math.max(0, Math.min(1, pos?.y ?? 0.5)),
 });
+
 const validateRotation = (rotation) => {
   const num = typeof rotation === 'number' ? rotation : 0;
-  return ((num % 360) + 360) % 360; 
+  const normalized = ((num + 180) % 360 + 360) % 360 - 180;
+  return normalized;
 };
+
 const deepMerge = (target, source) => {
   const result = { ...target };
   for (const key in source) {
@@ -53,6 +56,16 @@ export const useDeviceState = () => {
   });
   const [activeImageSource, setActiveImageSource] = useState("Upload");
   const [generationHistory, setGenerationHistory] = useState([]);
+  
+  // Generate one remix ID per session (using same logic as remixService)
+  const [sessionRemixId] = useState(() => {
+    const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+    let result = "";
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  });
   const [background, setBackground] = useState({
     style: "solid",
     color: "#FFFFFF",
@@ -70,7 +83,7 @@ export const useDeviceState = () => {
       angle: 0,
       pos: { x: 0.5, y: 0.5 },
     },
-    grain: false,
+    grain: 0,
   });
   const [qrConfig, setQRConfig] = useState({
     url: "www.qrki.xyz",
@@ -254,13 +267,6 @@ export const useDeviceState = () => {
 
   const updateBackground = (updates) => {
     console.log("🔧 updateBackground:", updates);
-    
-    // In performance mode, simplify certain backgrounds
-    if (PERFORMANCE_MODE && updates.style === 'gradient') {
-      console.log("🚀 Performance mode: Simplifying gradient");
-      // Could potentially fallback to solid color, but let's keep gradients for now
-    }
-    
     setBackground((prev) => deepMerge(prev, updates));
   };
 
@@ -291,22 +297,11 @@ export const useDeviceState = () => {
     console.log("🔧 updateQRPositionPercentages:", percentages);
     const validatedPercentages = validatePosition(percentages);
     
-    if (PERFORMANCE_MODE) {
-      clearTimeout(updateQRPositionPercentages._timeout);
-      updateQRPositionPercentages._timeout = setTimeout(() => {
-        setQRConfig((prev) =>
-          deepMerge(prev, {
-            positionPercentages: validatedPercentages,
-          })
-        );
-      }, 50);
-    } else {
-      setQRConfig((prev) =>
-        deepMerge(prev, {
-          positionPercentages: validatedPercentages,
-        })
-      );
-    }
+    setQRConfig((prev) =>
+      deepMerge(prev, {
+        positionPercentages: validatedPercentages,
+      })
+    );
   }, []);
   const updateImagePalette = (colors) => {
     console.log("🔧 updateImagePalette:", colors.length, "colors");
@@ -320,6 +315,13 @@ export const useDeviceState = () => {
     console.log("🔧 updateGeneratedInfo:", updates);
     setGeneratedInfo((prev) => deepMerge(prev, updates));
   };
+
+  const updateGrain = () => {
+    if (background.grain === 1) background.grain = 0;
+    else background.grain += 0.5;
+    console.log("🔧 updateGrain:", background.grain);
+  };
+  
   const loadTemplateData = useCallback((templateData) => {
     console.log("📋 Loading template data with validation...");
     const qrConfigWithDefaults = {
@@ -372,6 +374,7 @@ export const useDeviceState = () => {
     updateImagePalette,
     updateUploadInfo,
     updateGeneratedInfo,
+    updateGrain,
     takeSnapshot,
     undo,
     redo,
@@ -379,5 +382,6 @@ export const useDeviceState = () => {
     canRedo,
     historyDebug,
     loadTemplateData,
+    sessionRemixId,
   };
 };

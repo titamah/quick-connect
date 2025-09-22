@@ -19,6 +19,7 @@ function ImageInput() {
     generatedInfo,
     updateUploadInfo,
     updateGeneratedInfo,
+    updateGrain,
     activeImageSource,
     setActiveImageSource,
     isMobile,
@@ -220,12 +221,14 @@ function ImageInput() {
           />
           <span className="flex items-center gap-2 pointer-events-auto">
             <Grip
-              className="opacity-75 hover:opacity-100 cursor-pointer"
+              className={`hover:opacity-75 cursor-pointer 
+                ${device.grain ? `text-[var(--accent)]${ device.grain == 1 ? "" : "/50"}` 
+                  : "text-[var(--text-secondary)]"}`}
               size={20}
-              color={device.grain ? "var(--accent)" : "var(--text-secondary)"}
+              // color={device.grain ? ( device.grain == 0.5 ? "var(--accent)/50" : "var(--text-secondary)") : "var(--text-secondary)"}
               onClick={() => {
                 takeSnapshot("Toggle grain");
-                updateBackground({ grain: !device.grain });
+                updateGrain();
               }}
             />
           </span>
