@@ -18,7 +18,7 @@ const ShareButton = ({
   backgroundLayerRef,
   onMenuStateChange,
 }) => {
-  const { qrConfig, background } = useDevice();
+  const { qrConfig, background, sessionRemixId } = useDevice();
   const { toast } = useToast();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [remixLink, setRemixLink] = useState(null);
@@ -178,7 +178,8 @@ const ShareButton = ({
       const remixId = await remixService.createRemix(
         deviceStateSchema,
         backgroundImageFile,
-        thumbnailUrl
+        thumbnailUrl,
+        sessionRemixId
       );
       const link = `${window.location.origin}/remix/${remixId}`;
       setRemixLink(link);

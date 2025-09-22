@@ -56,6 +56,16 @@ export const useDeviceState = () => {
   });
   const [activeImageSource, setActiveImageSource] = useState("Upload");
   const [generationHistory, setGenerationHistory] = useState([]);
+  
+  // Generate one remix ID per session (using same logic as remixService)
+  const [sessionRemixId] = useState(() => {
+    const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+    let result = "";
+    for (let i = 0; i < 8; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  });
   const [background, setBackground] = useState({
     style: "solid",
     color: "#FFFFFF",
@@ -372,5 +382,6 @@ export const useDeviceState = () => {
     canRedo,
     historyDebug,
     loadTemplateData,
+    sessionRemixId,
   };
 };
