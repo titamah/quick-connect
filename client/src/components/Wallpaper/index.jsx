@@ -324,8 +324,10 @@ const Wallpaper = forwardRef(
           currentConfigRef.current,
           qrContainer.scale.x
         );
+        // Set selection state so outside click deselection works
+        contextSelectQR();
       }
-    }, [hideGuides]);
+    }, [hideGuides, contextSelectQR]);
 
     const attachDragHandlers = useCallback(() => {
       const qrContainer = qrContainerRef.current;
@@ -464,6 +466,8 @@ const Wallpaper = forwardRef(
                 currentConfigRef.current,
                 qrContainer.scale.x
               );
+              // Set selection state so outside click deselection works
+              contextSelectQR();
             }
           }
         });
@@ -482,6 +486,8 @@ const Wallpaper = forwardRef(
       locked,
       selectQR,
       isQRSelected,
+      contextSelectQR,
+      handlePointerDown,
     ]);
 
     useEffect(() => {
