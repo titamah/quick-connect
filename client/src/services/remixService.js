@@ -9,7 +9,7 @@ const getHeaders = (method = "GET") => ({
   apikey: SUPABASE_ANON_KEY,
   Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
   "Content-Type": "application/json",
-  Prefer: method === "POST" ? "return=representation" : undefined,
+  Prefer: (method === "POST" || method === "PATCH") ? "return=representation" : undefined,
 });
 const getStorageHeaders = () => ({
   apikey: SUPABASE_ANON_KEY,
