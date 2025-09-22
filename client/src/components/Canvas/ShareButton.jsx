@@ -64,6 +64,7 @@ const ShareButton = ({
   useEffect(() => {
     if (isMenuOpen && !shouldRenderThumbnail) {
       const generateThumbnailData = async () => {
+        console.log("🖼️ Starting thumbnail data generation...");
         setIsGeneratingThumbnail(true);
         setShouldRenderThumbnail(true);
         try {
@@ -89,6 +90,7 @@ const ShareButton = ({
       const timeoutId = setTimeout(generateThumbnailData, 100);
       return () => clearTimeout(timeoutId);
     } else if (!isMenuOpen) {
+      console.log("🖼️ Menu closed, cleaning up thumbnail data");
       setBackgroundImage(null);
       setActiveState(null);
       setRemixLink(null);
@@ -100,7 +102,6 @@ const ShareButton = ({
     getBackgroundImage,
     background.style,
     background.bg,
-    createDeviceStateSchema,
   ]);
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -139,20 +140,31 @@ const ShareButton = ({
       );
       const deviceStateSchema = createDeviceStateSchema();
       let thumbnailUrl = null;
-      if (thumbnailRef.current?.exportAsBlob) {
-        try {
-          console.log("🖼️ Generating thumbnail...");
-          const thumbnailBlob = await thumbnailRef.current.exportAsBlob();
-          thumbnailUrl = await remixService.uploadThumbnail(thumbnailBlob);
-          console.log("✅ Thumbnail uploaded:", thumbnailUrl);
-        } catch (error) {
-          console.warn(
-            "⚠️ Thumbnail upload failed, continuing without:",
-            error
-          );
-        }
+      
+      // Wait for thumbnail to be ready
+      console.log("🖼️ Waiting for thumbnail to be ready...");
+      let attempts = 0;
+      const maxAttempts = 50; // 5 seconds max wait
+      while (attempts < maxAttempts && !thumbnailRef.current?.exportAsBlob) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
       }
-      console.log("🖼️ Thumbnail URL:", thumbnailUrl);
+      
+      if (thumbnailRef.current?.exportAsBlob) {
+        console.log("🖼️ Thumbnail ready, generating blob...");
+        const thumbnailBlob = await thumbnailRef.current.exportAsBlob();
+        console.log("🖼️ Thumbnail blob created:", thumbnailBlob?.size, "bytes");
+        
+        if (thumbnailBlob && thumbnailBlob.size > 0) {
+          console.log("🖼️ Uploading thumbnail to Supabase bucket...");
+          thumbnailUrl = await remixService.uploadThumbnail(thumbnailBlob);
+          console.log("✅ Thumbnail uploaded to bucket:", thumbnailUrl);
+        } else {
+          console.warn("⚠️ Thumbnail blob is empty, skipping upload");
+        }
+      } else {
+        console.warn("⚠️ Thumbnail not ready after waiting, skipping upload");
+      }
       let backgroundImageFile = null;
       if (
         background.style === "image" &&
@@ -210,9 +222,11 @@ const ShareButton = ({
     onMenuStateChange?.(newMenuState);
 
     if (newMenuState && !remixLink && !isGeneratingLink) {
+      console.log("🖼️ Share menu opened, generating remix link...");
       await generateRemixLink();
     }
   };
+  
   const handleShareOption = async (platform) => {
     let link = remixLink;
 
@@ -280,7 +294,7 @@ const ShareButton = ({
             </h3>
           </div>
           {}
-          {!isGeneratingThumbnail && shouldRenderThumbnail && activeState && (
+          {shouldRenderThumbnail && activeState && (
             <div className="relative">
               {isGeneratingLink && (
                 <div className="absolute top-0 left-3.5 right-3.5 bottom-3.5 bg-[var(--bg-secondary)] bg-opacity-75 flex items-center justify-center z-10 rounded-md h-full">
@@ -295,6 +309,7 @@ const ShareButton = ({
                 }
               >
                 <Thumbnail
+                  ref={thumbnailRef}
                   wallpaperRef={wallpaperRef}
                   activeState={activeState}
                   backgroundImage={backgroundImage}

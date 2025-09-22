@@ -30,14 +30,47 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
   const exportAsBlob = async (options = {}) => {
     const { quality = 0.8, format = "image/webp" } = options;
 
+    // Wait for app to be fully ready
+    let attempts = 0;
+    const maxAttempts = 50; // 5 seconds max wait
+    while (attempts < maxAttempts && !appRef.current) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
+
     if (!appRef.current) {
-      throw new Error("Thumbnail not ready for export");
+      throw new Error("Thumbnail not ready for export - app never initialized");
     }
 
     try {
+      console.log("🖼️ Starting thumbnail export...");
+      
+      // Wait for stage to have content (don't call createThumbnail again)
+      let attempts = 0;
+      const maxAttempts = 50; // 5 seconds max wait
+      
+      while (attempts < maxAttempts && appRef.current.stage.children.length === 0) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+        console.log(`🖼️ Waiting for stage content... attempt ${attempts}/${maxAttempts}`);
+      }
+      
+      if (appRef.current.stage.children.length === 0) {
+        throw new Error("Stage never populated with content");
+      }
+      
+      console.log("🖼️ Stage has content, proceeding with export");
+      
+      // Force a render before extracting
+      appRef.current.renderer.render(appRef.current.stage);
+      console.log("🖼️ Render completed");
+      
       const canvas = appRef.current.renderer.extract.canvas(
         appRef.current.stage
       );
+
+      console.log("🖼️ Thumbnail export - Stage children:", appRef.current.stage.children.length);
+      console.log("🖼️ Thumbnail export - Canvas size:", canvas.width, "x", canvas.height);
 
       return new Promise((resolve, reject) => {
         canvas.toBlob(
@@ -46,6 +79,7 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
               reject(new Error("Failed to export thumbnail"));
               return;
             }
+            console.log("🖼️ Thumbnail blob size:", blob.size, "bytes");
             resolve(blob);
           },
           format === "png" ? "image/png" : "image/webp",
@@ -61,39 +95,49 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
   useImperativeHandle(ref, () => ({ exportAsBlob }));
 
   const createThumbnail = async () => {
+    console.log("🖼️ createThumbnail called");
     if (!wallpaperRef.current.exportImage) {
-      console.log("exportImage not ready");
+      console.log("🖼️ exportImage not ready, using fallback");
       setupBasicScene(null);
       return;
     }
     if (!appRef.current) {
-      console.log("app ref not ready");
+      console.log("🖼️ app ref not ready, using fallback");
       setupBasicScene(null);
       return;
     }
 
     try {
       // Export the main wallpaper at a reasonable size for thumbnail
+      console.log("🖼️ Exporting wallpaper image...");
       const wallpaperBlob = await wallpaperRef.current.exportImage({
         format: "png",
         quality: 0.8,
         scale: 1, // Smaller for performance
       });
 
+      console.log("🖼️ Wallpaper exported, creating image...");
       // Convert blob to image
       const wallpaperImage = new Image();
-      wallpaperImage.onload = () => {
-        setupBasicScene(wallpaperImage);
-      };
-      wallpaperImage.onerror = () => {
-        console.log("Failed to load wallpaper image, using fallback");
-        setupBasicScene(null);
-      };
-      wallpaperImage.src = URL.createObjectURL(wallpaperBlob);
+      
+      await new Promise((resolve, reject) => {
+        wallpaperImage.onload = () => {
+          console.log("🖼️ Wallpaper image loaded successfully");
+          setupBasicScene(wallpaperImage);
+          resolve();
+        };
+        wallpaperImage.onerror = () => {
+          console.log("🖼️ Failed to load wallpaper image, using fallback");
+          setupBasicScene(null);
+          resolve(); // Don't reject, just use fallback
+        };
+        wallpaperImage.src = URL.createObjectURL(wallpaperBlob);
+      });
     } catch (error) {
-      console.log("Failed to create thumbnail from wallpaper:", error);
+      console.log("🖼️ Failed to create thumbnail from wallpaper:", error);
       setupBasicScene(null);
     }
+    console.log("🖼️ createThumbnail function completed");
   };
 
   const setupBasicScene = async (wallpaperImage) => {
@@ -113,9 +157,15 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
       return;
     }
 
-    app.stage.removeChildren();
+     app.stage.removeChildren();
 
-    const background = new Graphics();
+     // Create stage mask to clip everything to thumbnail bounds
+     const stageMask = new Graphics();
+     stageMask.rect(0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+     stageMask.fill(0xffffff);
+     app.stage.mask = stageMask;
+
+     const background = new Graphics();
     background.rect(0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
     background.fill(`${dark ? "#232323" : "#F0F0F0"}`);
     app.stage.addChild(background);
@@ -264,6 +314,8 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
       app.stage.addChild(phoneScreen);
     }
 
+    // Add stage mask to stage so it's rendered
+    app.stage.addChild(stageMask);
     app.render();
   };
 
