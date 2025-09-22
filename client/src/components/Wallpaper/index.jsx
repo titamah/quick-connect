@@ -324,10 +324,8 @@ const Wallpaper = forwardRef(
           currentConfigRef.current,
           qrContainer.scale.x
         );
-        // Set selection state so outside click deselection works
-        contextSelectQR();
       }
-    }, [hideGuides, contextSelectQR]);
+    }, [hideGuides]);
 
     const attachDragHandlers = useCallback(() => {
       const qrContainer = qrContainerRef.current;
@@ -449,26 +447,8 @@ const Wallpaper = forwardRef(
         qrContainer.on("pointerdown", (event) => {
           event.stopPropagation();
 
-          // Always start dragging immediately, no selection requirement
-          if (!qrContainer.isDragging) {
-            handlePointerDown(event);
-          }
-        });
-
-        // Show transformer on simple clicks (without drag)
-        qrContainer.on("pointerup", (event) => {
-          if (!qrContainer.isDragging) {
-            // This was just a click, not a drag - show transformer
-            if (transformerRef.current) {
-              transformerRef.current.attachTo(
-                qrContainer,
-                currentDeviceRef.current,
-                currentConfigRef.current,
-                qrContainer.scale.x
-              );
-              // Set selection state so outside click deselection works
-              contextSelectQR();
-            }
+          if (!isQRSelected) {
+            selectQR();
           }
         });
       });
@@ -486,8 +466,6 @@ const Wallpaper = forwardRef(
       locked,
       selectQR,
       isQRSelected,
-      contextSelectQR,
-      handlePointerDown,
     ]);
 
     useEffect(() => {
@@ -622,13 +600,14 @@ const Wallpaper = forwardRef(
     }, [isQRSelected, deselectAll]);
 
     useEffect(() => {
-      // Always attach drag handlers when locked, regardless of selection state
-      if (locked) {
-        attachDragHandlers();
-      } else {
-        removeDragHandlers();
+      if (isQRSelected) {
+        if (locked) {
+          attachDragHandlers();
+        } else {
+          removeDragHandlers();
+        }
       }
-    }, [locked, attachDragHandlers, removeDragHandlers]);
+    }, [locked, attachDragHandlers, removeDragHandlers, isQRSelected]);
 
     useEffect(() => {
       if (backgroundRendererRef.current) {
