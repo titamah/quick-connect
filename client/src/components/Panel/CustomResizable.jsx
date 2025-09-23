@@ -125,9 +125,10 @@ const CustomResizable = forwardRef(
       resizeStateRef.current.isResizing = false;
       resizeStateRef.current.handleElement = null;
 
-      document.removeEventListener("touchmove", handleTouchMove, true);
-      document.removeEventListener("touchend", handleTouchEnd, true);
+      document.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("touchend", handleTouchEnd);
       document.body.style.userSelect = "";
+      document.body.style.pointerEvents = "";
     }, [handleTouchMove]);
 
     const handleTouchStart = useCallback(
@@ -141,7 +142,6 @@ const CustomResizable = forwardRef(
         const touch = e.touches[0];
         const startPos = isSide ? touch.clientX : touch.clientY;
         
-        
         resizeStateRef.current = {
           isResizing: true,
           startPos,
@@ -149,9 +149,10 @@ const CustomResizable = forwardRef(
           handleElement
         };
 
-        document.addEventListener("touchmove", handleTouchMove, { passive: false, capture: true });
-        document.addEventListener("touchend", handleTouchEnd, true);
+        document.addEventListener("touchmove", handleTouchMove, { passive: false });
+        document.addEventListener("touchend", handleTouchEnd, { passive: false });
         document.body.style.userSelect = "none";
+        document.body.style.pointerEvents = "none";
         
       },
       [panelSize.width, panelSize.height, isSide, handleTouchMove, handleTouchEnd, direction]
@@ -159,10 +160,10 @@ const CustomResizable = forwardRef(
 
     useEffect(() => {
       return () => {
-        document.removeEventListener("mousemove", handleMouseMove, true);
-        document.removeEventListener("mouseup", handleMouseUp, true);
-        document.removeEventListener("touchmove", handleTouchMove, true);
-        document.removeEventListener("touchend", handleTouchEnd, true);
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+        document.removeEventListener("touchmove", handleTouchMove, { capture: true });
+        document.removeEventListener("touchend", handleTouchEnd, { capture: true });
         document.body.style.cursor = "";
         document.body.style.userSelect = "";
         if (document.body.style.pointerEvents) {
@@ -253,15 +254,13 @@ const CustomResizable = forwardRef(
                       height: "100%",
                     }
                   : {
-                      top: 0,
+                      top: "-5px",
                       left: 0,
                       width: "100%",
-                      height: "10px",
+                      height: "20px",
                     }),
               }}
               onMouseDown={handleMouseDown}
-              onDrag={handleMouseMove}
-              onDragEnd={handleMouseUp}
               onTouchStart={handleTouchStart}
             />
       </div>
