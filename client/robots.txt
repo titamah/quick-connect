@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /start-design
+Disallow: /studio
+Disallow: /remix/
+Disallow: /api/
+
+Sitemap: https://www.qrki.xyz/sitemap.xml
