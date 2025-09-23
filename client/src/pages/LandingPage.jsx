@@ -33,22 +33,23 @@ const LandingPage = () => {
   return (
     <div className={`overflow-y-scroll ${isMobile ? "h-[calc(100dvh-40px)]" : "h-[calc(100dvh-60px)]"}`}>
     <main className="flex flex-col h-fit w-[100vw] overflow-x-hidden items-start relative bg-[var(--bg-main)]">
-      <section className="flex z-2 flex-row flex-wrap h-fit min-h-[80vh] w-full items-center justify-center space-y-[15px] gap-[25px] px-[50px] pb-[50px] pt-[50px] relative self-stretch bg-[var(--brand-orange)] rounded-[0px_0px_50px_50px] sm:rounded-[0px_0px_90px_90px]">
-        <img
+      <section className="flex z-2 relative flex-row flex-wrap h-full min-h-[87.5vh] w-full justify-center  text-center  space-y-[15px] gap-[25px] px-[25px] pt-[75px] relative self-stretch rounded-[0px_0px_50px_50px] sm:rounded-[0px_0px_90px_90px]"
+      style={{backgroundImage: 'url(/Hero.webp)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat'}}>
+        {/* <img
           className={` ${isMobile ? "hidden" : ""} relative max-w-[450px] w-full !bg-pink-500`}
           alt="Custom QR code wallpaper example showing a phone with a personalized QR code design"
           src="/MockUp1.png"
-        />
-        <div className="flex flex-col h-full w-fit max-w-[515px] items-start justify-center gap-[25px] relative">
-          <text className="relative self-stretch w-full slab font-black text-[#001d28] sm:text-6xl text-5xl">
-          Lock screens<br/>that spark connections
+        /> */}
+          <text className="absolute bottom-[63.5%] md:bottom-[65%] left-[50%] translate-x-[-50%] translte-y-[-50%] rubik font-black text-[var(--brand-yellow)] md:text-6xl text-5xl">
+          LOCK SCREENS <br/>THAT SPARK <br/>CONNECTIONS.
           </text>
-          <p className="relative w-full rubik font-medium text-neutral-900 text-xl sm:text-2xl tracking-[0] leading-[normal]">
-            Turn your lock screen into your superpower. Custom wallpapers with
-            QR codes that are actually you - no unlock needed, just connection.
+          <div className="flex flex-col justify-center max-w-[525px] gap-[25px] items-center absolute bottom-[9%] left-[50%] translate-x-[-50%] tranlate-y-[-50%]">
+
+          <p className="rubik font-medium text-white text-xl sm:text-2xl tracking-[0] leading-[normal]" style={{textShadow: '0.5px 0.5px 3px rgba(0, 0, 0, 0.35)'}}>
+            Custom QR wallpapers that are actually you. No unlock needed, just connection.
           </p>
           <button 
-            className="inline-flex items-center cursor-pointer justify-center gap-2.5 p-[12px] relative flex-[0_0_auto] bg-[var(--brand-green)] rounded-[75px] border-[0.5px] border-solid border-neutral-900 hover:opacity-90 transition-opacity"
+            className="inline-flex items-center cursor-pointer w-fit items-end gap-2.5 p-[12px] relative flex-[0_0_auto] bg-[var(--brand-green)] rounded-[75px] border-[0.5px] border-solid border-neutral-900 hover:opacity-90 transition-opacity"
             onClick={handleStartQreating}
           >
             <span className="relative w-fit font-normal text-neutral-900 text-md sm:text-lg tracking-[0] leading-[normal] whitespace-nowrap">
@@ -57,14 +58,14 @@ const LandingPage = () => {
           </button>
         </div>
       </section>
-              <img
+              {/* <img
           className={` ${isMobile ? "z-1 mt-[-45px]" : "hidden"} w-full !bg-pink-500`}
           alt="Custom QR code wallpaper example showing a phone with a personalized QR code design"
           src="/MockUp1.png"
-        />
+        /> */}
       <section className="flex flex-col mt-[50px] h-fit min-h-[90vh] items-center justify-center w-full  p-[25px] sm:p-[50px] relative space-y-[35px]">
         {}
-           <p className=" flex-shrink-0 relative w-full max-w-[1200px] mx-auto slab font-black text-[var(--text-secondary)] self-start sm:text-6xl text-4xl tracking-[0] leading-[normal] whitespace-nowrap">
+           <p className=" flex-shrink-0 relative w-full max-w-[1200px] mx-auto rubik-mono text-[var(--text-primary)] self-start sm:text-5xl text-4xl tracking-[0] leading-[normal] whitespace-nowrap">
             How It Works
           </p>
           <span className="flex-wrap gap-[15px] max-w-[1200px] h-full mx-auto w-full flex relative grow">
@@ -92,14 +93,14 @@ const LandingPage = () => {
           </span>
         {}
       </section>
-      <section className="flex flex-row flex-wrap mt-[100px] sm:mt-[150px] justify-center gap-[35px] sm:gap-[100px] px-6 py-[75px] sm:py-[150px] self-stretch w-full h-fit min-h-[90vh] flex-[0_0_auto] bg-[#001d28] rounded-[50px_50px_0px_0px] sm:rounded-[90px_90px_0px_0px] items-center relative">
+      <section className="flex flex-row flex-wrap mt-[100px] sm:mt-[150px] justify-center gap-[35px] sm:gap-[100px] px-6 py-[75px] sm:py-[150px] self-stretch w-full h-fit min-h-[100vh] flex-[0_0_auto] bg-[var(--brand-orange)] rounded-[50px_50px_0px_0px] sm:rounded-[90px_90px_0px_0px] items-center relative">
         <div className="inline-flex flex-col items-center justify-center gap-[35px] sm:gap-[75px] px-[33px] py-0 relative flex-[0_0_auto]">
           <p className={`relative w-full tracking-tighter max-w-[385px] sm:max-w-[555px] md:max-w-[653px] rubik-mono font-normal text-white text-[30px] sm:text-4xl md:text-5xl text-justify tracking-[0] leading-[normal]`}>
             Because business cards get lost and you're way more interesting than
             a black and white square.
           </p>
           <button 
-            className="inline-flex items-center cursor-pointer justify-center gap-2.5 p-[12px] relative flex-[0_0_auto] bg-[var(--brand-green)] rounded-[75px] border-[0.5px] border-solid border-neutral-900 hover:opacity-90 transition-opacity"
+            className="inline-flex items-center cursor-pointer justify-center gap-2.5 p-[12px] relative flex-[0_0_auto] bg-[var(--brand-yellow)] rounded-[75px] border-[0.5px] border-solid border-neutral-900 hover:opacity-90 transition-opacity"
             onClick={handleStartQreating}
           >
             <span className="relative w-fit font-normal text-neutral-900 text-md sm:text-lg tracking-[0] leading-[normal] whitespace-nowrap">
@@ -110,10 +111,10 @@ const LandingPage = () => {
         <img
           className="relative max-w-[450px] w-full !bg-pink-500"
           alt="Phone displaying custom QR code wallpaper in use"
-          src="/MockUp2.png"
+          src="/MockUp1.png"
         />
       </section>
-      <footer className="flex w-full items-center justify-center py-4 px-6 bg-[#001d28] border-t border-[var(--border-color)]">
+      <footer className="flex w-full items-center justify-center py-4 px-6 bg-[var(--brand-orange)]  border-t border-[var(--border-color)]">
         <p className="text-sm text-white opacity-60">
           © 2025 QRKI. Made with ❤️ for better connections.
         </p>
