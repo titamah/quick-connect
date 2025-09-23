@@ -15,7 +15,7 @@ function StartDesignPage() {
           Ready to make it yours?
         </p> */}
         <p className="relative sm:max-w-[675px]  text-lg sm:text-2xl text-[var(--text-secondary)] sm:mb-10 text-center tracking-[0] leading-[1.25]">
-        Make your mark. Whether it’s your LinkedIn or that brilliant side project, QRKI puts your best link front and center. <br/>Ready to get started?
+        Make your mark. Whether it’s your LinkedIn or that brilliant side project, QRKI puts your best link front and center. <br/><br/>Ready to get started?
         </p>
         <button
           className="inline-flex flex-col justify-center py-[8px] px-[12px] bg-[#03bec0]  rounded-[60px] border border-solid border-[#817e6ba8] items-center gap-2.5 relative flex-[0_0_auto] hover:opacity-75 cursor-pointer transition-colors duration-200"
