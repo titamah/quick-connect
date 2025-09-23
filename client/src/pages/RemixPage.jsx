@@ -172,7 +172,7 @@ const RemixPage = () => {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     if (diffDays <= 0) return "Expired";
     if (diffDays === 1) return "Expires in 1 day";
-    return `Expires in ${diffDays} days`;
+    return `${diffDays} days left`;
   };
   if (loading) {
     return (
@@ -220,11 +220,12 @@ const RemixPage = () => {
   return (
     
     <div className="overlow-hidden flex flex-col h-full min-h-[calc(100dvh-40px)] md:min-h-[calc(100dvh-60px)] items-center relative p-10 bg-[var(--bg-secondary)]">
-      <section className=" w-full px-5 py-10 sm:p-20 flex flex-col items-center justify-center gap-8 sm:gap-10 relative self-stretch max-w-[850px] w-fit m-auto my-auto top-[45%] bg-[var(--bg-main)] rounded-[30px] sm:rounded-[45px] border-[0.5px] border-solid border-[var(--border-color)] ">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 bg-[url('/Pattern%20Tile.png')] bg-repeat opacity-10 dark:opacity-25" />
+      <section className=" w-full px-7 py-10 sm:p-20 flex flex-col items-center justify-center gap-8 sm:gap-10 relative z-10 self-stretch max-w-[850px] w-fit m-auto my-auto top-[45%] bg-[var(--bg-main)] rounded-[30px] sm:rounded-[45px] border-[0.5px] border-solid border-[var(--border-color)] ">
       <p className="relative w-full rubik font-black text-4xl sm:text-5xl text-[var(--text-primary)] text-center leading-[0.75] tracking-wider [font-variant:all-small-caps] ">
           Remix This Qreation
         </p>
-        <div className="  w-[95%] bg-[var(--accent)] rounded-lg overflow-hidden flex items-center justify-center">
+        <div className="  w-full bg-[var(--accent)] rounded-lg overflow-hidden flex items-center justify-center">
           {remixData.thumbnail_url ? (
             <img
               src={remixData.thumbnail_url}
@@ -247,8 +248,8 @@ const RemixPage = () => {
           </div>
         </div>
         <div className="flex flex-row items-center justify-around w-full text-sm text-[var(--text-secondary)]">
-        <h3 className="flex flex-row items-center gap-2"> <Clock size={21}/>{getDaysUntilExpiry(remixData.expires_at)}</h3>
-          <h3 className="flex flex-row items-center gap-2"> <Eye size={21} />{`${remixData.view_count || 0} views`}</h3> 
+        <h3 className="flex flex-row items-center gap-1.5"> <Clock size={18}/>{getDaysUntilExpiry(remixData.expires_at)}</h3>
+          <h3 className="flex flex-row items-center gap-1.5"> <Eye size={18} />{`${remixData.view_count || 0} views`}</h3> 
           </div>
         <button
           className="inline-flex flex-col justify-center py-[8px] px-[12px] bg-[var(--accent)] rounded-[60px] border border-solid border-[#817e6ba8] items-center gap-2.5 relative flex-[0_0_auto] hover:opacity-75 cursor-pointer transition-colors duration-200"
