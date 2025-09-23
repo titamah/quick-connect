@@ -78,7 +78,7 @@ const StudioPage = () => {
       }
     };
 
-    if (window.innerWidth <= 768) {
+    if (Math.min(screen.width, screen.height) <= 768) {
       const timer = setTimeout(requestFullscreen, 1000);
       return () => clearTimeout(timer);
     }

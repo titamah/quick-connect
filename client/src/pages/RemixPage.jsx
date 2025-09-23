@@ -218,17 +218,18 @@ const RemixPage = () => {
     );
   }
   return (
-    <div className="overlow-hidden flex flex-col h-fit min-h-[calc(100dvh-40px)] md:min-h-[calc(100dvh-60px)] items-center justify-center relative p-10 bg-[var(--bg-secondary)]">
-      <section className="  h-fit p-10 sm:p-20 flex flex-col items-center justify-center gap-8 sm:gap-10 relative self-stretch max-w-[850px] w-fit m-auto bg-[var(--bg-main)] rounded-[30px] sm:rounded-[45px] border-[0.5px] border-solid border-[var(--border-color)] ">
-        <p className="relative w-fit slab font-black text-3xl sm:text-4xl text-[var(--text-secondary)] text-center tracking-wider [font-variant:all-small-caps] whitespace-nowrap">
+    
+    <div className="overlow-hidden flex flex-col h-full min-h-[calc(100dvh-40px)] md:min-h-[calc(100dvh-60px)] items-center relative p-10 bg-[var(--bg-secondary)]">
+      <section className=" w-full px-5 py-10 sm:p-20 flex flex-col items-center justify-center gap-8 sm:gap-10 relative self-stretch max-w-[850px] w-fit m-auto my-auto top-[45%] bg-[var(--bg-main)] rounded-[30px] sm:rounded-[45px] border-[0.5px] border-solid border-[var(--border-color)] ">
+      <p className="relative w-full rubik font-black text-4xl sm:text-5xl text-[var(--text-primary)] text-center leading-[0.75] tracking-wider [font-variant:all-small-caps] ">
           Remix This Qreation
         </p>
-        <div className="md:w-[700px] w-full md:h-[350px] bg-[var(--bg-secondary)] rounded-lg overflow-hidden flex items-center justify-center">
+        <div className="  w-[95%] bg-[var(--accent)] rounded-lg overflow-hidden flex items-center justify-center">
           {remixData.thumbnail_url ? (
             <img
               src={remixData.thumbnail_url}
               alt="Remix preview"
-              className="w-full h-full object-contain"
+              className=" w-full h-full object-contain"
               onError={(e) => {
                 e.target.style.display = "none";
                 e.target.nextSibling.style.display = "flex";
@@ -245,17 +246,17 @@ const RemixPage = () => {
             </div>
           </div>
         </div>
-        <div className="flex flex-row items-center space-x-6 text-sm text-[var(--text-secondary)]">
-        <div className="flex flex-row items-center gap-2"> <Clock size={16}/>{getDaysUntilExpiry(remixData.expires_at)}</div>
-          <div className="flex flex-row items-center gap-2"> <Eye size={16} />{`${remixData.view_count || 0} views`}</div> 
+        <div className="flex flex-row items-center justify-around w-full text-sm text-[var(--text-secondary)]">
+        <h3 className="flex flex-row items-center gap-2"> <Clock size={21}/>{getDaysUntilExpiry(remixData.expires_at)}</h3>
+          <h3 className="flex flex-row items-center gap-2"> <Eye size={21} />{`${remixData.view_count || 0} views`}</h3> 
           </div>
         <button
-          className="inline-flex flex-col justify-center py-[12px] px-[18px] bg-[var(--accent)] rounded-[60px] border border-solid border-[#817e6ba8] items-center gap-2.5 relative flex-[0_0_auto] hover:opacity-75 cursor-pointer transition-colors duration-200"
+          className="inline-flex flex-col justify-center py-[8px] px-[12px] bg-[var(--accent)] rounded-[60px] border border-solid border-[#817e6ba8] items-center gap-2.5 relative flex-[0_0_auto] hover:opacity-75 cursor-pointer transition-colors duration-200"
           onClick={handleStartRemixing}
           disabled={isLoading}
           aria-label="Start creating from scratch"
         >
-          <span className="relative w-fit font-normal text-black text-lg sm:text-xl text-center tracking-wide leading-[normal] whitespace-nowrap uppercase">
+          <span className="relative w-fit font-normal text-black text-lg sm:text-lg text-center tracking-wide leading-[normal] whitespace-nowrap uppercase">
             Make It Yours
           </span>
         </button>

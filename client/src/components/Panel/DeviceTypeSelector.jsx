@@ -296,7 +296,7 @@ function DeviceTypeSelector() {
           <Plus
             onClick={() => setShowCustomSizeInput(true)}
             strokeWidth={3}
-            className="size-[21px] cursor-pointer hover:text-[var(--text-primary)]/50"
+            className="size-[21px] cursor-pointer text-[var(--text-primary)] hover:text-[var(--text-primary)]/50"
           />
         )}
       </div>
@@ -344,7 +344,7 @@ function DeviceTypeSelector() {
             <Plus
               onClick={() => setShowCustomSizeInput(true)}
               strokeWidth={3}
-              className="size-[21px] self-center cursor-pointer hover:text-[var(--text-primary)]/50"
+              className="size-[21px] self-center cursor-pointer text-[var(--text-secondary)] hover:text-[var(--text-primary)]/50"
             />
           )}
       </div>

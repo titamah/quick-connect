@@ -58,10 +58,13 @@ function Panel({
 
     let panelHeight = panelSize.height;
     
-    if (key === "1" || key === "2") {
-      panelHeight = 360;
+    if (key === "1" ) {
+      panelHeight = 275;
+    }
+      else if ( key === "2") {
+        panelHeight = 275;
     } else if (key === "3") {
-      panelHeight = 325;
+      panelHeight = 335;
     } else if (key === "4") {
       panelHeight = 250;
     }
@@ -69,7 +72,12 @@ function Panel({
     setPanelSize(prev => ({ ...prev, height: panelHeight }));
 
     if (isMobile && canvasRef?.current) {
-      if (key === "2") {
+      if (key === "1") {
+        setTimeout(() => {
+          canvasRef.current.centerTopInCanvas(0.55, panelHeight);
+        }, 50);
+
+    } else if (key === "2") {
         let deviceScale = 1.0;
         if (qrConfig.scale < 0.3) {
           deviceScale = 1.3;
@@ -79,9 +87,13 @@ function Panel({
         setTimeout(() => {
           canvasRef.current.centerInVisibleArea(deviceScale, panelHeight);
         }, 50);
-      } else {
+      } else if (key === "3") {
         setTimeout(() => {
           canvasRef.current.centerTopInCanvas(0.5, panelHeight);
+        }, 50);
+      } else if (key === "4") {
+        setTimeout(() => {
+          canvasRef.current.centerTopInCanvas(0.66, panelHeight);
         }, 50);
       }
     }
