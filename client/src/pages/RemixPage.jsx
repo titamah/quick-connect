@@ -218,9 +218,10 @@ const RemixPage = () => {
     );
   }
   return (
-    <div className="overlow-hidden flex flex-col h-fit min-h-[calc(100dvh-40px)] md:min-h-[calc(100dvh-60px)] items-center justify-center relative p-10 bg-[var(--bg-secondary)]">
-      <section className=" w-full p-10 sm:p-20 flex flex-col items-center justify-center gap-8 sm:gap-10 relative self-stretch max-w-[850px] w-fit m-auto top-[45%] bg-[var(--bg-main)] rounded-[30px] sm:rounded-[45px] border-[0.5px] border-solid border-[var(--border-color)] ">
-      <p className="relative w-full rubik font-black text-4xl sm:text-5xl text-[var(--text-secondary)] text-center tracking-wider [font-variant:all-small-caps] ">
+    
+    <div className="overlow-hidden flex flex-col h-full min-h-[calc(100dvh-40px)] md:min-h-[calc(100dvh-60px)] items-center relative p-10 bg-[var(--bg-secondary)]">
+      <section className=" w-full px-5 py-10 sm:p-20 flex flex-col items-center justify-center gap-8 sm:gap-10 relative self-stretch max-w-[850px] w-fit m-auto my-auto top-[45%] bg-[var(--bg-main)] rounded-[30px] sm:rounded-[45px] border-[0.5px] border-solid border-[var(--border-color)] ">
+      <p className="relative w-full rubik font-black text-4xl sm:text-5xl text-[var(--text-primary)] text-center leading-[0.75] tracking-wider [font-variant:all-small-caps] ">
           Remix This Qreation
         </p>
         <div className="  w-[95%] bg-[var(--accent)] rounded-lg overflow-hidden flex items-center justify-center">
