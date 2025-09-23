@@ -178,7 +178,9 @@ const CustomResizable = forwardRef(
         style={{
           width: isSide ? `${panelSize.width}px` : "100%",
           height: isSide ? "100%" : `${panelSize.height}px`,
-          transition: isSide ? "width 300ms ease-in-out" : "height 300ms ease-in-out",
+          transition: resizeStateRef.current.isResizing 
+            ? "none" 
+            : (isSide ? "width 300ms ease-in-out" : "height 300ms ease-in-out"),
           ...style,
         }}
       >
