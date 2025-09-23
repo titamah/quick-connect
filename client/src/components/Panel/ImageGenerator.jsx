@@ -23,7 +23,7 @@ function ImageGenerator({
   generatedInfo,
   updateGeneratedInfo,
 }) {
-  const { device, generationHistory, setGenerationHistory } = useDevice();
+  const { device, generationHistory, setGenerationHistory, isMobile } = useDevice();
   const [prompt, setPrompt] = useState("");
   const [selectedVibe, setSelectedVibe] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -185,7 +185,8 @@ function ImageGenerator({
   };
   return (
     <>
-      <div className="pointer-events-auto relative p-1 h-full w-full mb-[1.5px] rounded-sm border border-[5px] bg-[var(--bg-main)] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)] flex flex-col gap-1.5 relative">
+      <div className={`pointer-events-auto relative p-1 
+      ${isMobile ? "h-[150px]" : "h-[200px]}"} w-full mb-[1.5px] rounded-sm border border-[5px] bg-[var(--bg-main)] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)] flex flex-col gap-1.5 relative`}>
         {}
         {isGenerating && (
           <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center py-8 text-center z-10">
@@ -210,7 +211,7 @@ function ImageGenerator({
           <>
             <h3 className="px-0.5 ">Prompt</h3>
             {}
-            <form onSubmit={handleSubmit} className="">
+            <form onSubmit={handleSubmit} className="mb-1.5 ">
               <textarea
                 value={prompt}
                 onKeyDown={(e) => {
@@ -223,7 +224,7 @@ function ImageGenerator({
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder="Describe your background..."
                 disabled={isGenerating || generationCount >= 5}
-                className="text-xs w-full h-20 p-1.5 bg-[var(--bg-main)] rounded-md !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)] disabled:opacity-50 resize-none"
+                className="text-xs w-full h-full p-1.5 bg-[var(--bg-main)] rounded-md !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)] disabled:opacity-50 resize-none"
               />
             </form>
           </>

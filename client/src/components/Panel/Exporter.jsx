@@ -148,7 +148,7 @@ const Exporter = forwardRef(({ wallpaperRef }, ref) => {
       <div className="flex-col text-xs py-1.5">
         <span className="flex place-content-between">
           <h4>Size</h4>
-          <span className="text-xs">x{downloadSettings.size}</span>
+          <span className="text-xs text-[var(--text-secondary)]">x{downloadSettings.size}</span>
         </span>
         <input
           type="range"
@@ -198,7 +198,7 @@ const Exporter = forwardRef(({ wallpaperRef }, ref) => {
           }
         />
         <span className="flex place-content-end w-full">
-          <span className="italic opacity-50 text-[10px] h-2">
+          <span className="italic opacity-50 text-[10px] h-2  text-[var(--text-secondary)]">
             ({Math.ceil(device.size.x * downloadSettings.size)} x{" "}
             {Math.ceil(device.size.y * downloadSettings.size)})
           </span>
@@ -209,7 +209,7 @@ const Exporter = forwardRef(({ wallpaperRef }, ref) => {
         <div className="flex-col text-xs pt-1.5">
           <span className="flex place-content-between">
             <h4>Quality</h4>
-            <span className="text-xs">
+            <span className="text-xs text-[var(--text-secondary)]">
               {Math.round(downloadSettings.quality * 100)}%
             </span>
           </span>

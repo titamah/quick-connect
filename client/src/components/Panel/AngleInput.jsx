@@ -48,7 +48,7 @@ const AngleInput = ({ type = "qr", angle: currentAngle, onUpdate }) => {
     <div className="flex flex-row w-full items-center gap-2">
       <div className="flex flex-row items-center w-full gap-1">
         <RotateCcw
-          className="opacity-75 hover:opacity-100 cursor-pointer"
+          className="opacity-75 hover:opacity-100  text-[var(--text-secondary)] cursor-pointer"
           size={20}
           onMouseDown={() => {
             handleMouseDown(-1, -180);
@@ -74,7 +74,7 @@ const AngleInput = ({ type = "qr", angle: currentAngle, onUpdate }) => {
           onBlur={handleAngleBlur}
         />
         <RotateCw
-          className="opacity-75 hover:opacity-100 cursor-pointer"
+          className="opacity-75 hover:opacity-100  text-[var(--text-secondary)] cursor-pointer"
           size={20}
           onMouseDown={() => {
             handleMouseDown(1, 180);
