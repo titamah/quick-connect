@@ -219,16 +219,16 @@ const RemixPage = () => {
   }
   return (
     <div className="overlow-hidden flex flex-col h-fit min-h-[calc(100dvh-40px)] md:min-h-[calc(100dvh-60px)] items-center justify-center relative p-10 bg-[var(--bg-secondary)]">
-      <section className="  h-fit p-10 sm:p-20 flex flex-col items-center justify-center gap-8 sm:gap-10 relative self-stretch max-w-[850px] w-fit m-auto bg-[var(--bg-main)] rounded-[30px] sm:rounded-[45px] border-[0.5px] border-solid border-[var(--border-color)] ">
-      <p className="relative w-fit rubik font-black text-4xl sm:text-5xl text-[var(--text-secondary)] text-center tracking-wider [font-variant:all-small-caps] whitespace-nowrap">
-      Remix This Qreation
+      <section className=" w-full p-10 sm:p-20 flex flex-col items-center justify-center gap-8 sm:gap-10 relative self-stretch max-w-[850px] w-fit m-auto top-[45%] bg-[var(--bg-main)] rounded-[30px] sm:rounded-[45px] border-[0.5px] border-solid border-[var(--border-color)] ">
+      <p className="relative w-full rubik font-black text-4xl sm:text-5xl text-[var(--text-secondary)] text-center tracking-wider [font-variant:all-small-caps] ">
+          Remix This Qreation
         </p>
-        <div className="md:w-[700px] w-full md:h-[350px] bg-[var(--bg-secondary)] rounded-lg overflow-hidden flex items-center justify-center">
+        <div className="  w-[95%] bg-[var(--accent)] rounded-lg overflow-hidden flex items-center justify-center">
           {remixData.thumbnail_url ? (
             <img
               src={remixData.thumbnail_url}
               alt="Remix preview"
-              className="w-full h-full object-contain"
+              className=" w-full h-full object-contain"
               onError={(e) => {
                 e.target.style.display = "none";
                 e.target.nextSibling.style.display = "flex";
@@ -245,7 +245,7 @@ const RemixPage = () => {
             </div>
           </div>
         </div>
-        <div className="flex flex-row items-center space-x-6 text-sm text-[var(--text-secondary)]">
+        <div className="flex flex-row items-center justify-around w-full text-sm text-[var(--text-secondary)]">
         <h3 className="flex flex-row items-center gap-2"> <Clock size={21}/>{getDaysUntilExpiry(remixData.expires_at)}</h3>
           <h3 className="flex flex-row items-center gap-2"> <Eye size={21} />{`${remixData.view_count || 0} views`}</h3> 
           </div>

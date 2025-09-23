@@ -7,9 +7,9 @@ function StartDesignPage() {
   };
   return (
     <div className="overlow-hidden flex flex-col h-full min-h-[calc(100dvh-40px)] md:min-h-[calc(100dvh-60px)] items-center relative p-10 bg-[var(--bg-secondary)]">
-      <section className=" p-10 sm:p-20 flex flex-col items-center justify-center gap-8 sm:gap-10 relative self-stretch max-w-[850px] w-fit m-auto my-auto mt-20 bg-[var(--bg-main)] rounded-[30px] sm:rounded-[45px] border-[0.5px] border-solid border-[var(--border-color)] ">
-        <p className="relative w-fit rubik font-black text-4xl sm:text-5xl text-[var(--accent)] text-center tracking-wider leading-[0.75] [font-variant:all-small-caps] whitespace-nowrap">
-          Build Your <br/>Qreation
+      <section className=" w-full p-10 sm:p-20 flex flex-col items-center justify-center gap-8 sm:gap-10 relative self-stretch max-w-[850px] w-fit m-auto my-auto top-[45%] bg-[var(--bg-main)] rounded-[30px] sm:rounded-[45px] border-[0.5px] border-solid border-[var(--border-color)] ">
+      <p className="relative w-full rubik font-black text-4xl sm:text-5xl text-[var(--text-secondary)] text-center tracking-wider [font-variant:all-small-caps] ">
+          Build Your Qreation
         </p>
         {/* <p className="relative mt-[-1.00px] rubik font-extrabold text-[var(--accent)] text-4xl sm:text-5xl text-center tracking-[0] leading-[43.2px]">
           Ready to make it yours?
@@ -18,12 +18,12 @@ function StartDesignPage() {
         Make your mark. Whether it’s your LinkedIn or that brilliant side project, QRKI puts your best link front and center. <br/>Ready to get started?
         </p>
         <button
-          className=" cursor-pointer inline-flex flex-col justify-center py-[12px] px-[18px] bg-[#03bec0] rounded-[60px] border border-solid border-[#817e6ba8] items-center gap-2.5 relative flex-[0_0_auto] hover:bg-[#02a8aa] transition-colors duration-200 "
+          className="inline-flex flex-col justify-center py-[8px] px-[12px] bg-[#03bec0]  rounded-[60px] border border-solid border-[#817e6ba8] items-center gap-2.5 relative flex-[0_0_auto] hover:opacity-75 cursor-pointer transition-colors duration-200"
           onClick={handleStartNewDesign}
           aria-label="Start creating from scratch"
         >
-          <span className="relative w-fit font-normal text-black text-lg sm:text-xl text-center tracking-wide leading-[normal] whitespace-nowrap uppercase">
-            Let's Do This
+          <span className="relative w-fit font-normal text-black text-lg sm:text-lg text-center tracking-wide leading-[normal] whitespace-nowrap uppercase">
+          Let's Do This
           </span>
         </button>
       </section>
