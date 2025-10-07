@@ -2,6 +2,7 @@ import { useState, forwardRef, useEffect } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import { usePreview } from "../../contexts/PreviewContext";
 import { useToast } from "../Toast";
+import Slider from "../Slider";
 
 const Exporter = forwardRef(({ wallpaperRef }, ref) => {
   const { device, updateDeviceInfo, takeSnapshot, isMobile } = useDevice();
@@ -150,53 +151,21 @@ const Exporter = forwardRef(({ wallpaperRef }, ref) => {
           <h4>Size</h4>
           <span className="text-xs text-[var(--text-secondary)]">x{downloadSettings.size}</span>
         </span>
-        <input
-          type="range"
-          className="w-full bg-transparent cursor-pointer appearance-none disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden
-  [&::-webkit-slider-thumb]:w-2.5
-  [&::-webkit-slider-thumb]:h-2.5
-  [&::-webkit-slider-thumb]:-mt-0.5
-  [&::-webkit-slider-thumb]:appearance-none
-  [&::-webkit-slider-thumb]:bg-[var(--accent)]
-  [&::-webkit-slider-thumb]:shadow-[0_0_0_4px_rgba(37,99,235,1)]
-  [&::-webkit-slider-thumb]:rounded-full
-  [&::-webkit-slider-thumb]:transition-all
-  [&::-webkit-slider-thumb]:duration-150
-  [&::-webkit-slider-thumb]:ease-in-out
-  dark:[&::-webkit-slider-thumb]:bg-neutral-700
-  [&::-moz-range-thumb]:w-2.5
-  [&::-moz-range-thumb]:h-2.5
-  [&::-moz-range-thumb]:appearance-none
-  [&::-moz-range-thumb]:bg-[var(--accent)]
-  [&::-moz-range-thumb]:border-4
-  [&::-moz-range-thumb]:border-blue-600
-  [&::-moz-range-thumb]:rounded-full
-  [&::-moz-range-thumb]:transition-all
-  [&::-moz-range-thumb]:duration-150
-  [&::-moz-range-thumb]:ease-in-out
-  [&::-webkit-slider-runnable-track]:w-full
-  [&::-webkit-slider-runnable-track]:h-2
-  [&::-webkit-slider-runnable-track]:bg-gray-100
-  [&::-webkit-slider-runnable-track]:rounded-full
-  dark:[&::-webkit-slider-runnable-track]:bg-neutral-700
-  [&::-moz-range-track]:w-full
-  [&::-moz-range-track]:h-2
-  [&::-moz-range-track]:bg-gray-100
-  [&::-moz-range-track]:rounded-full"
-          id="steps-range-slider-usage"
-          aria-orientation="horizontal"
-          min="0.25"
-          max="3"
-          step="0.25"
-          value={downloadSettings.size}
-          title={downloadSettings.size}
-          onChange={(e) =>
-            setDownloadSettings({
-              ...downloadSettings,
-              size: e.target.value,
-            })
-          }
-        />
+        <div className="relative">
+          <Slider
+            id="export-size"
+            value={downloadSettings.size}
+            min={0.25}
+            max={3}
+            step={0.25}
+            onChange={(e) =>
+              setDownloadSettings((s) => ({
+                ...s,
+                size: parseFloat(e.target.value),
+              }))
+            }
+          />
+        </div>
         <span className="flex place-content-end w-full">
           <span className="italic opacity-50 text-[10px] h-2  text-[var(--text-secondary)]">
             ({Math.ceil(device.size.x * downloadSettings.size)} x{" "}
@@ -213,53 +182,21 @@ const Exporter = forwardRef(({ wallpaperRef }, ref) => {
               {Math.round(downloadSettings.quality * 100)}%
             </span>
           </span>
-          <input
-            type="range"
-            className="w-full bg-transparent cursor-pointer appearance-none disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden
-  [&::-webkit-slider-thumb]:w-2.5
-  [&::-webkit-slider-thumb]:h-2.5
-  [&::-webkit-slider-thumb]:-mt-0.5
-  [&::-webkit-slider-thumb]:appearance-none
-  [&::-webkit-slider-thumb]:bg-[var(--accent)]
-  [&::-webkit-slider-thumb]:shadow-[0_0_0_4px_rgba(37,99,235,1)]
-  [&::-webkit-slider-thumb]:rounded-full
-  [&::-webkit-slider-thumb]:transition-all
-  [&::-webkit-slider-thumb]:duration-150
-  [&::-webkit-slider-thumb]:ease-in-out
-  dark:[&::-webkit-slider-thumb]:bg-neutral-700
-  [&::-moz-range-thumb]:w-2.5
-  [&::-moz-range-thumb]:h-2.5
-  [&::-moz-range-thumb]:appearance-none
-  [&::-moz-range-thumb]:bg-[var(--accent)]
-  [&::-moz-range-thumb]:border-4
-  [&::-moz-range-thumb]:border-blue-600
-  [&::-moz-range-thumb]:rounded-full
-  [&::-moz-range-thumb]:transition-all
-  [&::-moz-range-thumb]:duration-150
-  [&::-moz-range-thumb]:ease-in-out
-  [&::-webkit-slider-runnable-track]:w-full
-  [&::-webkit-slider-runnable-track]:h-2
-  [&::-webkit-slider-runnable-track]:bg-gray-100
-  [&::-webkit-slider-runnable-track]:rounded-full
-  dark:[&::-webkit-slider-runnable-track]:bg-neutral-700
-  [&::-moz-range-track]:w-full
-  [&::-moz-range-track]:h-2
-  [&::-moz-range-track]:bg-gray-100
-  [&::-moz-range-track]:rounded-full"
-            id="steps-range-slider-usage"
-            aria-orientation="horizontal"
-            min="0.1"
-            max="1"
-            step="0.01"
-            value={downloadSettings.quality}
-            title={downloadSettings.quality}
-            onChange={(e) =>
-              setDownloadSettings({
-                ...downloadSettings,
-                quality: parseFloat(e.target.value),
-              })
-            }
-          />
+          <div className="relative">
+            <Slider
+              id="export-quality"
+              value={downloadSettings.quality}
+              min={0.1}
+              max={1}
+              step={0.01}
+              onChange={(e) =>
+                setDownloadSettings((s) => ({
+                  ...s,
+                  quality: parseFloat(e.target.value),
+                }))
+              }
+            />
+          </div>
         </div>
       )}
 

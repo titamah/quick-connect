@@ -1,5 +1,5 @@
 import ColorPicker from "./ColorPicker";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useDevice } from "../contexts/DeviceContext";
 const Slider = ({
   id,
@@ -25,6 +25,7 @@ const Slider = ({
   const containerRef = useRef(null);
   const sliderRef = useRef(null);
   const colorPickerRef = useRef(null);
+  const rafRef = useRef(null);
   const updateThumbPosition = () => {
     if (!sliderRef.current) return;
     const slider = sliderRef.current;
@@ -37,6 +38,28 @@ const Slider = ({
   }, [value]);
   const [needsSnapshot, setNeedsSnapshot] = useState(false);
   const timeoutRef = useRef(null);
+
+  // rAF onChange to coalesce rapid slider updates
+  const onChangeRaf = useCallback((e) => {
+    const value = e.target.value;
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    rafRef.current = requestAnimationFrame(() => {
+      // Create a minimal event-like object for compatibility
+      onChange?.({ target: { value } });
+      rafRef.current = null;
+    });
+  }, [onChange]);
+
+  // Cleanup rAF on unmount
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
   const handleColorChange = (color) => {
     if (needsSnapshot) {
       takeSnapshot();
@@ -59,7 +82,6 @@ const Slider = ({
     }
   };
 
-  // Function to trigger ColorPicker when click is detected (no drag)
   const triggerColorPicker = () => {
     if (!drag && colorPickerRef.current) {
       colorPickerRef.current.open();
@@ -122,14 +144,13 @@ const Slider = ({
                 setDrag(false);
               }}
               onMouseUp={() => {
-                // Use your original logic: trigger ColorPicker if no drag detected
                 setTimeout(() => {
                   if (!drag) {
                     triggerColorPicker();
                   }
-                }, 50); // Small delay to ensure drag state is set
+                }, 50);
               }}
-              onChange={onChange}
+              onChange={onChangeRaf}
               onBlur={onBlur}
               onTouchStart={() => {
                 console.log("📱 Touch start detected on stacked slider", { stacked });
@@ -137,7 +158,6 @@ const Slider = ({
                 setDrag(false);
               }}
               onTouchEnd={() => {
-                // Same logic for touch
                 setTimeout(() => {
                   if (!drag) {
                     triggerColorPicker();
@@ -147,7 +167,6 @@ const Slider = ({
               className="appearance-none w-full absolute -translate-y-[2px]"
             />
             
-            {/* ColorPicker without trigger - controlled remotely */}
             <div style={{ display: 'none' }}>
               <ColorPicker
                 ref={colorPickerRef}
@@ -182,7 +201,7 @@ const Slider = ({
               takeSnapshot();
               setDrag(false);
             }}
-            onChange={onChange}
+            onChange={onChangeRaf}
             onBlur={onBlur}
             onTouchStart={() => {
               console.log("📱 Touch start detected on slider");

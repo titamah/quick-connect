@@ -3,7 +3,6 @@ import { HexColorPicker, HexAlphaColorPicker } from 'react-colorful';
 import { createPortal } from 'react-dom';
 import chroma from 'chroma-js';
 import { useDevice } from '../contexts/DeviceContext';
-import { useThrottledCallback } from '../hooks/useDebounce';
 
 const ColorPicker = forwardRef(({
   value,
@@ -40,6 +39,7 @@ const ColorPicker = forwardRef(({
   const hexInputRef = useRef(null);
   const alphaInputRef = useRef(null);
   const isPressing = useRef(false);
+  const rafRef = useRef(null);
   
   // Parse color value
   const colorObj = chroma.valid(value) ? chroma(value) : chroma('#ffffff');
@@ -52,10 +52,16 @@ const ColorPicker = forwardRef(({
     setLocalAlpha(Math.round(chroma(value).alpha() * 100));
   }, [value]);
 
-  // Throttled onChange to prevent color picker stuttering
-  const throttledOnChange = useThrottledCallback((newColor) => {
-    onChange?.(newColor);
-  }, 16); // 60fps
+  // rAF onChange to prevent color picker stuttering
+  const onChangeRaf = useCallback((newColor) => {
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    rafRef.current = requestAnimationFrame(() => {
+      onChange?.(newColor);
+      rafRef.current = null;
+    });
+  }, [onChange]);
 
   // Handle color change with snapshot system (matching ColorSelector pattern)
   const handleColorChange = useCallback((newColor) => {
@@ -72,14 +78,14 @@ const ColorPicker = forwardRef(({
       setLocalAlpha(Math.round(chroma(newColor).alpha() * 100));
     }
     
-    // Use throttled onChange to prevent stuttering
-    throttledOnChange(newColor);
+    // Use rAF onChange to prevent stuttering
+    onChangeRaf(newColor);
     
     clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       setNeedsSnapshot(true);
     }, 500);
-  }, [needsSnapshot, takeSnapshot, hasAlpha, throttledOnChange]);
+  }, [needsSnapshot, takeSnapshot, hasAlpha, onChangeRaf]);
 
 
   // Hex input handlers
@@ -142,6 +148,15 @@ const ColorPicker = forwardRef(({
     clearTimeout(timeoutRef.current);
     onOpenChange?.(false);
   }, [onOpenChange]);
+
+  // Cleanup rAF on unmount
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
 
   // Expose methods to parent via ref
   useImperativeHandle(ref, () => ({
