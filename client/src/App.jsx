@@ -11,6 +11,7 @@ const LandingPage = lazy(() => import("./pages/LandingPage"));
 const StartDesignPage = lazy(() => import("./pages/StartDesignPage"));
 const StudioPage = lazy(() => import("./pages/StudioPage"));
 const RemixPage = lazy(() => import("./pages/RemixPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 function App() {
   const [isDarkMode, setIsDarkMode] = React.useState(false);
   React.useEffect(() => {
@@ -37,6 +38,7 @@ function App() {
                 <Route path="/start-design" element={<StartDesignPage />} />
                 <Route path="/studio" element={<StudioPage />} />
                 <Route path="/remix/:remixId" element={<RemixPage />} />
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
           </Router>
