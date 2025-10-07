@@ -12,6 +12,7 @@ const ColorSelector = ({ panelSize }) => {
   const [inputText, setInputText] = useState(background.color);
   const [needsSnapshot, setNeedsSnapshot] = useState(false);
   const timeoutRef = useRef(null);
+  const rafRef = useRef(null);
   useEffect(() => {
     setInputText(background.color.toUpperCase());
     console.log(device.palette);
@@ -61,6 +62,15 @@ const ColorSelector = ({ panelSize }) => {
       pickerElement.removeEventListener("touchstart", handleTouchStart);
       pickerElement.removeEventListener("touchend", handleTouchEnd);
       clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
+  // Cleanup rAF on unmount
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
     };
   }, []);
   const colorBoxes = useMemo(() => {
@@ -113,13 +123,22 @@ const ColorSelector = ({ panelSize }) => {
         setNeedsSnapshot(false);
       }
       setInputText(newColor.toUpperCase());
-      updateBackground({ color: newColor });
+      
+      // Use rAF to coalesce rapid color updates
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+      rafRef.current = requestAnimationFrame(() => {
+        updateBackground({ color: newColor });
+        rafRef.current = null;
+      });
+      
       clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => {
         setNeedsSnapshot(true);
       }, 500);
     },
-    [needsSnapshot, takeSnapshot]
+    [needsSnapshot, takeSnapshot, updateBackground]
   );
   const handleInputChange = useCallback((e) => {
     let newValue = e.target.value.toUpperCase();

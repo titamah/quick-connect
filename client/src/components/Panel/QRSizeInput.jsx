@@ -1,6 +1,5 @@
 import React, { useRef } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
-import { useThrottledCallback } from "../../hooks/useDebounce";
 import Slider from "../Slider";
 
 const SNAP_THRESHOLD = 0.03; 
@@ -10,10 +9,6 @@ const QRSizeInput = ({ scale, onUpdate }) => {
   const { takeSnapshot } = useDevice();
   const currentSizeRef = useRef(scale);
   currentSizeRef.current = scale;
-
-  const throttledUpdateSize = useThrottledCallback((size) => {
-    onUpdate(size);
-  }, 16);
 
   const applySnapping = (value) => {
     for (const snapPoint of SNAP_POINTS) {
@@ -27,7 +22,7 @@ const QRSizeInput = ({ scale, onUpdate }) => {
   const handleSliderChange = (e) => {
     const rawValue = parseFloat(e.target.value);
     const snappedValue = applySnapping(rawValue);
-    throttledUpdateSize(snappedValue);
+    onUpdate(snappedValue);
   };
 
   const handleSliderMouseDown = () => {

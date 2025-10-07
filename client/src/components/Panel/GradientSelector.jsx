@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
-import { useThrottledCallback } from "../../hooks/useDebounce";
 import Slider from "../Slider";
 import Dropdown from "./Dropdown";
 import PositionInput from "./PositionInput";
@@ -11,10 +10,6 @@ import "./styles.css";
 function GradientSelector() {
   const { device, updateBackground, takeSnapshot, updateGrain } = useDevice();
   
-  // RAF-based updateBackground to prevent mobile crashes - browser optimized timing
-  const rafUpdateBackground = useCallback((updates) => {
-    requestAnimationFrame(() => updateBackground(updates));
-  }, [updateBackground]);
   const gradientBar = useRef(null);
   const [frozenPreset, setFrozenPreset] = useState(null);
   const [processedStops, setProcessedStops] = useState([]);
@@ -259,7 +254,7 @@ function GradientSelector() {
                     takeSnapshot("Delete gradient stop");
                     const newStops = [...device.gradient.stops];
                     newStops.splice(index * 2, 2);
-                    rafUpdateBackground({
+                    updateBackground({
                       gradient: {
                         ...device.gradient,
                         stops: newStops,
@@ -277,7 +272,7 @@ function GradientSelector() {
                     const newPercent = Number(e.target.value) / 100;
                     const newStops = [...device.gradient.stops];
                     newStops[index * 2] = newPercent;
-                    rafUpdateBackground({
+                    updateBackground({
                       gradient: {
                         ...device.gradient,
                         stops: newStops,
@@ -285,13 +280,11 @@ function GradientSelector() {
                     });
                   }}
                   onBlur={() => {
-                    // Remove redundant blur update - debounced updates handle this
                   }}
                   changeColor={(e) => {
-                    // e is now a plain hex string from react-colorful, just like ColorSelector
                     const newStops = [...device.gradient.stops];
                     newStops[index * 2 + 1] = e;
-                    rafUpdateBackground({
+                    updateBackground({
                       gradient: {
                         ...device.gradient,
                         stops: newStops,
