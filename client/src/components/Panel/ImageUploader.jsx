@@ -39,15 +39,16 @@ function ImageUploader({ handleChange, fileTypes, updateUploadInfo, openModal })
       className={`h-full px-1 rounded-sm hover:bg-[var(--border-color)]/50 w-full flex flex-col justify-center items-center text-center text-md gap-1 relative cursor-pointer`}
     >
       <Upload size={48} />
-      Drop image here or browse to select a file
+      Drop here or browse to select a file
       <span className="text-xs italic text-black/65 dark:text-white/65">
-        Supported formats: JPEG, PNG, GIF, SVG, JPG, WEBP
+        Supported formats: JPEG, PNG, 
+        <br/>GIF, SVG, JPG, WEBP
       </span>
     </div>
     </div>
     <div className=" mt-4 space-y-2">
           <h4 className=""> File Name </h4>
-          <div className="w-fill h-[24px]  px-1.5 py-[2.5px] border border-[var(--border-color)]/50 rounded-sm bg-black/5 dark:bg-black/15 flex items-center justify-between">
+          <div className="w-fill h-[24px] text-sm px-1.5 py-[2.5px] border border-[var(--border-color)]/50 rounded-sm bg-black/5 dark:bg-black/15 flex items-center justify-between">
             <span>
               No image selected
             </span>

@@ -3,7 +3,6 @@ import { useDevice } from "../../contexts/DeviceContext";
 import LoadingSpinner from "../LoadingSpinner";
 import ColorSelector from "./ColorSelector";
 
-// Lazy load heavy components
 const ImageInput = lazy(() => import("./ImageInput"));
 const GradientSelector = lazy(() => import("./GradientSelector"));
 const BACKGROUND_TYPES = [
@@ -33,7 +32,7 @@ function CustomBackgroundSelector({ panelSize }) {
       onClick={() => handleTabChange(id, style)}
       className={`
         inline-flex justify-center items-center rounded-xl 
-        w-full max-w-[150px] px-3 py-1.5 
+        w-full max-w-[150px] px-3 py-1.5 h-[26px]
         transition-colors duration-200
         ${
           activeTab === id
@@ -59,10 +58,18 @@ function CustomBackgroundSelector({ panelSize }) {
     <div
       role="tabpanel"
       aria-labelledby="background-selector-panel"
-      className={` w-full${isMobile ? "rounded-t-2xl h-full" : ""} flex-1 overflow-y-scroll min-h-0`}
+      className={` w-full${
+        isMobile ? "rounded-t-2xl h-full" : ""
+      } flex-1 overflow-y-scroll min-h-0`}
     >
-      <div className={`border-b border-[var(--border-color)]/25 p-3.5 ${isMobile ? "mt-1" : ""}`}>
-        <h2 className={`${isMobile ? "hidden" : "mb-5"}`}>Set Background</h2>
+      <div
+        className={`flex-shrink-0 bg-[#f2f2f2] dark:bg-[#1a1818] ${
+          isMobile
+            ? "pb-2 pt-5 px-2 mb-3 rounded-t-2xl sticky top-0 z-100"
+            : "px-2.5 pt-3.5 pb-2"
+        }`}
+      >
+        <h3 className={`${isMobile ? "mb-1.5 px-1" : "px-1 mb-2"}`}>Background Style</h3>
         <nav
           className="flex gap-2 bg-[var(--border-color)]/50 rounded-xl justify-center "
           aria-label="Background type tabs"
@@ -71,13 +78,18 @@ function CustomBackgroundSelector({ panelSize }) {
           {BACKGROUND_TYPES.map(renderTabButton)}
         </nav>
       </div>
-      <div className="px-3.5 py-2.5">
+
+      <h2 className={`${isMobile ? "hidden" : "p-3.5"}`}>Set Background</h2>
+      
+      <div className="px-3.5 pb-2.5">
         {ActiveComponent && (
-          <Suspense fallback={
-            <div className="flex items-center justify-center h-32">
-              <LoadingSpinner size="medium" variant="logo" />
-            </div>
-          }>
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center h-32">
+                <LoadingSpinner size="medium" variant="logo" />
+              </div>
+            }
+          >
             <ActiveComponent panelSize={panelSize} />
           </Suspense>
         )}

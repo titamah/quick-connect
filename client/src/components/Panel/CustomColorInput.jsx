@@ -25,7 +25,7 @@ export default function CustomColorInput({
   const [needsSnapshot, setNeedsSnapshot] = useState(false);
   const timeoutRef = useRef(null);
   const handleColorChange = (color) => {
-    // color is already a hex string from react-colorful
+
     const hexString = typeof color === 'string' ? color : chroma(color).hex();
     setLocalHex(hexString.slice(0, 7).toUpperCase());
     if (needsSnapshot) {

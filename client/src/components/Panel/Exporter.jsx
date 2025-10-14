@@ -75,15 +75,20 @@ const Exporter = forwardRef(({ wallpaperRef }, ref) => {
   }, [device.name]);
 
   return (
-    <div className={`w-full${isMobile ? "rounded-t-2xl h-full" : ""} flex-1 overflow-y-scroll min-h-0 gap-y-3.5 p-3.5`}>
-      <h2 className={`${isMobile ? "hidden" : ""}`}>Save Wallpaper</h2>
+    <div className={`w-full${isMobile ? "rounded-t-2xl h-full" : ""} flex-1 overflow-y-scroll min-h-0`}>
       
-      <div>
-        <h4 className="py-1.5">File Name</h4>
+      <div
+        className={`flex-shrink-0 bg-[#f2f2f2] dark:bg-[#1a1818] ${
+          isMobile
+            ? "pb-2 pt-5 px-2 mb-3 rounded-t-2xl sticky top-0 z-100"
+            : "px-2.5 pt-3.5 pb-2"
+        }`}
+      >
+        <h3 className={`${isMobile ? "mb-1.5 px-1" : "px-1 mb-2"}`}>File Name</h3>
         <input
           id="qr-input"
           type="text"
-          className="w-full px-2 py-1 text-xs bg-black/5 dark:bg-black/15 border border-[var(--border-color)]/50 focus:outline-none focus:border-[var(--accent)]/50 rounded-xl"
+          className={`w-full px-2 py-1 text-xs bg-[var(--bg-main)] border border-[var(--border-color)]/50 focus:outline-none focus:border-[var(--accent)]/50 rounded-xl`}
           value={name}
           onChange={(e) => {
             setName(e.target.value);
@@ -101,12 +106,14 @@ const Exporter = forwardRef(({ wallpaperRef }, ref) => {
           }}
         />
       </div>
+      
+      <h2 className={`${isMobile ? "hidden" : ""} p-3.5`}>Save Wallpaper</h2>
 
-      <div className="flex-col rounded-lg">
-        <h4 className="py-1.5">File Type</h4>
-        <ul className="flex flex-row bg-black/5 dark:bg-black/15 rounded-lg">
+      <div className="flex-col rounded-lg pb-3.5 px-3.5">
+        <h4 className="pb-1.5">File Type</h4>
+        <ul className="flex flex-row bg-black/5 dark:bg-black/15 rounded-lg ">
           <li
-            className="inline-flex w-full py-1 px-4 border border-[var(--border-color)]/50 border-r-[var(--border-color)]/25 rounded-tl-lg rounded-bl-lg cursor-pointer hover:bg-[var(--border-color)]/10"
+            className="inline-flex w-full py-0.5 px-4 border border-[var(--border-color)]/50 border-r-[var(--border-color)]/25 rounded-tl-lg rounded-bl-lg cursor-pointer hover:bg-[var(--border-color)]/10"
             onClick={() =>
               setDownloadSettings({ ...downloadSettings, isPng: true })
             }
@@ -120,12 +127,12 @@ const Exporter = forwardRef(({ wallpaperRef }, ref) => {
                 }`}
               ></div>
             </div>
-            <div className="ms-3 block w-full text-sm text-gray-600 dark:text-neutral-500 cursor-pointer">
+            <div className="ms-2 block w-full text-sm text-gray-600 dark:text-neutral-500 cursor-pointer">
               PNG
             </div>
           </li>
           <li
-            className="inline-flex w-full py-1 px-4 border border-[var(--border-color)]/50 border-l-[var(--border-color)]/25 rounded-tr-lg rounded-br-lg cursor-pointer hover:bg-[var(--border-color)]/10"
+            className="inline-flex w-full py-0.5 px-4 border border-[var(--border-color)]/50 border-l-[var(--border-color)]/25 rounded-tr-lg rounded-br-lg cursor-pointer hover:bg-[var(--border-color)]/10"
             onClick={() =>
               setDownloadSettings({ ...downloadSettings, isPng: false })
             }
@@ -139,14 +146,14 @@ const Exporter = forwardRef(({ wallpaperRef }, ref) => {
                 }`}
               ></div>
             </div>
-            <div className="ms-3 block w-full text-sm text-gray-600 dark:text-neutral-500 cursor-pointer">
+            <div className="ms-2 block w-full text-sm text-gray-600 dark:text-neutral-500 cursor-pointer">
               JPEG
             </div>
           </li>
         </ul>
       </div>
 
-      <div className="flex-col text-xs py-1.5">
+      <div className="flex-col text-xs pb-2.5 px-3.5">
         <span className="flex place-content-between">
           <h4>Size</h4>
           <span className="text-xs text-[var(--text-secondary)]">x{downloadSettings.size}</span>
@@ -175,7 +182,7 @@ const Exporter = forwardRef(({ wallpaperRef }, ref) => {
       </div>
 
       {!downloadSettings.isPng && (
-        <div className="flex-col text-xs pt-1.5">
+        <div className="flex-col text-xs pb-1.5 px-3.5">
           <span className="flex place-content-between">
             <h4>Quality</h4>
             <span className="text-xs text-[var(--text-secondary)]">
@@ -199,14 +206,14 @@ const Exporter = forwardRef(({ wallpaperRef }, ref) => {
           </div>
         </div>
       )}
-
+      <div className="px-3.5 mb-5">
       <button
         type="button"
         onClick={exportImage}
-        className="p-1 mt-5 mb-2.5 inline-flex justify-center w-full text-sm font-medium rounded-2xl bg-[var(--accent)] text-white hover:opacity-80 cursor-pointer transition-opacity duration-200 ease-in-out"
+        className="p-1 mt-3.5 inline-flex items-center justify-center w-full text-sm font-medium rounded-2xl bg-[var(--accent)] text-white hover:opacity-80 cursor-pointer transition-opacity duration-200 ease-in-out"
       >
         Download
-      </button>
+      </button></div>
     </div>
   );
 });
