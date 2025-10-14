@@ -41,12 +41,12 @@ const CustomResizable = forwardRef(
         const newSize = Math.max(minSize, Math.min(maxSize, resizeStateRef.current.startSize + adjustedDelta));
         
         if (isSide) {
-          setPanelSize({ width: newSize, height: panelSize.height });
+          setPanelSize(prev => ({ width: newSize, height: prev.height }));
         } else {
-          setPanelSize({ width: panelSize.width, height: newSize });
+          setPanelSize(prev => ({ width: prev.width, height: newSize }));
         }
       },
-      [isSide, minSize, maxSize, setPanelSize, panelSize]
+      [isSide, minSize, maxSize, setPanelSize]
     );
 
     const handleMouseUp = useCallback(() => {
@@ -111,12 +111,12 @@ const CustomResizable = forwardRef(
         const newSize = Math.max(minSize, Math.min(maxSize, resizeStateRef.current.startSize + adjustedDelta));
         
         if (isSide) {
-          setPanelSize({ width: newSize, height: panelSize.height });
+          setPanelSize(prev => ({ width: newSize, height: prev.height }));
         } else {
-          setPanelSize({ width: panelSize.width, height: newSize });
+          setPanelSize(prev => ({ width: prev.width, height: newSize }));
         }
       },
-      [isSide, minSize, maxSize, setPanelSize, panelSize]
+      [isSide, minSize, maxSize, setPanelSize]
     );
 
     const handleTouchEnd = useCallback(() => {

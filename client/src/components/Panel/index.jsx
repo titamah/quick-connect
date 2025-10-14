@@ -21,13 +21,6 @@ function Panel({
   const [maxHeight, setMaxHeight] = useState(0);
   const resizableRef = useRef(null);
 
-  const onResizeSide = (newWidth) => {
-    setPanelSize({ width: newWidth, height: panelSize.height });
-  };
-
-  const onResizeBottom = (newHeight) => {
-    setPanelSize({ width: panelSize.width, height: newHeight });
-  };
 
   const [activeTab, setActiveTab] = useState("1");
   useEffect(() => {
