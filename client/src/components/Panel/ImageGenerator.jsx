@@ -185,7 +185,7 @@ function ImageGenerator({
   };
   return (
     <>
-      <div className={`pointer-events-auto relative p-1 
+      <div className={`pointer-events-auto relative p-1 flex
       ${isMobile ? "h-[150px]" : "h-[200px]}"} w-full mb-[1.5px] rounded-sm border border-[5px] bg-[var(--bg-main)] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)] flex flex-col gap-1.5 relative`}>
         {}
         {isGenerating && (
@@ -255,8 +255,8 @@ function ImageGenerator({
         )}
         {}
         {currentImage && (
-          <div className="space-y-2 h-full">
-            <div className="relative group h-[190px]">
+          // <div className="space-y-2 h-full">
+            <div className="relative group h-full">
               <img
                 src={currentImage.url}
                 alt="Generated background"
@@ -292,7 +292,7 @@ function ImageGenerator({
                  {currentImageIndex + 1} / {generationHistory.length}
                </div>
             </div>
-          </div>
+          //  </div> 
         )}
       </div>
       {}
