@@ -138,7 +138,7 @@ const handleCornerRadiusChange = (e) => {
         <input
           id="qr-input"
           type="text"
-          className={`w-full px-2 py-1 text-xs bg-[var(--bg-main)] border border-[var(--border-color)]/50 focus:outline-none focus:border-[var(--accent)]/50 rounded-xl`}
+          className={`w-full px-2 py-0.5 text-sm bg-[var(--bg-main)] border border-[var(--border-color)]/50 focus:outline-none focus:border-[var(--accent)]/50 rounded-xl`}
           value={url}
           onChange={(e) => {
             setUrl(e.target.value);
@@ -176,14 +176,13 @@ const handleCornerRadiusChange = (e) => {
           <div className="flex items-center pb-2.5">
             <h4 className="w-[85px]"> Position </h4>
             <PositionInput
-              type="qr"
               position={qrConfig.positionPercentages}
               onUpdate={(newPosition) =>
                 updateQRConfig({ positionPercentages: newPosition })
               }
               deviceSize={device.size}
               qrScale={qrConfig.scale || 0.5}
-              units="px"
+              units="%"
             />
           </div>
           <div className={`flex items-center pb-5`}>

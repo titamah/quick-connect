@@ -88,7 +88,7 @@ const Exporter = forwardRef(({ wallpaperRef }, ref) => {
         <input
           id="qr-input"
           type="text"
-          className={`w-full px-2 py-1 text-xs bg-[var(--bg-main)] border border-[var(--border-color)]/50 focus:outline-none focus:border-[var(--accent)]/50 rounded-xl`}
+          className={`w-full px-2 py-0.5 text-sm bg-[var(--bg-main)] border border-[var(--border-color)]/50 focus:outline-none focus:border-[var(--accent)]/50 rounded-xl`}
           value={name}
           onChange={(e) => {
             setName(e.target.value);
@@ -185,7 +185,7 @@ const Exporter = forwardRef(({ wallpaperRef }, ref) => {
         <div className="flex-col text-xs pb-1.5 px-3.5">
           <span className="flex place-content-between">
             <h4>Quality</h4>
-            <span className="text-xs text-[var(--text-secondary)]">
+            <span className="text-[var(--text-secondary)]">
               {Math.round(downloadSettings.quality * 100)}%
             </span>
           </span>

@@ -322,7 +322,7 @@ function DeviceTypeSelector() {
             placeholder="Search devices..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8.5 pr-3 py-1 text-xs border border-[var(--border-color)]/50 focus:outline-none focus:border-[var(--accent)]/50 rounded-xl"
+            className="w-full pl-8.5 pr-3 py-0.5 text-sm border border-[var(--border-color)]/50 focus:outline-none focus:border-[var(--accent)]/50 rounded-xl"
           />
           {searchQuery && (
             <button
@@ -415,17 +415,19 @@ function DeviceTypeSelector() {
                     <button
                       key={`${category}-${index}`}
                       onClick={() => updateDevice(deviceInfo)}
-                      className={`flex justify-between text-xs w-full h-fit gap-x-3 p-1.75 border-y px-3.5 hover:bg-[var(--contrast-sheer)] cursor-pointer transition-colors ${
+                      className={`flex justify-between w-full h-fit gap-x-3 p-1.75 border-y px-3.5 hover:bg-[var(--contrast-sheer)] cursor-pointer transition-colors ${
                         device.type === deviceInfo.name
                           ? "bg-[var(--accent)]/12.5 text-[var(--accent)] border-[var(--border-color)]/25"
                           : "text-[var(--text-secondary)] border-black/0"
-                      }`}
+                      }
+                      ${ isMobile ? "text-sm" : "text-xs"}
+                      `}
                     >
                       <span className="truncate flex-1 min-w-0 text-left">
                         {deviceInfo.name}
                       </span>
                       <span
-                        className={`font-thin text-xs italic whitespace-nowrap pr-1 ${
+                        className={`font-thin italic whitespace-nowrap pr-1 ${
                           device.type === deviceInfo.name
                             ? "text-[var(--accent)]/75"
                             : "text-[var(--text-secondary)]/75"

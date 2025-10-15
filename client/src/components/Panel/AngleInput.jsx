@@ -66,7 +66,6 @@ const AngleInput = ({ type = "qr", angle: currentAngle, onUpdate }) => {
         />
         <Slider
           id={`${type}-angle-slide`}
-          color={"var(--accent)"}
           min="-180"
           max="180"
           value={angle}
