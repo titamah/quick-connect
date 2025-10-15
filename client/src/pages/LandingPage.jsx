@@ -33,7 +33,7 @@ const LandingPage = () => {
   return (
     <div className={`pointer-events-auto overflow-y-scroll ${isMobile ? "h-[calc(100dvh-40px)]" : "h-[calc(100dvh-60px)]"}`}>
     <main className="flex flex-col h-fit w-[100vw] overflow-x-hidden items-start relative bg-[var(--bg-main)]">
-      <section className="flex z-2 relative flex-row flex-wrap h-full min-h-[87.5vh] w-full justify-center  text-center  space-y-[15px] gap-[25px] px-[25px] pt-[75px] relative self-stretch rounded-[0px_0px_50px_50px] sm:rounded-[0px_0px_90px_90px]"
+      <section className="flex z-2 relative flex-row flex-wrap h-full min-h-[100vh] w-full justify-center  text-center  space-y-[15px] gap-[25px] px-[25px] pt-[75px] relative self-stretch "
       style={{backgroundImage: 'url(/Hero.webp)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat'}}>
         {/* <img
           className={` ${isMobile ? "hidden" : ""} relative max-w-[450px] w-full !bg-pink-500`}
@@ -49,7 +49,7 @@ const LandingPage = () => {
             Custom QR wallpapers that are actually you. No unlock needed, just connection.
           </p>
           <button 
-            className="inline-flex items-center  !cursor-pointer w-fit items-end gap-2.5 p-[12px] relative flex-[0_0_auto] bg-[var(--brand-green)] rounded-[75px] border-[0.5px] border-solid border-neutral-900 hover:opacity-90 transition-opacity"
+            className="inline-flex items-center !cursor-pointer w-fit items-end gap-2.5 p-[12px] relative flex-[0_0_auto] bg-[var(--brand-green)] rounded-[75px] border-[0.5px] border-solid border-neutral-900 hover:opacity-90 transition-opacity"
             onClick={handleStartQreating}
           >
             <span className="relative w-fitfont-normal text-neutral-900 text-md sm:text-lg tracking-[0] leading-[normal] whitespace-nowrap">
