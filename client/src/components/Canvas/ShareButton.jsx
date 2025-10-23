@@ -12,6 +12,7 @@ import { useDevice } from "../../contexts/DeviceContext";
 import { useToast } from "../Toast";
 import chroma from "chroma-js";
 const Thumbnail = React.lazy(() => import("./Thumbnail.jsx"));
+
 const ShareButton = ({
   wallpaperRef,
   getBackgroundImage,
@@ -30,6 +31,7 @@ const ShareButton = ({
   const thumbnailRef = useRef(null);
   const [shouldRenderThumbnail, setShouldRenderThumbnail] = useState(false);
   const buttonRef = useRef(null);
+
   const createDeviceStateSchema = useCallback(() => {
     const schema = {
       qr: {
@@ -61,12 +63,14 @@ const ShareButton = ({
     console.log("📋 Created device state schema:", schema);
     return schema;
   }, [qrConfig, background]);
+
   useEffect(() => {
     if (isMenuOpen && !shouldRenderThumbnail) {
       const generateThumbnailData = async () => {
         console.log("🖼️ Starting thumbnail data generation...");
         setIsGeneratingThumbnail(true);
         setShouldRenderThumbnail(true);
+
         try {
           console.log("🖼️ Generating thumbnail data...");
           let bgImage = null;
@@ -79,6 +83,7 @@ const ShareButton = ({
               setBackgroundImage(null);
             }
           }
+
           setActiveState(createDeviceStateSchema());
         } catch (error) {
           console.error("❌ Failed to generate thumbnail data:", error);
@@ -87,6 +92,7 @@ const ShareButton = ({
           setIsGeneratingThumbnail(false);
         }
       };
+
       const timeoutId = setTimeout(generateThumbnailData, 100);
       return () => clearTimeout(timeoutId);
     } else if (!isMenuOpen) {
@@ -97,26 +103,25 @@ const ShareButton = ({
       setLinkError(null);
       setShouldRenderThumbnail(false);
     }
-  }, [
-    isMenuOpen,
-    getBackgroundImage,
-    background.style,
-    background.bg,
-  ]);
+  }, [isMenuOpen, getBackgroundImage, background.style, background.bg]);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (buttonRef.current && !buttonRef.current.contains(event.target)) {
         setIsMenuOpen(false);
-        onMenuStateChange?.(false); 
+        onMenuStateChange?.(false);
       }
     };
+
     if (isMenuOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isMenuOpen]);
+
   const dataURLtoFile = (dataURL, filename) => {
     if (!dataURL || !dataURL.startsWith("data:")) {
       return null;
@@ -131,29 +136,45 @@ const ShareButton = ({
     }
     return new File([u8arr], filename, { type: mime });
   };
+
   const generateRemixLink = async () => {
     if (remixLink) return remixLink;
+
     setIsGeneratingLink(true);
+
     try {
       const { default: remixService } = await import(
         "../../services/remixService"
       );
+
       const deviceStateSchema = createDeviceStateSchema();
       let thumbnailUrl = null;
       
-      // Wait for thumbnail to be ready
-      console.log("🖼️ Waiting for thumbnail to be ready...");
+      // Wait for thumbnail component to exist and be ready
+      console.log("🖼️ Waiting for thumbnail component...");
       let attempts = 0;
-      const maxAttempts = 50; // 5 seconds max wait
+      const maxAttempts = 100; // 10 seconds max wait
+      
       while (attempts < maxAttempts && !thumbnailRef.current?.exportAsBlob) {
         await new Promise(resolve => setTimeout(resolve, 100));
         attempts++;
+        if (attempts % 10 === 0) {
+          console.log(`🖼️ Still waiting for thumbnail... attempt ${attempts}/${maxAttempts}`);
+        }
       }
       
-      if (thumbnailRef.current?.exportAsBlob) {
-        console.log("🖼️ Thumbnail ready, generating blob...");
+      if (!thumbnailRef.current?.exportAsBlob) {
+        console.error("❌ Thumbnail component never mounted");
+        throw new Error("Thumbnail component failed to initialize");
+      }
+      
+      console.log("✅ Thumbnail component mounted, waiting for render to complete...");
+      
+      // Now wait for the thumbnail to finish rendering
+      // The exportAsBlob function will internally wait for isReady
+      try {
         const thumbnailBlob = await thumbnailRef.current.exportAsBlob();
-        console.log("🖼️ Thumbnail blob created:", thumbnailBlob?.size, "bytes");
+        console.log("✅ Thumbnail blob created:", thumbnailBlob?.size, "bytes");
         
         if (thumbnailBlob && thumbnailBlob.size > 0) {
           console.log("🖼️ Uploading thumbnail to Supabase bucket...");
@@ -162,9 +183,12 @@ const ShareButton = ({
         } else {
           console.warn("⚠️ Thumbnail blob is empty, skipping upload");
         }
-      } else {
-        console.warn("⚠️ Thumbnail not ready after waiting, skipping upload");
+      } catch (error) {
+        console.error("❌ Failed to export thumbnail:", error);
+        // Continue without thumbnail rather than failing the entire share
+        console.warn("⚠️ Continuing without thumbnail");
       }
+
       let backgroundImageFile = null;
       if (
         background.style === "image" &&
@@ -182,17 +206,21 @@ const ShareButton = ({
           `${Math.round(backgroundImageFile.size / 1024)}KB`
         );
       }
+
       console.log("🔗 Creating remix link with schema:", deviceStateSchema);
       console.log(
         "📎 Background image file:",
         backgroundImageFile ? "Yes" : "None"
       );
+      console.log("🖼️ Thumbnail URL:", thumbnailUrl ? "Yes" : "None");
+
       const remixId = await remixService.createRemix(
         deviceStateSchema,
         backgroundImageFile,
         thumbnailUrl,
         sessionRemixId
       );
+
       const link = `${window.location.origin}/remix/${remixId}`;
       setRemixLink(link);
       console.log("✅ Remix link created:", link);
@@ -200,13 +228,18 @@ const ShareButton = ({
     } catch (error) {
       console.error("Failed to create remix link:", error);
       let errorMessage = "Failed to create share link. Please try again.";
+
       if (error.message.includes("wait")) {
         errorMessage = error.message;
       } else if (error.message.includes("too large")) {
         errorMessage = "Design is too complex to share. Try simplifying it.";
       } else if (error.message.includes("upload")) {
         errorMessage = "Failed to upload background image. Please try again.";
+      } else if (error.message.includes("Thumbnail")) {
+        errorMessage = "Failed to generate preview. Please try again.";
       }
+
+      setLinkError(errorMessage);
       toast.error(errorMessage, {
         position: "bottom-right",
         autoClose: 4000,
@@ -216,6 +249,7 @@ const ShareButton = ({
       setIsGeneratingLink(false);
     }
   };
+
   const handleShareClick = async () => {
     const newMenuState = !isMenuOpen;
     setIsMenuOpen(newMenuState);
@@ -226,7 +260,7 @@ const ShareButton = ({
       await generateRemixLink();
     }
   };
-  
+
   const handleShareOption = async (platform) => {
     let link = remixLink;
 
@@ -240,9 +274,12 @@ const ShareButton = ({
         return;
       }
     }
+
     setIsMenuOpen(false);
+
     const shareText = "Check out my QReation! Remix it yourself";
     const fullShareText = `${shareText} ${link}`;
+
     switch (platform) {
       case "copy-link":
         try {
@@ -264,6 +301,7 @@ const ShareButton = ({
           });
         }
         break;
+
       case "native":
         if (navigator.share) {
           try {
@@ -279,21 +317,24 @@ const ShareButton = ({
           handleShareOption("copy-link");
         }
         break;
+
       default:
         console.log(`Sharing to ${platform}`);
     }
   };
+
   return (
     <div className="pointer-events-all absolute bottom-6 right-6 z-50" ref={buttonRef}>
-      {}
+      {/* Share menu */}
       {isMenuOpen && (
         <div className="absolute bottom-13 right-0 mb-2 bg-[var(--bg-main)] border border-[var(--border-color)] rounded-lg shadow-lg w-[350px] max-w-[90vw]">
           <div className="px-4 py-3">
-            <h3 className="text-sm font-medium text-[var(--text-primary)] ">
+            <h3 className="text-sm font-medium text-[var(--text-primary)]">
               Share your Qreation
             </h3>
           </div>
-          {}
+
+          {/* Thumbnail preview */}
           {shouldRenderThumbnail && activeState && (
             <div className="relative">
               {isGeneratingLink && (
@@ -322,9 +363,8 @@ const ShareButton = ({
               </React.Suspense>
             </div>
           )}
-          {}
 
-          {}
+          {/* Error message */}
           {linkError && (
             <div className="mx-4 mb-3 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
               <p className="text-xs text-red-600 dark:text-red-400">
@@ -332,7 +372,9 @@ const ShareButton = ({
               </p>
             </div>
           )}
+
           <div className="border-t border-[var(--border-color)] my-1"></div>
+
           <div className="px-3 pt-1.5 pb-3">
             <div className="flex items-center gap-2">
               <input
@@ -351,7 +393,7 @@ const ShareButton = ({
                 className="flex flex-col cursor-pointer items-center gap-0.5 px-1.5 py-1 rounded-lg text-[var(--text-secondary)] hover:text-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <Copy size={16} />
-                <span className="text-[10px] ">Copy</span>
+                <span className="text-[10px]">Copy</span>
               </button>
 
               <button
@@ -360,13 +402,14 @@ const ShareButton = ({
                 className="flex flex-col cursor-pointer items-center gap-0.5 px-1.5 py-1 rounded-lg text-[var(--text-secondary)] hover:text-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <Share size={16} />
-                <span className="text-[10px] ">Share</span>
+                <span className="text-[10px]">Share</span>
               </button>
             </div>
           </div>
         </div>
       )}
-      {}
+
+      {/* Share button */}
       <button
         onClick={handleShareClick}
         className="w-12 h-12 bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center group"
@@ -377,4 +420,5 @@ const ShareButton = ({
     </div>
   );
 };
+
 export default ShareButton;
