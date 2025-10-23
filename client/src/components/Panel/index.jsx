@@ -21,13 +21,6 @@ function Panel({
   const [maxHeight, setMaxHeight] = useState(0);
   const resizableRef = useRef(null);
 
-  const onResizeSide = (newWidth) => {
-    setPanelSize({ width: newWidth, height: panelSize.height });
-  };
-
-  const onResizeBottom = (newHeight) => {
-    setPanelSize({ width: panelSize.width, height: newHeight });
-  };
 
   const [activeTab, setActiveTab] = useState("1");
   useEffect(() => {
@@ -64,9 +57,9 @@ function Panel({
       else if ( key === "2") {
         panelHeight = 275;
     } else if (key === "3") {
-      panelHeight = 335;
+      panelHeight = 355;
     } else if (key === "4") {
-      panelHeight = 250;
+      panelHeight = 300;
     }
 
     setPanelSize(prev => ({ ...prev, height: panelHeight }));
@@ -114,7 +107,7 @@ function Panel({
       key: "1",
       label: (
         <Proportions
-          className={`size-7.5 m-2 w-full cursor-pointer ${
+          className={`size-7.5 m-2 w-full cursor-pointer hover:opacity-80 ${
             activeTab === "1" ? "text-[var(--accent)]" : ""
           }`}
           onClick={() => {
@@ -128,7 +121,7 @@ function Panel({
       key: "2",
       label: (
         <QrCode
-          className={`size-7.5 m-2 w-full cursor-pointer ${
+          className={`size-7.5 m-2 w-full cursor-pointer hover:opacity-80 ${
             activeTab === "2" ? "text-[var(--accent)]" : ""
           }`}
           onClick={() => {
@@ -142,7 +135,7 @@ function Panel({
       key: "3",
       label: (
         <Image
-          className={`size-7.5 m-2 w-full cursor-pointer ${
+          className={`size-7.5 m-2 w-full cursor-pointer hover:opacity-80 ${
             activeTab === "3" ? "text-[var(--accent)]" : ""
           }`}
           onClick={() => {
@@ -156,7 +149,7 @@ function Panel({
       key: "4",
       label: (
         <Download
-          className={`size-7.5 m-2 w-full cursor-pointer ${
+          className={`size-7.5 m-2 w-full cursor-pointer hover:opacity-80 ${
             activeTab === "4" ? "text-[var(--accent)]" : ""
           }`}
           onClick={() => {
@@ -173,7 +166,7 @@ function Panel({
       <div
         className={`fixed left-0 top-[52px] z-110 ${isMobile ? "hidden" : ""}`}
       >
-        <div className="p-1.5 w-[64px] items-center flex flex-col gap-2 border-r border-[var(--border-color)] text-[var(--text-primary)] bg-[var(--bg-main)] h-[calc(100vh-52px)] shadow-[2px_0_10px_0_rgba(0,0,0,0.075)]">
+        <div className="mt-1.5 p-1.5 w-[64px] items-center flex flex-col gap-2 border-r border-[var(--border-color)] text-[var(--text-primary)] bg-[var(--bg-main)] h-[calc(100vh-52px)] shadow-[2px_0_10px_0_rgba(0,0,0,0.075)]">
           {items.map((item) => item.label)}
         </div>
       </div>

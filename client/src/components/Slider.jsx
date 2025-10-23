@@ -26,6 +26,7 @@ const Slider = ({
   const sliderRef = useRef(null);
   const colorPickerRef = useRef(null);
   const rafRef = useRef(null);
+  
   const updateThumbPosition = () => {
     if (!sliderRef.current) return;
     const slider = sliderRef.current;
@@ -36,10 +37,39 @@ const Slider = ({
   useEffect(() => {
     updateThumbPosition();
   }, [value]);
+
+  useEffect(() => {
+    if (!id || !color ) return;
+
+    const styleId = `slider-thumb-${id}`;
+    let styleEl = document.getElementById(styleId);
+    
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = styleId;
+      document.head.appendChild(styleEl);
+    }
+
+    styleEl.textContent = `
+      #${id}-input::-webkit-slider-thumb {
+        background-color: ${color} !important;
+      }
+      #${id}-input::-moz-range-thumb {
+        background-color: ${color} !important;
+      }
+    `;
+
+    return () => {
+      const el = document.getElementById(styleId);
+      if (el) {
+        el.remove();
+      }
+    };
+  }, [id, color]);
+
   const [needsSnapshot, setNeedsSnapshot] = useState(false);
   const timeoutRef = useRef(null);
 
-  // rAF onChange to coalesce rapid slider updates
   const onChangeRaf = useCallback((e) => {
     const value = e.target.value;
     if (rafRef.current) {
@@ -52,7 +82,6 @@ const Slider = ({
     });
   }, [onChange]);
 
-  // Cleanup rAF on unmount
   useEffect(() => {
     return () => {
       if (rafRef.current) {
@@ -87,44 +116,33 @@ const Slider = ({
       colorPickerRef.current.open();
     }
   };
-  const formatTooltipValue = (val) => {
-    if (max <= 1) {
-      return `${Math.round(val * 100)}%`;
-    } else {
-      return `${Math.round(val)}%`;
-    }
-  };
+  // const formatTooltipValue = (val) => {
+  //   if (max <= 1) {
+  //     return `${Math.round(val * 100)}%`;
+  //   } else {
+  //     return `${Math.round(val)}%`;
+  //   }
+  // };
+
   return (
     <div
       className={`${
         stacked ? "absolute pointer-events-none" : "pointer-events-auto"
       } w-full h-full`}
-      onMouseDown={() => setShowTooltip(true)}
-      onMouseUp={(e) => {
-        setShowTooltip(false);
-      }}
-      onTouchStart={() => setShowTooltip(true)}
-      onTouchEnd={(e) => {
-        setShowTooltip(false);
-      }}
+      // onMouseDown={() => setShowTooltip(true)}
+      // onMouseUp={(e) => {
+      //   setShowTooltip(false);
+      // }}
+      // onTouchStart={() => setShowTooltip(true)}
+      // onTouchEnd={(e) => {
+      //   setShowTooltip(false);
+      // }}
       onKeyDownCapture={(e) => {
         if (e.key === "Backspace") {
           deleteStop?.();
         }
       }}
     >
-      {showTooltip && (
-        <div
-          className="absolute -top-8 text-xs px-2 py-1 rounded bg-[var(--contrast)]"
-          style={{
-            left: thumbLeft,
-            transform: "translateX(-50%)",
-            color: "var(--bg-main)",
-          }}
-        >
-          {formatTooltipValue(value)}
-        </div>
-      )}
       <div ref={containerRef} className={`relative`}>
         {stacked ? (
           <div className="relative">
@@ -164,7 +182,7 @@ const Slider = ({
                   }
                 }, 50);
               }}
-              className="appearance-none w-full absolute -translate-y-[2px]"
+              className="appearance-none w-full absolute -translate-y-[3px]"
             />
             
             <div style={{ display: 'none' }}>
@@ -208,11 +226,7 @@ const Slider = ({
               takeSnapshot();
               setDrag(false);
             }}
-            className={`appearance-none w-full absolute -translate-y-[2px] ${
-              stacked
-                ? ""
-                : "rounded-full relative mt-[7.5px] h-[8px] bg-[var(--contrast-sheer)]"
-            }`}
+            className={`appearance-none w-full absolute -translate-y-[2px] rounded-full relative mt-[7.5px] h-[8px] bg-[var(--contrast-sheer)]`}
           />
         )}
       </div>

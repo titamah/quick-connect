@@ -25,7 +25,7 @@ const StudioPage = () => {
       if (currentBreakpoint === "mobile" && panelSize.width > 0) {
         setPanelSize((prev) => ({ ...prev, width: 0 }));
       } else if (currentBreakpoint === "desktop" && panelSize.width === 0) {
-        setPanelSize((prev) => ({ ...prev, width: 275 }));
+        setPanelSize((prev) => ({ ...prev, width: 350 }));
       }
 
       setBreakpoint(currentBreakpoint);

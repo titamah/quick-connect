@@ -46,10 +46,14 @@
     flex-grow: 0!important;
   }
   
-  /* Disable hover states on mobile for better performance */
+  .react-colorful__pointer {
+    height: 15px !important;
+    width: 15px !important;
+  }
+    
   .react-colorful__pointer:hover {
-    height: 12px !important;
-    width: 12px !important;
+    height: 15px !important;
+    width: 15px !important;
   }
   
   .hover:hover {
@@ -62,23 +66,6 @@
 }
 .hover:hover {
   opacity: 100%;
-}
-
-.ant-tabs-content {
-  height: 100% !important;
-}
-
-.ant-tabs-content-holder {
-  height: 100% !important;
-}
-
-.ant-tabs-tabpane {
-  height: 100% !important;
-}
-
-.ant-tabs-content-left {
-  height: 100% !important;
-  max-height: 100% !important;
 }
 
 .qr-color-picker {

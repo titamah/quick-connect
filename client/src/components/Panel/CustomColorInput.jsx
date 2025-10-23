@@ -25,7 +25,7 @@ export default function CustomColorInput({
   const [needsSnapshot, setNeedsSnapshot] = useState(false);
   const timeoutRef = useRef(null);
   const handleColorChange = (color) => {
-    // color is already a hex string from react-colorful
+
     const hexString = typeof color === 'string' ? color : chroma(color).hex();
     setLocalHex(hexString.slice(0, 7).toUpperCase());
     if (needsSnapshot) {
@@ -96,7 +96,7 @@ export default function CustomColorInput({
     console.log("🔍 AFTER keyup, isPressing:", isPressing.current);
   };
   return (
-    <div className="flex items-center border bg-black/5 dark:bg-black/15 px-1 text-[var(--text-secondary)] min-w-0 w-full h-[24px] rounded border-[var(--border-color)]/75">
+    <div className={`flex items-center border bg-black/5 dark:bg-black/15 px-1 text-[var(--text-secondary)] min-w-0 w-full rounded border-[var(--border-color)]/75 ${isMobile ? "h-[28px]" : "h-[24px]"}`}>
       <ColorPicker
         value={value}
         onChange={handleColorChange}
@@ -107,7 +107,7 @@ export default function CustomColorInput({
         mode="popover"
         trigger={
           <div
-            className="w-4 h-4 rounded-xs cursor-pointer hover:scale-110 transition-transform"
+            className={`${isMobile ? "w-5 h-5" : "w-4 h-4"} mr-1 rounded-xs cursor-pointer hover:scale-110 transition-transform`}
             style={{ backgroundColor: value.slice(0, 7) }}
           />
         }
@@ -121,12 +121,12 @@ export default function CustomColorInput({
         }}
         onBlur={handleHexBlur}
         onKeyDown={handleHexEnter}
-        className={`flex-1 min-w-0 ${isMobile ? "px-1 py-1" : "px-2 py-2"} bg-transparent outline-none text-xs`}
+        className={`flex-1 min-w-0 ${isMobile ? "px-1 py-1" : "px-2 py-2"} bg-transparent outline-none text-[13px]`}
       />
       {hasOpacity && (
         <>
-          <div className="w-px h-5 bg-[var(--border-color)]" />
-          <div className="flex items-center px-2 font-light text-xs">
+          <div className="w-px h-full bg-[var(--border-color)]" />
+          <div className="flex items-center pl-1.75 pr-0.75 font-light text-[13px]">
             <input
               ref={alphaInputRef}
               type="number"
@@ -142,7 +142,7 @@ export default function CustomColorInput({
               onBlur={handleAlphaBlur}
               onKeyDown={handleAlphaKeyDown}
               onKeyUp={handleAlphaKeyUp}
-              className="w-5 outline-none"
+              className="w-5.5 outline-none"
             />
             <span className="ml-1 ">%</span>
           </div>

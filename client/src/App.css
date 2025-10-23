@@ -101,6 +101,32 @@ h1 {
 
 
 @media screen and (max-width: 768px) {
+
+  h1 {
+    font-size: 28px;
+  }
+
+  h2 {
+    font-size: 21px;
+  }
+
+  h3 {
+    font-size: 14px;
+    letter-spacing: 1.5px;
+  }
+
+  h4 {
+    min-width: 95px;
+    font-size: 13px;
+    letter-spacing: 0.75px;
+  }
+
+  h5 {
+    font-size: 14px;
+  }
+}
+
+@media screen and (max-width: 480px) {
   .ant-tabs-nav-list {
     gap: 20px;
   }
@@ -114,17 +140,17 @@ h1 {
   }
 
   h3 {
-    font-size: 13px;
+    font-size: 15px;
     letter-spacing: 1.5px;
   }
 
   h4 {
-    font-size: 11px;
-    letter-spacing: 0.5px;
+    font-size: 14px;
+    letter-spacing: 0.75px;
   }
 
   h5 {
-    font-size: 13px;
+    font-size: 16px;
   }
 }
 
@@ -169,6 +195,7 @@ input[type="range"]::-moz-range-thumb {
   appearance: none !important;
   box-shadow: 0 0 0 1px var(--contrast-sheer) !important;
   z-index: 1000 !important;
+  background-color: var(--bg-secondary);
 }
 
 input[type="range"]::-webkit-slider-thumb {
@@ -182,6 +209,7 @@ input[type="range"]::-webkit-slider-thumb {
   appearance: none !important;
   box-shadow: 0 0 0 1px var(--contrast-sheer) !important;
   z-index: 1000 !important;
+  background-color: var(--bg-secondary);
 }
 
 input[type="range"]::-moz-range-thumb:hover {
@@ -203,4 +231,29 @@ input[type="range"]::-webkit-slider-thumb:active {
 }
 input[type="text"], input[type="number"]{
   color: var(--text-primary);
+}
+
+
+@media screen and (max-width: 768px) {
+
+  input[type="range"]::-moz-range-thumb {
+    height: 15px !important;
+    width: 15px !important;
+  }
+  
+  input[type="range"]::-webkit-slider-thumb {
+    height: 15px !important;
+    width: 15px !important;
+  }
+  
+  input[type="range"]::-moz-range-thumb:hover {
+    height: 15px !important;
+    width: 15px !important;
+  }
+  
+  input[type="range"]::-webkit-slider-thumb:hover {
+    height: 15px !important;
+    width: 15px !important;
+  }
+
 }

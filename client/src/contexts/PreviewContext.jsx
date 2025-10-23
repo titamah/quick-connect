@@ -16,13 +16,11 @@ export const PreviewProvider = ({ children }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // Detect if we're on mobile
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.innerWidth <= 768 || 'ontouchstart' in window;
   });
 
-  // Listen for window resize to update mobile state
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768 || 'ontouchstart' in window);
@@ -32,7 +30,6 @@ export const PreviewProvider = ({ children }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Listen for fullscreen changes
   useEffect(() => {
     const handleFullscreenChange = () => {
       const isCurrentlyFullscreen = !!(
@@ -44,7 +41,6 @@ export const PreviewProvider = ({ children }) => {
       
       setIsFullscreen(isCurrentlyFullscreen);
       
-      // If user exits fullscreen manually (e.g., ESC key), turn off preview
       if (!isCurrentlyFullscreen && isPreviewVisible && isMobile) {
         setIsPreviewVisible(false);
       }
@@ -63,7 +59,6 @@ export const PreviewProvider = ({ children }) => {
     };
   }, [isPreviewVisible, isMobile]);
 
-  // Auto-hide hover state on mobile
   useEffect(() => {
     if (isMobile && isHovered) {
       setIsHovered(false);
@@ -77,14 +72,12 @@ export const PreviewProvider = ({ children }) => {
   const togglePreview = () => {
     setIsPreviewVisible(!isPreviewVisible);
     
-    // Clear hover state when toggling
     if (isHovered) {
       setIsHovered(false);
     }
   };
 
   const setHovered = (hovered) => {
-    // Only allow hover states on desktop
     if (!isMobile) {
       setIsHovered(hovered);
     }
@@ -99,38 +92,30 @@ export const PreviewProvider = ({ children }) => {
     setIsHovered(false);
   };
 
-  // Enhanced preview state that considers both hover and visibility
   const shouldShowPhoneUI = isPreviewVisible || (!isMobile && isHovered);
   const phoneUIOpacity = isPreviewVisible ? 1 : (isHovered ? 0.5 : 0);
 
   const value = {
-    // Export state
     isExporting,
     setExportState,
     
-    // Preview visibility
     isPreviewVisible,
     setIsPreviewVisible,
     togglePreview,
     showPreview,
     hidePreview,
     
-    // Hover state (desktop only)
     isHovered,
     setHovered,
     
-    // Fullscreen state
     isFullscreen,
     setIsFullscreen,
     
-    // Device detection
     isMobile,
     
-    // Computed states
     shouldShowPhoneUI,
     phoneUIOpacity,
     
-    // Utility methods
     enterFullscreen: async (element) => {
       if (!element) return false;
       

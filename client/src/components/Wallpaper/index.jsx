@@ -17,7 +17,7 @@ import PhoneUI from "./PhoneUI";
 
 const Wallpaper = forwardRef(
   (
-    { panelSize, isOpen, locked, setIsZoomEnabled, backgroundLayerRef },
+    { panelSize, isOpen, locked },
     ref
   ) => {
     const {
@@ -31,13 +31,6 @@ const Wallpaper = forwardRef(
       selectQR: contextSelectQR,
       deselectAll,
     } = useDevice();
-
-    const {
-      isPreviewVisible,
-      isHovered,
-      isExporting,
-      setIsPreviewVisible,
-    } = usePreview();
 
     const containerRef = useRef(null);
     const appRef = useRef(null);
@@ -335,6 +328,7 @@ const Wallpaper = forwardRef(
       qrContainer.on("pointermove", handlePointerMove);
       qrContainer.on("pointerup", handlePointerUp);
       qrContainer.on("pointerupoutside", handlePointerUp);
+      qrContainer.isDragHandlersAttached = true;
     }, [locked, handlePointerDown, handlePointerMove, handlePointerUp]);
 
     const removeDragHandlers = useCallback(() => {
@@ -345,6 +339,7 @@ const Wallpaper = forwardRef(
       qrContainer.off("pointermove", handlePointerMove);
       qrContainer.off("pointerup", handlePointerUp);
       qrContainer.off("pointerupoutside", handlePointerUp);
+      qrContainer.isDragHandlersAttached = false;
     }, [handlePointerDown, handlePointerMove, handlePointerUp]);
 
     const selectQR = useCallback(() => {
@@ -363,9 +358,14 @@ const Wallpaper = forwardRef(
         );
       }
 
-      attachDragHandlers();
+      // Only attach drag handlers if not already attached and locked
+      if (locked && !qrContainer.isDragHandlersAttached) {
+        attachDragHandlers();
+        qrContainer.isDragHandlersAttached = true;
+      }
+      
       takeSnapshotRef.current("Select QR Code");
-    }, [contextSelectQR, attachDragHandlers]);
+    }, [contextSelectQR, attachDragHandlers, locked]);
 
     const handleStageClick = useCallback(
       (event) => {
@@ -444,11 +444,25 @@ const Wallpaper = forwardRef(
         qrContainer.eventMode = "static";
         qrContainer.cursor = "pointer";
 
+        // Attach drag handlers immediately if locked
+        if (locked) {
+          qrContainer.on("pointermove", handlePointerMove);
+          qrContainer.on("pointerup", handlePointerUp);
+          qrContainer.on("pointerupoutside", handlePointerUp);
+          qrContainer.isDragHandlersAttached = true;
+        }
+
         qrContainer.on("pointerdown", (event) => {
           event.stopPropagation();
 
+          // Always select QR on click/drag start
           if (!isQRSelected) {
             selectQR();
+          }
+          
+          // Start drag immediately if locked
+          if (locked) {
+            handlePointerDown(event);
           }
         });
       });

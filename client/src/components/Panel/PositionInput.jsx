@@ -2,30 +2,20 @@ import React, { useState, useEffect, useRef } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 
 const PositionInput = ({
-  type = "qr",
+  type = "",
   position,
   onUpdate,
   deviceSize,
   units = "px",
   qrScale = 0.5,
 }) => {
-  const { takeSnapshot } = useDevice();
+  const { takeSnapshot, isMobile } = useDevice();
   
   let minX = 0, maxX = 100, minY = 0, maxY = 100;
   
-  if (type === "qr") {
-    const minDimension = Math.min(deviceSize.x, deviceSize.y);
-    const scale = Math.max(0.1, Math.min(1, qrScale));
-    const qrSize = minDimension * scale;
-    minX = qrSize / 2;
-    maxX = deviceSize.x - qrSize / 2;
-    minY = qrSize / 2;
-    maxY = deviceSize.y - qrSize / 2;
-  }
-
   const [pos, setPos] = useState({
-    x: type === "qr" ? Math.round(position.x * deviceSize.x) : Math.round(position.x * 100),
-    y: type === "qr" ? Math.round(position.y * deviceSize.y) : Math.round(position.y * 100),
+    x: Math.round(position.x * 100),
+    y: Math.round(position.y * 100),
   });
 
   const [inputValues, setInputValues] = useState({
@@ -38,15 +28,11 @@ const PositionInput = ({
   const [isArrowKeyActive, setIsArrowKeyActive] = useState(false);
 
   useEffect(() => {
-    const rawX = type === "qr" ? Math.round(position.x * deviceSize.x) : Math.round(position.x * 100);
-    const rawY = type === "qr" ? Math.round(position.y * deviceSize.y) : Math.round(position.y * 100);
+    const rawX = Math.round(position.x * 100);
+    const rawY = Math.round(position.y * 100);
     
     let constrainedX = rawX, constrainedY = rawY;
     
-    if (type === "qr") {
-      constrainedX = Math.max(minX, Math.min(maxX, rawX));
-      constrainedY = Math.max(minY, Math.min(maxY, rawY));
-    }
 
     setPos({ x: constrainedX, y: constrainedY });
     setInputValues({ x: constrainedX.toString(), y: constrainedY.toString() });
@@ -55,21 +41,13 @@ const PositionInput = ({
   const updatePosition = (axis, increment) => {
     const newValue = pos[axis] + increment;
     let constrainedValue = newValue;
-    
-    if (type === "qr") {
-      if (axis === "x") {
-        constrainedValue = Math.max(minX, Math.min(maxX, newValue));
-      } else if (axis === "y") {
-        constrainedValue = Math.max(minY, Math.min(maxY, newValue));
-      }
-    }
 
     const newPos = { ...pos, [axis]: constrainedValue };
     setPos(newPos);
 
     const newPosition = {
-      x: type === "qr" ? newPos.x / deviceSize.x : newPos.x / 100,
-      y: type === "qr" ? newPos.y / deviceSize.y : newPos.y / 100,
+      x: newPos.x / 100,
+      y: newPos.y / 100,
     };
     onUpdate(newPosition);
   };
@@ -79,25 +57,19 @@ const PositionInput = ({
   };
 
   const handlePositionBlur = () => {
-    // ✅ ADD: Take snapshot when input loses focus
     takeSnapshot("Change position");
     
     const numX = parseInt(inputValues.x) || 0;
     const numY = parseInt(inputValues.y) || 0;
     
     let constrainedX = numX, constrainedY = numY;
-    
-    if (type === "qr") {
-      constrainedX = Math.max(minX, Math.min(maxX, numX));
-      constrainedY = Math.max(minY, Math.min(maxY, numY));
-    }
 
     setPos({ x: constrainedX, y: constrainedY });
     setInputValues({ x: constrainedX.toString(), y: constrainedY.toString() });
 
     const newPosition = {
-      x: type === "qr" ? constrainedX / deviceSize.x : constrainedX / 100,
-      y: type === "qr" ? constrainedY / deviceSize.y : constrainedY / 100,
+      x: constrainedX / 100,
+      y: constrainedY / 100,
     };
     onUpdate(newPosition);
   };
@@ -137,7 +109,7 @@ const PositionInput = ({
   };
 
   return (
-    <div className="flex-shrink-1 h-[24px] px-1.5 py-[2.5px] border border-[var(--border-color)]/50 rounded-sm bg-black/5 dark:bg-black/15 w-full items-center justify-center">
+    <div className={`flex-shrink-1 px-1.5 py-[2.5px] border border-[var(--border-color)]/50 rounded-sm bg-black/5 dark:bg-black/15 w-full items-center justify-center ${isMobile ? "h-[28px]" : "h-[24px]"}`}>
       <div className="flex flex-row gap-2 min-w-0 w-full h-full justify-between">
         <span className="relative flex flex-row gap-1.5 items-center h-full w-full">
           <span className="text-xs flex text-[var(--text-secondary)]/50">X</span>
@@ -162,7 +134,8 @@ const PositionInput = ({
                 setIsArrowKeyActive(false);
               }
             }}
-            className="w-full h-[16px] py-[2px] px-2 text-xs rounded-xs bg-[var(--bg-main)]"
+            className={`w-full h-[95%] py-[2px] px-2 rounded-xs bg-[var(--bg-main)]
+                      ${ isMobile ? "text-sm" : "text-xs"}`}
           />
           <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-secondary)]/60">
             {units}
@@ -191,7 +164,8 @@ const PositionInput = ({
                 setIsArrowKeyActive(false);
               }
             }}
-            className="w-full h-[16px] py-[2px] px-2 text-xs rounded-xs bg-[var(--bg-main)]"
+            className={`w-full h-[95%] py-[2px] px-2 rounded-xs bg-[var(--bg-main)]
+                      ${ isMobile ? "text-sm" : "text-xs"}`}
           />
           <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[10px] text-[var(--text-secondary)]/60">
             {units}
