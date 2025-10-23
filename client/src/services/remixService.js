@@ -1,22 +1,9 @@
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.error("Missing Supabase environment variables");
-}
-const API_BASE = `${SUPABASE_URL}/rest/v1`;
-const STORAGE_BASE = `${SUPABASE_URL}/storage/v1`;
-const getHeaders = (method = "GET") => ({
-  apikey: SUPABASE_ANON_KEY,
-  Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-  "Content-Type": "application/json",
-  Prefer: (method === "POST" || method === "PATCH") ? "return=representation" : undefined,
-});
-const getStorageHeaders = () => ({
-  apikey: SUPABASE_ANON_KEY,
-  Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-});
+// Use edge function endpoints instead of direct Supabase access
+const SUPABASE_PROXY_URL = '/api/supabase-proxy';
+
 let lastRequestTime = 0;
-const RATE_LIMIT_MS = 5000; 
+const RATE_LIMIT_MS = 5000;
+
 const checkRateLimit = () => {
   const now = Date.now();
   if (now - lastRequestTime < RATE_LIMIT_MS) {
@@ -29,9 +16,7 @@ const checkRateLimit = () => {
   }
   lastRequestTime = now;
 };
-const generateFileName = () => {
-  return `remix-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.webp`;
-};
+
 const processImage = async (
   file,
   maxWidth = 1290,
@@ -79,6 +64,7 @@ const processImage = async (
     img.src = URL.createObjectURL(file);
   });
 };
+
 const validateDeviceState = (deviceState) => {
   if (!deviceState || typeof deviceState !== "object") {
     throw new Error("Invalid device state");
@@ -92,6 +78,7 @@ const validateDeviceState = (deviceState) => {
   }
   return true;
 };
+
 const generateCuteId = () => {
   const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
   let result = "";
@@ -100,15 +87,17 @@ const generateCuteId = () => {
   }
   return result;
 };
+
 const checkIdExists = async (id) => {
   try {
-    const response = await fetch(`${API_BASE}/remixes?id=eq.${id}&select=id`, {
-      method: "GET",
-      headers: getHeaders(),
-    });
+    const response = await fetch(
+      `${SUPABASE_PROXY_URL}?action=get-remix&id=${id}`,
+      {
+        method: 'GET',
+      }
+    );
     if (response.ok) {
-      const data = await response.json();
-      return data.length > 0;
+      return true;
     }
     return false;
   } catch (error) {
@@ -116,6 +105,7 @@ const checkIdExists = async (id) => {
     return false;
   }
 };
+
 const generateUniqueId = async () => {
   let attempts = 0;
   const maxAttempts = 10;
@@ -133,6 +123,7 @@ const generateUniqueId = async () => {
   }
   throw new Error("Failed to generate unique ID after multiple attempts");
 };
+
 export const remixService = {
   async uploadImage(imageFile) {
     try {
@@ -141,54 +132,61 @@ export const remixService = {
         imageFile.name,
         `${Math.round(imageFile.size / 1024)}KB`
       );
+      
       const processedBlob = await processImage(imageFile);
-      const fileName = generateFileName();
-      const response = await fetch(
-        `${STORAGE_BASE}/object/remix-images/${fileName}`,
-        {
-          method: "POST",
-          headers: getStorageHeaders(),
-          body: processedBlob,
-        }
-      );
+      
+      const formData = new FormData();
+      formData.append('file', processedBlob, 'image.webp');
+      formData.append('fileType', 'image');
+
+      const response = await fetch(`${SUPABASE_PROXY_URL}?action=upload`, {
+        method: 'POST',
+        body: formData
+      });
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("❌ Image upload failed:", response.status, errorText);
+        const errorData = await response.json().catch(() => ({}));
+        console.error("❌ Image upload failed:", response.status, errorData);
         throw new Error(`Failed to upload image: ${response.status}`);
       }
-      const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/remix-images/${fileName}`;
-      console.log("✅ Image uploaded successfully:", publicUrl);
-      return publicUrl;
+
+      const data = await response.json();
+      console.log("✅ Image uploaded successfully:", data.url);
+      return data.url;
     } catch (error) {
       console.error("Error uploading image:", error);
       throw error;
     }
   },
+
   async uploadThumbnail(thumbnailBlob) {
     try {
       console.log('🖼️ Starting thumbnail upload...', `${Math.round(thumbnailBlob.size/1024)}KB`);
-      const fileName = `thumb-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.webp`;
-      const response = await fetch(
-        `${STORAGE_BASE}/object/remix-images/${fileName}`,
-        {
-          method: 'POST',
-          headers: getStorageHeaders(),
-          body: thumbnailBlob
-        }
-      );
+      
+      const formData = new FormData();
+      formData.append('file', thumbnailBlob, 'thumbnail.webp');
+      formData.append('fileType', 'thumbnail');
+
+      const response = await fetch(`${SUPABASE_PROXY_URL}?action=upload`, {
+        method: 'POST',
+        body: formData
+      });
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Thumbnail upload failed:', response.status, errorText);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Thumbnail upload failed:', response.status, errorData);
         throw new Error(`Failed to upload thumbnail: ${response.status}`);
       }
-      const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/remix-images/${fileName}`;
-      console.log('✅ Thumbnail uploaded successfully:', publicUrl);
-      return publicUrl;
+
+      const data = await response.json();
+      console.log('✅ Thumbnail uploaded successfully:', data.url);
+      return data.url;
     } catch (error) {
       console.error('Error uploading thumbnail:', error);
       throw error;
     }
   },
+
   async createRemix(deviceStateSchema, backgroundImageFile = null, thumbnailUrl = null, remixId = null) {
     try {
       checkRateLimit();
@@ -201,12 +199,14 @@ export const remixService = {
       
       // Use the schema directly (it's already processed)
       const processedDeviceState = JSON.parse(JSON.stringify(deviceStateSchema));
+
       if (backgroundImageFile && processedDeviceState.bg.type === "image") {
         console.log("🖼️ Uploading background image for remix...");
         const imageUrl = await this.uploadImage(backgroundImageFile);
         processedDeviceState.bg.activeTypeValue = imageUrl;
         console.log("✅ Background image uploaded, URL stored in device state");
       }
+
       if (
         processedDeviceState.bg.type === "image" &&
         processedDeviceState.bg.activeTypeValue &&
@@ -217,44 +217,39 @@ export const remixService = {
         );
         processedDeviceState.bg.activeTypeValue = "";
       }
+
       validateDeviceState(processedDeviceState);
       
-      // Use PATCH if exists, POST if new
-      const method = idExists ? "PATCH" : "POST";
-      const url = idExists 
-        ? `${API_BASE}/remixes?id=eq.${cuteId}`
-        : `${API_BASE}/remixes`;
+      const action = idExists ? 'update-remix' : 'create-remix';
+      const method = idExists ? 'PATCH' : 'POST';
       
       console.log(`🚀 ${idExists ? 'Updating' : 'Creating'} remix with cute ID:`, cuteId);
       
-      const response = await fetch(url, {
+      const response = await fetch(`${SUPABASE_PROXY_URL}?action=${action}`, {
         method: method,
-        headers: getHeaders(method),
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           id: cuteId,
           device_state: processedDeviceState,
-          thumbnail_url: thumbnailUrl  
+          thumbnail_url: thumbnailUrl
         })
       });
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`❌ ${method} remix failed:`, response.status, errorText);
+        const errorData = await response.json().catch(() => ({}));
+        console.error(`❌ ${method} remix failed:`, response.status, errorData);
         if (response.status === 413) {
           throw new Error("Design too large to share");
         }
-        throw new Error(`Failed to ${idExists ? 'update' : 'create'} remix: ${response.status}`);
+        throw new Error(errorData.error || `Failed to ${idExists ? 'update' : 'create'} remix`);
       }
-      let finalRemixId = cuteId;
+
+      const data = await response.json();
+      const finalRemixId = data.id || cuteId;
       
-      if (idExists) {
-        // PATCH requests often return empty responses, use the original ID
-        console.log(`✅ Remix updated successfully with cute ID:`, finalRemixId);
-      } else {
-        // POST requests return the created data
-        const data = await response.json();
-        finalRemixId = data[0].id;
-        console.log(`✅ Remix created successfully with cute ID:`, finalRemixId);
-      }
+      console.log(`✅ Remix ${idExists ? 'updated' : 'created'} successfully with cute ID:`, finalRemixId);
       
       return finalRemixId;
     } catch (error) {
@@ -262,70 +257,65 @@ export const remixService = {
       throw error;
     }
   },
+
   async getRemix(remixId) {
     try {
       if (!remixId || typeof remixId !== "string") {
         throw new Error("Invalid remix ID");
       }
+
       console.log("🔍 Fetching remix:", remixId);
+
       const response = await fetch(
-        `${API_BASE}/remixes?id=eq.${remixId}&select=*`,
+        `${SUPABASE_PROXY_URL}?action=get-remix&id=${remixId}`,
         {
-          method: "GET",
-          headers: getHeaders(),
+          method: 'GET',
         }
       );
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("❌ Get remix failed:", response.status, errorText);
-        throw new Error(`Failed to fetch remix: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        console.error("❌ Get remix failed:", response.status, errorData);
+        throw new Error(errorData.error || "Failed to fetch remix");
       }
+
       const data = await response.json();
-      if (!data || data.length === 0) {
-        throw new Error("Remix not found or has expired");
-      }
       console.log("✅ Remix loaded successfully:", remixId);
+
+      // Increment views (fire and forget)
       this.incrementViews(remixId).catch(() => {});
-      return data[0];
+
+      return data;
     } catch (error) {
       console.error("Error fetching remix:", error);
       throw error;
     }
   },
+
   async incrementViews(remixId) {
     try {
-      const response = await fetch(
-        `${API_BASE}/remixes?id=eq.${remixId}&select=view_count`,
-        {
-          method: "GET",
-          headers: getHeaders(),
-        }
-      );
-      if (response.ok) {
-        const data = await response.json();
-        if (data && data.length > 0) {
-          const currentCount = data[0].view_count || 0;
-          await fetch(`${API_BASE}/remixes?id=eq.${remixId}`, {
-            method: "PATCH",
-            headers: getHeaders(),
-            body: JSON.stringify({
-              view_count: currentCount + 1,
-            }),
-          });
-          console.log("📈 View count incremented for:", remixId);
-        }
-      }
+      await fetch(`${SUPABASE_PROXY_URL}?action=increment-views`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: remixId })
+      });
+      console.log("📈 View count incremented for:", remixId);
     } catch (error) {
       console.warn("Failed to increment views:", error);
     }
   },
+
   async testConnection() {
     try {
-      const response = await fetch(`${API_BASE}/remixes?limit=1`, {
-        method: "GET",
-        headers: getHeaders(),
+      // Try to get a remix that doesn't exist - if we get a proper 404, connection works
+      const response = await fetch(`${SUPABASE_PROXY_URL}?action=get-remix&id=test123`, {
+        method: 'GET',
       });
-      if (response.ok) {
+      
+      // Any valid response (even 404) means the connection works
+      if (response.status === 404 || response.ok) {
         console.log("✅ Remix service connection works!");
         return true;
       } else {
@@ -338,4 +328,5 @@ export const remixService = {
     }
   },
 };
+
 export default remixService;
