@@ -3,7 +3,7 @@ import React, {
   forwardRef,
   useImperativeHandle,
   useEffect,
-  useState,
+  useState, // ADDED
 } from "react";
 import {
   Application,
@@ -27,46 +27,56 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
   const { qrConfig, deviceInfo } = useDevice();
   const containerRef = useRef(null);
   const appRef = useRef(null);
-  const [isReady, setIsReady] = useState(false);
-  const readyPromiseRef = useRef(null);
-
-  // Create a promise that resolves when thumbnail is ready
-  useEffect(() => {
-    readyPromiseRef.current = new Promise((resolve) => {
-      const checkReady = () => {
-        if (isReady) {
-          resolve();
-        } else {
-          setTimeout(checkReady, 100);
-        }
-      };
-      checkReady();
-    });
-  }, [isReady]);
+  const [isRenderComplete, setIsRenderComplete] = useState(false); // ADDED
 
   const exportAsBlob = async (options = {}) => {
     const { quality = 0.8, format = "image/webp" } = options;
 
-    console.log("🖼️ exportAsBlob called, waiting for thumbnail to be ready...");
+    // ADDED: Wait for rendering to complete
+    console.log("🖼️ Waiting for thumbnail render to complete...");
+    let waitAttempts = 0;
+    while (!isRenderComplete && waitAttempts < 50) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      waitAttempts++;
+    }
     
-    // Wait for thumbnail to be fully ready
-    await readyPromiseRef.current;
-    
-    console.log("🖼️ Thumbnail is ready, proceeding with export");
+    if (!isRenderComplete) {
+      console.warn("⚠️ Thumbnail render timeout, exporting anyway");
+    } else {
+      console.log("✅ Thumbnail render complete, exporting...");
+    }
+    // END ADDED
+
+    // Wait for app to be fully ready
+    let attempts = 0;
+    const maxAttempts = 50; // 5 seconds max wait
+    while (attempts < maxAttempts && !appRef.current) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      attempts++;
+    }
 
     if (!appRef.current) {
-      throw new Error("Thumbnail app not initialized");
+      throw new Error("Thumbnail not ready for export - app never initialized");
     }
 
     try {
       console.log("🖼️ Starting thumbnail export...");
       
-      // Double-check stage has content
-      if (appRef.current.stage.children.length === 0) {
-        throw new Error("Thumbnail stage is empty");
+      // Wait for stage to have content (don't call createThumbnail again)
+      let attempts = 0;
+      const maxAttempts = 50; // 5 seconds max wait
+      
+      while (attempts < maxAttempts && appRef.current.stage.children.length === 0) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+        console.log(`🖼️ Waiting for stage content... attempt ${attempts}/${maxAttempts}`);
       }
       
-      console.log("🖼️ Stage has", appRef.current.stage.children.length, "children");
+      if (appRef.current.stage.children.length === 0) {
+        throw new Error("Stage never populated with content");
+      }
+      
+      console.log("🖼️ Stage has content, proceeding with export");
       
       // Force a render before extracting
       appRef.current.renderer.render(appRef.current.stage);
@@ -76,7 +86,8 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
         appRef.current.stage
       );
 
-      console.log("🖼️ Canvas extracted:", canvas.width, "x", canvas.height);
+      console.log("🖼️ Thumbnail export - Stage children:", appRef.current.stage.children.length);
+      console.log("🖼️ Thumbnail export - Canvas size:", canvas.width, "x", canvas.height);
 
       return new Promise((resolve, reject) => {
         canvas.toBlob(
@@ -85,7 +96,7 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
               reject(new Error("Failed to export thumbnail"));
               return;
             }
-            console.log("✅ Thumbnail blob created:", blob.size, "bytes");
+            console.log("🖼️ Thumbnail blob size:", blob.size, "bytes");
             resolve(blob);
           },
           format === "png" ? "image/png" : "image/webp",
@@ -93,30 +104,25 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
         );
       });
     } catch (error) {
-      console.error("❌ Failed to export thumbnail:", error);
-      throw error;
+      console.error("Failed to export thumbnail:", error);
+      throw new Error("Failed to export thumbnail");
     }
   };
 
-  useImperativeHandle(ref, () => ({ 
-    exportAsBlob,
-    isReady: () => isReady 
-  }));
+  useImperativeHandle(ref, () => ({ exportAsBlob }));
 
   const createThumbnail = async () => {
     console.log("🖼️ createThumbnail called");
-    setIsReady(false); // Reset ready state
+    setIsRenderComplete(false); // ADDED: Reset on new render
     
-    if (!wallpaperRef.current?.exportImage) {
+    if (!wallpaperRef.current.exportImage) {
       console.log("🖼️ exportImage not ready, using fallback");
-      await setupBasicScene(null);
-      setIsReady(true);
+      setupBasicScene(null);
       return;
     }
     if (!appRef.current) {
       console.log("🖼️ app ref not ready, using fallback");
-      await setupBasicScene(null);
-      setIsReady(true);
+      setupBasicScene(null);
       return;
     }
 
@@ -126,7 +132,7 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
       const wallpaperBlob = await wallpaperRef.current.exportImage({
         format: "png",
         quality: 0.8,
-        scale: 1,
+        scale: 1, // Smaller for performance
       });
 
       console.log("🖼️ Wallpaper exported, creating image...");
@@ -134,26 +140,23 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
       const wallpaperImage = new Image();
       
       await new Promise((resolve, reject) => {
-        wallpaperImage.onload = async () => {
+        wallpaperImage.onload = () => {
           console.log("🖼️ Wallpaper image loaded successfully");
-          await setupBasicScene(wallpaperImage);
-          setIsReady(true);
+          setupBasicScene(wallpaperImage);
           resolve();
         };
-        wallpaperImage.onerror = async () => {
+        wallpaperImage.onerror = () => {
           console.log("🖼️ Failed to load wallpaper image, using fallback");
-          await setupBasicScene(null);
-          setIsReady(true);
+          setupBasicScene(null);
           resolve(); // Don't reject, just use fallback
         };
         wallpaperImage.src = URL.createObjectURL(wallpaperBlob);
       });
     } catch (error) {
       console.log("🖼️ Failed to create thumbnail from wallpaper:", error);
-      await setupBasicScene(null);
-      setIsReady(true);
+      setupBasicScene(null);
     }
-    console.log("✅ createThumbnail function completed, thumbnail is ready");
+    console.log("🖼️ createThumbnail function completed");
   };
 
   const setupBasicScene = async (wallpaperImage) => {
@@ -173,15 +176,15 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
       return;
     }
 
-    app.stage.removeChildren();
+     app.stage.removeChildren();
 
-    // Create stage mask to clip everything to thumbnail bounds
-    const stageMask = new Graphics();
-    stageMask.rect(0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-    stageMask.fill(0xffffff);
-    app.stage.mask = stageMask;
+     // Create stage mask to clip everything to thumbnail bounds
+     const stageMask = new Graphics();
+     stageMask.rect(0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+     stageMask.fill(0xffffff);
+     app.stage.mask = stageMask;
 
-    const background = new Graphics();
+     const background = new Graphics();
     background.rect(0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
     background.fill(`${dark ? "#232323" : "#F0F0F0"}`);
     app.stage.addChild(background);
@@ -212,7 +215,9 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
           image.onload = () => {
             try {
               const source = new ImageSource({ resource: image });
+
               const texture = new Texture({ source });
+
               resolve(texture);
             } catch (err) {
               reject(err);
@@ -258,13 +263,13 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
 
     const phoneShadow = new Graphics();
     phoneShadow.roundRect(
-      phoneX - strokeWidth / 2 - 25,
+      phoneX - strokeWidth / 2 - 25, // Offset shadow slightly
       phoneY - strokeWidth / 2 - 25,
       PHONE_WIDTH + strokeWidth + 50,
       PHONE_HEIGHT + strokeWidth + 50,
       THUMBNAIL_HEIGHT * 0.1
     );
-    phoneShadow.fill({ color: 0x000000, alpha: 0.025 });
+    phoneShadow.fill({ color: 0x000000, alpha: 0.025 }); // Semi-transparent black
     app.stage.addChild(phoneShadow);
 
     const phoneFrame = new Graphics();
@@ -282,18 +287,21 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
     // Phone screen content
     if (wallpaperImage) {
       try {
+        // Create ImageSource and Texture manually for the wallpaper
         const wallpaperSource = new ImageSource({ resource: wallpaperImage });
         const wallpaperTexture = new Texture({ source: wallpaperSource });
         const wallpaperSprite = new Sprite(wallpaperTexture);
 
+        // Scale to fit phone screen (cover the entire screen)
         const scaleX = PHONE_WIDTH / wallpaperImage.width;
         const scaleY = PHONE_HEIGHT / wallpaperImage.height;
-        const scale = Math.max(scaleX, scaleY);
+        const scale = Math.max(scaleX, scaleY); // Cover entire screen
 
         wallpaperSprite.scale.set(scale);
         wallpaperSprite.x = phoneX;
         wallpaperSprite.y = phoneY;
 
+        // Create clipping mask for phone screen
         const phoneMask = new Graphics();
         phoneMask.roundRect(
           phoneX,
@@ -310,28 +318,28 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
         app.stage.addChild(phoneMask);
       } catch (error) {
         console.error("Failed to create wallpaper sprite:", error);
+        // Fallback to gray screen
         const phoneScreen = new Graphics();
         phoneScreen.rect(phoneX, phoneY, PHONE_WIDTH, PHONE_HEIGHT);
         phoneScreen.fill(0xcccccc);
         app.stage.addChild(phoneScreen);
       }
     } else {
-      console.log("🔴 Fallback phone screen");
+      // Fallback phone screen
+      console.log("🔴 Fallback phone screen for some reason");
       const phoneScreen = new Graphics();
       phoneScreen.rect(phoneX, phoneY, PHONE_WIDTH, PHONE_HEIGHT);
       phoneScreen.fill(0xf0f0f0);
       app.stage.addChild(phoneScreen);
     }
 
+    // Add stage mask to stage so it's rendered
     app.stage.addChild(stageMask);
-    
-    // Force render to ensure everything is drawn
     app.render();
     
-    // Wait a frame to ensure render is complete
-    await new Promise(resolve => requestAnimationFrame(resolve));
-    
-    console.log("✅ Basic scene setup complete, stage has", app.stage.children.length, "children");
+    // ADDED: Mark render as complete
+    setIsRenderComplete(true);
+    console.log("✅ Thumbnail render marked as complete");
   };
 
   useEffect(() => {
@@ -346,12 +354,12 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
       try {
         const app = new Application();
         await app.init({
-          width: THUMBNAIL_WIDTH,
+          width: THUMBNAIL_WIDTH, // Full size first, then scale display
           height: THUMBNAIL_HEIGHT,
           backgroundColor: 0x000000,
           antialias: true,
-          preference: "webgl",
-          powerPreference: "default",
+          preference: "webgl", // or 'webgpu'
+          powerPreference: "default", // Add this
         });
 
         console.log("✅ Pixi app initialized", {
@@ -359,23 +367,27 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
           canvasSize: `${app.canvas.width}x${app.canvas.height}`,
         });
 
+        // Add to DOM
         if (containerRef.current) {
           containerRef.current.innerHTML = "";
           containerRef.current.appendChild(app.canvas);
 
+          // Scale the canvas display only
           app.canvas.style.width = `${THUMBNAIL_WIDTH * THUMBNAIL_SCALE}px`;
           app.canvas.style.height = `${THUMBNAIL_HEIGHT * THUMBNAIL_SCALE}px`;
 
-          console.log("✅ Canvas added to DOM");
+          console.log("✅ Canvas added to DOM", {
+            containerHasCanvas: containerRef.current.contains(app.canvas),
+            canvasStyleSize: `${app.canvas.style.width} x ${app.canvas.style.height}`,
+          });
         }
 
         appRef.current = app;
 
         // Setup scene immediately
-        await createThumbnail();
+        createThumbnail();
       } catch (error) {
         console.error("❌ Failed to initialize Pixi app:", error);
-        setIsReady(true); // Set ready even on error to prevent hanging
       }
     };
 
@@ -387,7 +399,6 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
         appRef.current.destroy(true);
         appRef.current = null;
       }
-      setIsReady(false);
     };
   }, []);
 
@@ -401,22 +412,20 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
       }}
       ref={containerRef}
     >
-      {/* Show loading indicator while not ready */}
-      {!isReady && (
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            color: "var(--text-secondary)",
-            fontSize: "12px",
-            pointerEvents: "none",
-          }}
-        >
-          Rendering...
-        </div>
-      )}
+      {/* Fallback content if canvas fails */}
+      <div
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          color: "white",
+          fontSize: "12px",
+          pointerEvents: "none",
+        }}
+      >
+        Loading...
+      </div>
     </div>
   );
 });
