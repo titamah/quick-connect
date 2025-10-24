@@ -252,7 +252,7 @@ function ImageInput() {
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => e.preventDefault()}
             className={`${
-              isMobile ? "h-[200px]" : "h-[200px]"
+              isMobile ? "h-[150px]" : "h-[200px]"
             } w-full mb-[1.5px] rounded-sm border border-[5px] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)]`}
           >
             <div

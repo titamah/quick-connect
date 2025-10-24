@@ -236,7 +236,7 @@ function ImageGenerator({
           <>
             <h3 className="px-0.5">Prompt</h3>
             {/* Prompt input */}
-            <form onSubmit={handleSubmit} className="mb-1.5">
+            <form onSubmit={handleSubmit} className="mb-1.5 h-full">
               <textarea
                 value={prompt}
                 onKeyDown={(e) => {
@@ -249,7 +249,7 @@ function ImageGenerator({
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder="Describe your background..."
                 disabled={isGenerating || generationCount >= 5}
-                className="text-xs w-full h-full p-1.5 bg-[var(--bg-main)] rounded-md !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)] disabled:opacity-50 resize-none"
+                className={`text-xs w-full h-full p-1.5 bg-[var(--bg-main)] rounded-md !shadow-[0_0_0_.95px_rgb(215,215,215)] dark:!shadow-[0_0_0_.95px_rgb(66,66,66)] disabled:opacity-50 resize-none`}
               />
             </form>
           </>
