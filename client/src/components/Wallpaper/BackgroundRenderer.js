@@ -119,43 +119,40 @@ export class BackgroundRenderer {
   }
 
   async renderImageBackground(imageData) {
+    let imageUrl = null;
+    let isObjectUrl = false;
+    
     try {
-      let imageUrl;
-      let isObjectUrl = false;
-      
       if (imageData instanceof File) {
         imageUrl = URL.createObjectURL(imageData);
         isObjectUrl = true;
-        this.objectUrls.add(imageUrl); // Track for cleanup
+        this.objectUrls.add(imageUrl);
       } else if (typeof imageData === "string") {
         imageUrl = imageData;
       } else {
         throw new Error("Unsupported image data type");
       }
-
+  
       const texture = await Assets.load(imageUrl);
       this.backgroundSprite = new Sprite(texture);
-
+  
       const scaleX = this.deviceSize.x / texture.width;
       const scaleY = this.deviceSize.y / texture.height;
       const scale = Math.max(scaleX, scaleY);
-
+  
       this.backgroundSprite.scale.set(scale);
-
       this.backgroundSprite.x = (this.deviceSize.x - texture.width * scale) / 2;
-      this.backgroundSprite.y =
-        (this.deviceSize.y - texture.height * scale) / 2;
-
+      this.backgroundSprite.y = (this.deviceSize.y - texture.height * scale) / 2;
+  
       this.app.stage.addChildAt(this.backgroundSprite, 0);
-
-      // Clean up object URL after texture is loaded
-      if (isObjectUrl) {
-        URL.revokeObjectURL(imageUrl);
-        this.objectUrls.delete(imageUrl);
-      }
     } catch (error) {
       console.error("Failed to load background image:", error);
       this.renderSolidBackground("#FFFFFF");
+    } finally {
+      if (isObjectUrl && imageUrl) {
+        URL.revokeObjectURL(imageUrl);
+        this.objectUrls.delete(imageUrl);
+      }
     }
   }
 

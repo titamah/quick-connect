@@ -96,11 +96,17 @@ function Panel({
     const timer = setTimeout(() => {
       if (isMobile && canvasRef?.current && !isOpen) {
         canvasRef.current.resetView();
-        setActiveTab(null);
       }
     }, 350);
     return () => clearTimeout(timer);
   }, [isMobile, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+        setActiveTab(null);
+      }
+  }, [isOpen]);
+
 
   const items = [
     {
@@ -193,7 +199,7 @@ function Panel({
           aria-labelledby="hs-offcanvas-example-label"
         >
           <div className="h-full flex flex-row w-full">
-            <div className="flex-1">
+            <div className="w-full">
               {items[activeTab ? activeTab - 1 : 0].children}
             </div>
           </div>

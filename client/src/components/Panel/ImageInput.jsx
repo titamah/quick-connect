@@ -212,7 +212,7 @@ function ImageInput() {
           />
         </ReactCrop>
       </Modal>
-      <div className="dark:text-white w-full">
+      <div className="dark:text-white">
         <div className="flex flex-row items-center justify-between w-full mb-2">
           <Dropdown
             options={menuOptions}
@@ -240,11 +240,11 @@ function ImageInput() {
             onDrop={(e) => e.preventDefault()}
             className={`${
               isMobile ? "h-[200px]" : "h-[200px]"
-            } w-fill mb-[1.5px] rounded-sm border border-[5px] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)]`}
+            } w-full mb-[1.5px] rounded-sm border border-[5px] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)]`}
           >
             <div
               onDrop={handleChange}
-              className="w-full h-full flex items-center justify-center relative"
+              className="w-full min-w-0 h-full flex items-center justify-center relative"
             >
               <div className="hover absolute inset-0 bg-black/50 flex items-center justify-center transition-opacity">
                 <Pencil
@@ -287,13 +287,13 @@ function ImageInput() {
       {activeInfo.originalImageData && (
         <div className=" mt-4 space-y-2">
           <h4 className=""> File Name </h4>
-          <div className="w-fill h-[24px]  px-1.5 py-[2.5px] border border-[var(--border-color)]/50 rounded-sm bg-black/5 dark:bg-black/15 flex items-center justify-between">
-            <span>
+          <div className=" max-w-full h-[24px] text-[var(--text-primary)] px-1.5 py-[2.5px] border border-[var(--border-color)]/50 rounded-sm bg-black/5 dark:bg-black/15 flex items-center justify-between">
+            <span className="truncate flex-1 min-w-0 max-w-[75%]">
               {activeInfo.crop
                 ? activeInfo.filename
                 : "No image selected"}
             </span>
-            <span className="flex items-center gap-2">
+            <span className="flex-none flex items-center gap-2">
               <Pencil
                 onClick={openModal}
                 size={16}
