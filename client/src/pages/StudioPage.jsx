@@ -11,7 +11,6 @@ const StudioPage = () => {
   const canvasRef = React.useRef(null);
 
   const [isOpen, setIsOpen] = React.useState(true);
-  const windowSize = useWindowSize();
   const [breakpoint, setBreakpoint] = React.useState(null);
   const [panelSize, setPanelSize] = React.useState({
     width: isMobile ? 0 : 450,
@@ -21,7 +20,6 @@ const StudioPage = () => {
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 768px)");
   
-    // define what we consider current
     const checkBreakpoint = () => {
       const currentBreakpoint = mediaQuery.matches ? "mobile" : "desktop";
   
@@ -35,17 +33,12 @@ const StudioPage = () => {
         setBreakpoint(currentBreakpoint);
       }
     };
-  
-    // run once immediately
-    checkBreakpoint();
-  
-    // listen for media query changes
-    mediaQuery.addEventListener("change", checkBreakpoint);
+      checkBreakpoint();
+      mediaQuery.addEventListener("change", checkBreakpoint);
   
     return () => {
       mediaQuery.removeEventListener("change", checkBreakpoint);
     };
-    // we only depend on breakpoint and panelSize
   }, [breakpoint, panelSize.width]);
   
 
