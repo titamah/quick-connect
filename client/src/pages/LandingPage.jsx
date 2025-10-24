@@ -10,7 +10,7 @@ const LandingPage = () => {
   const howItWorksSteps = [
     {
       id: 1,
-      title: "1. DESIGN YOUR QREATION.",
+      title: "1. CREATE YOUR DESIGN.",
       description:
         "Pick your vibe - colors, backgrounds, QR placement. Make it totally you.",
       bgColor: "bg-[#f0f66e]",
