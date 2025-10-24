@@ -281,7 +281,7 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
       THUMBNAIL_HEIGHT * 0.075
     );
     phoneFrame.stroke({ color: 0x000000, width: strokeWidth });
-    phoneFrame.fill(0x000000);
+    phoneFrame.fill({alpha:0});
     app.stage.addChild(phoneFrame);
 
     // Phone screen content

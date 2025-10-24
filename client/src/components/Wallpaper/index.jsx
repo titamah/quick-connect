@@ -72,11 +72,17 @@ const Wallpaper = forwardRef(
               const originalWidth = pixiApp.renderer.width;
               const originalHeight = pixiApp.renderer.height;
               
-              pixiApp.renderer.resize(exportWidth, exportHeight);
+              // pixiApp.renderer.resize(exportWidth, exportHeight);
               
               pixiApp.render();
               
-              const canvas = pixiApp.renderer.extract.canvas(pixiApp.stage);
+              const canvas = pixiApp.renderer.extract.canvas({
+                target: pixiApp.stage,
+                format: 'png',
+                resolution: 2,
+                frame: new Rectangle(0, 0, exportWidth, originalHeight),
+                clearColor: '#00000000'
+            });
               
               const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
               canvas.toBlob((blob) => {
