@@ -1,4 +1,14 @@
-import { useEffect, useState, useRef, useMemo, useCallback, Suspense, lazy, useImperativeHandle, forwardRef } from "react";
+import {
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+  Suspense,
+  lazy,
+  useImperativeHandle,
+  forwardRef,
+} from "react";
 import { useDevice } from "../../contexts/DeviceContext";
 import FullscreenPreview from "../Wallpaper/FullscreenPreview";
 import PreviewButton from "./PreviewButton";
@@ -19,12 +29,12 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
   const backgroundLayerRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isZoomEnabled, setIsZoomEnabled] = useState(false);
-  
+
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [lastTouchDistance, setLastTouchDistance] = useState(0);
-  
+
   // Double tap detection for mobile
   const [lastTapTime, setLastTapTime] = useState(0);
   const [lastTapPosition, setLastTapPosition] = useState({ x: 0, y: 0 });
@@ -35,116 +45,131 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
   const scale = useStageCalculations(device.size, panelSize, isOpen);
 
   // Add the imperative handle for programmatic control
-  useImperativeHandle(ref, () => {
-    const api = {
-      // Method to programmatically set canvas transform
-      setTransform: (x, y, scaleValue, animate = true) => {
-        setTransform({
-          x: x || 0,
-          y: y || 0,
-          scale: scaleValue || 1
-        });
-      },
-      
-      // Method to animate to a specific position (smoother for mobile)
-      animateToTransform: (x, y, scaleValue, duration = 750) => {
-        // Enable transition for smooth animation
-        if (previewRef.current) {
-          previewRef.current.style.transition = `all ${duration}ms ease-in-out`;
-        }
-        
-        setTransform({
-          x: x || 0,
-          y: y || 0,
-          scale: scaleValue || 1
-        });
-        
-        // Remove transition after animation completes
-        setTimeout(() => {
-          if (previewRef.current) {
-            previewRef.current.style.transition = transform.scale === 1 && transform.x === 0 && transform.y === 0 
-              ? "all 0.75s ease-in-out" 
-              : "none";
-          }
-        }, duration);
-      },
-      
-      // Helper method to center device in visible area above panel (mobile)
-      centerInVisibleArea: (scaleValue = 1, panelHeight = panelSize.height) => {
-        if (!isMobile) {
-          // On desktop, just center normally
-          api.animateToTransform(0, 0, scaleValue);
-          return;
-        }
-        
-        const canvasElement = canvasRef.current;
-        if (!canvasElement) return;
-        
-        const canvasRect = canvasElement.getBoundingClientRect();
-        
-        const visibleCanvasHeight = canvasRect.height - panelHeight;
-        const visibleCenter = visibleCanvasHeight / 2;
-        
-        const offsetY = ((canvasRect.height / 2) - visibleCenter - panelHeight) + (device.size.y * scale * (0.5 - qrConfig.positionPercentages.y));
-        
-        api.animateToTransform(0, offsetY, scaleValue);
-      },
+  useImperativeHandle(
+    ref,
+    () => {
+      const api = {
+        // Method to programmatically set canvas transform
+        setTransform: (x, y, scaleValue, animate = true) => {
+          setTransform({
+            x: x || 0,
+            y: y || 0,
+            scale: scaleValue || 1,
+          });
+        },
 
-      centerTopInCanvas: (scaleValue = 0.5, panelHeight = panelSize.height) => {
-        if (!isMobile) {
-          // On desktop, just center normally
-          api.animateToTransform(0, 0, scaleValue);
-          return;
-        }
-        
-        const canvasElement = canvasRef.current;
-        if (!canvasElement) return;
-        
-        const canvasRect = canvasElement.getBoundingClientRect();
-        
-        const visibleCanvasHeight = canvasRect.height - panelHeight;
-        const visibleCenter = visibleCanvasHeight / 2;
-        
-        const offsetY = ((canvasRect.height / 2) - visibleCenter - panelHeight);
-        
-        api.animateToTransform(0, offsetY, scaleValue);
-      },
-      
-      // Helper method to center QR in viewport
-      centerQRInViewport: (qrPosition, deviceSize, scaleValue = 1.2) => {
-        const canvasElement = canvasRef.current;
-        if (!canvasElement) return;
-        
-        const canvasRect = canvasElement.getBoundingClientRect();
-        const canvasCenter = {
-          x: canvasRect.width / 2,
-          y: canvasRect.height / 2
-        };
-        
-        // Calculate where QR currently is in canvas coordinates
-        const currentQRScreenPos = {
-          x: (deviceSize.x * qrPosition.x) * scale,
-          y: (deviceSize.y * qrPosition.y) * scale
-        };
-        
-        // Calculate offset needed to center QR
-        const offsetX = canvasCenter.x - currentQRScreenPos.x;
-        const offsetY = canvasCenter.y - currentQRScreenPos.y;
-        
-        api.animateToTransform(offsetX, offsetY, scaleValue);
-      },
-      
-      // Reset to default view
-      resetView: () => {
-        api.animateToTransform(0, 0, 1);
-      },
-      
-      // Get current transform (useful for debugging)
-      getCurrentTransform: () => transform
-    };
-    
-    return api;
-  }, [transform, scale, previewRef, canvasRef]);
+        // Method to animate to a specific position (smoother for mobile)
+        animateToTransform: (x, y, scaleValue, duration = 750) => {
+          // Enable transition for smooth animation
+          if (previewRef.current) {
+            previewRef.current.style.transition = `all ${duration}ms ease-in-out`;
+          }
+
+          setTransform({
+            x: x || 0,
+            y: y || 0,
+            scale: scaleValue || 1,
+          });
+
+          // Remove transition after animation completes
+          setTimeout(() => {
+            if (previewRef.current) {
+              previewRef.current.style.transition =
+                transform.scale === 1 && transform.x === 0 && transform.y === 0
+                  ? "all 0.75s ease-in-out"
+                  : "none";
+            }
+          }, duration);
+        },
+
+        // Helper method to center device in visible area above panel (mobile)
+        centerInVisibleArea: (
+          scaleValue = 1,
+          panelHeight = panelSize.height
+        ) => {
+          if (!isMobile) {
+            // On desktop, just center normally
+            api.animateToTransform(0, 0, scaleValue);
+            return;
+          }
+
+          const canvasElement = canvasRef.current;
+          if (!canvasElement) return;
+
+          const canvasRect = canvasElement.getBoundingClientRect();
+
+          const visibleCanvasHeight = canvasRect.height - panelHeight;
+          const visibleCenter = visibleCanvasHeight / 2;
+
+          const offsetY =
+            canvasRect.height / 2 -
+            visibleCenter -
+            panelHeight +
+            device.size.y * scale * (0.5 - qrConfig.positionPercentages.y);
+
+          api.animateToTransform(0, offsetY, scaleValue);
+        },
+
+        centerTopInCanvas: (
+          scaleValue = 0.5,
+          panelHeight = panelSize.height
+        ) => {
+          if (!isMobile) {
+            // On desktop, just center normally
+            api.animateToTransform(0, 0, scaleValue);
+            return;
+          }
+
+          const canvasElement = canvasRef.current;
+          if (!canvasElement) return;
+
+          const canvasRect = canvasElement.getBoundingClientRect();
+
+          const visibleCanvasHeight = canvasRect.height - panelHeight;
+          const visibleCenter = visibleCanvasHeight / 2;
+
+          const offsetY = canvasRect.height / 2 - visibleCenter - panelHeight;
+
+          api.animateToTransform(0, offsetY, scaleValue);
+        },
+
+        // Helper method to center QR in viewport
+        centerQRInViewport: (qrPosition, deviceSize, scaleValue = 1.2) => {
+          const canvasElement = canvasRef.current;
+          if (!canvasElement) return;
+
+          const canvasRect = canvasElement.getBoundingClientRect();
+          const canvasCenter = {
+            x: canvasRect.width / 2,
+            y: canvasRect.height / 2,
+          };
+
+          // Calculate where QR currently is in canvas coordinates
+          const currentQRScreenPos = {
+            x: deviceSize.x * qrPosition.x * scale,
+            y: deviceSize.y * qrPosition.y * scale,
+          };
+
+          // Calculate offset needed to center QR
+          const offsetX = canvasCenter.x - currentQRScreenPos.x;
+          const offsetY = canvasCenter.y - currentQRScreenPos.y;
+
+          api.animateToTransform(offsetX, offsetY, scaleValue);
+        },
+
+        // Reset to default view
+        resetView: () => {
+          api.animateToTransform(0, 0, 1);
+        },
+
+        // Get current transform (useful for debugging)
+        getCurrentTransform: () => transform,
+      };
+
+      return api;
+    },
+    [transform, scale, previewRef, canvasRef]
+  );
 
   const previewSize = useMemo(
     () => ({
@@ -169,46 +194,66 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
     }
   }, [panelSize.width, panelSize.height]);
 
-  const handleMouseDown = useCallback((e) => {
-    // Skip pan/zoom if QR is selected or share menu is open
-    if (isQRSelected || isShareMenuOpen) return;
-    
-    // if (!isZoomEnabled) return;
-    setIsDragging(true);
-    setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
-  }, [isZoomEnabled, transform, isQRSelected, isShareMenuOpen]);
+  const handleMouseDown = useCallback(
+    (e) => {
+      // Skip pan/zoom if QR is selected or share menu is open
+      if (isQRSelected || isShareMenuOpen) return;
 
-  const handleMouseMove = useCallback((e) => {
-    if (!isDragging) return;
-    setTransform(prev => ({
-      ...prev,
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y
-    }));
-  }, [isDragging, isZoomEnabled, dragStart]);
+      // if (!isZoomEnabled) return;
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
+    },
+    [isZoomEnabled, transform, isQRSelected, isShareMenuOpen]
+  );
+
+  const handleMouseMove = useCallback(
+    (e) => {
+      if (!isDragging) return;
+      setTransform((prev) => ({
+        ...prev,
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      }));
+    },
+    [isDragging, isZoomEnabled, dragStart]
+  );
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
   }, []);
 
-  const handleWheel = useCallback((e) => {
-    // Skip zoom if QR is selected or share menu is open
-    if (isQRSelected || isShareMenuOpen) return;
-    
-    // if (!isZoomEnabled) return;
-    e.preventDefault();
-    
-    const delta = e.deltaY * -0.01;
-    const newScale = Math.min(Math.max(0.25, transform.scale + delta), 15);
-    
-    setTransform(prev => ({
-      ...prev,
-      scale: newScale
-    }));
-  }, [isZoomEnabled, transform.scale, isQRSelected, isShareMenuOpen]);
+  const handleWheel = useCallback(
+    (e) => {
+      // Skip zoom if QR is selected or share menu is open
+      if (isQRSelected || isShareMenuOpen) return;
+
+      // if (!isZoomEnabled) return;
+      e.preventDefault();
+
+      const delta = e.deltaY * -0.01;
+      const newScale = Math.min(Math.max(0.25, transform.scale + delta), 15);
+
+      setTransform((prev) => ({
+        ...prev,
+        scale: newScale,
+      }));
+    },
+    [isZoomEnabled, transform.scale, isQRSelected, isShareMenuOpen]
+  );
 
   const handleDoubleClick = useCallback(() => {
+
+    if (previewRef.current) {
+      previewRef.current.style.transition = `all 450ms ease-in-out`;
+    }
     setTransform({ x: 0, y: 0, scale: 1 });
+
+    setTimeout(() => {
+      if (previewRef.current) {
+        previewRef.current.style.transition = "none";
+      }
+    }, 450);
+
   }, []);
 
   const getTouchDistance = (touches) => {
@@ -217,103 +262,122 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
     return Math.sqrt(dx * dx + dy * dy);
   };
 
-  const handleTouchStart = useCallback((e) => {
-    // Skip pan/zoom if QR is selected or share menu is open
-    if (isQRSelected || isShareMenuOpen) return;
-    
-    // if (!isZoomEnabled) return;
-    if (e.touches.length === 1) {
-      const touch = e.touches[0];
-      
-      // Store touch start position for movement detection
-      setTouchStartPosition({ x: touch.clientX, y: touch.clientY });
-      
-      setIsDragging(true);
-      setDragStart({ x: touch.clientX - transform.x, y: touch.clientY - transform.y });
-    } else if (e.touches.length === 2) {
-      setLastTouchDistance(getTouchDistance(e.touches));
-    }
-  }, [isZoomEnabled, transform, isQRSelected, isShareMenuOpen]);
+  const handleTouchStart = useCallback(
+    (e) => {
+      // Skip pan/zoom if QR is selected or share menu is open
+      if (isQRSelected || isShareMenuOpen) return;
 
-  const handleTouchMove = useCallback((e) => {
-    // if (!isZoomEnabled) return;
-    e.preventDefault();
-    
-    if (e.touches.length === 1 && isDragging) {
-      setTransform(prev => ({
-        ...prev,
-        x: e.touches[0].clientX - dragStart.x,
-        y: e.touches[0].clientY - dragStart.y
-      }));
-    } else if (e.touches.length === 2) {
-      const distance = getTouchDistance(e.touches);
-      const delta = (distance - lastTouchDistance) * 0.01;
-      const newScale = Math.min(Math.max(0.25, transform.scale + delta), 15);
-      
-      setTransform(prev => ({
-        ...prev,
-        scale: newScale
-      }));
-      setLastTouchDistance(distance);
-    }
-  }, [isZoomEnabled, isDragging, dragStart, lastTouchDistance, transform.scale]);
+      // if (!isZoomEnabled) return;
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
 
-  const handleTouchEnd = useCallback((e) => {
-    // Skip pan/zoom if QR is selected (user is interacting with QR)
-    if (isQRSelected || isShareMenuOpen) {
-      setIsDragging(false);
-      setLastTouchDistance(0);
-      return;
-    }
-    
-    const currentTime = Date.now();
-    const timeDiff = currentTime - lastTapTime;
-    
-    // Only check for double tap if this was a single touch that just ended
-    if (e.changedTouches.length === 1) {
-      const touch = e.changedTouches[0];
-      
-      // Calculate how much the finger moved during this touch
-      const movementDistance = Math.sqrt(
-        Math.pow(touch.clientX - touchStartPosition.x, 2) + 
-        Math.pow(touch.clientY - touchStartPosition.y, 2)
-      );
-      
-      // Only consider it a tap if finger didn't move much (< 10px)
-      const wasTap = movementDistance < 10;
-      
-      if (wasTap) {
-        const touchDistance = Math.sqrt(
-          Math.pow(touch.clientX - lastTapPosition.x, 2) + 
-          Math.pow(touch.clientY - lastTapPosition.y, 2)
+        // Store touch start position for movement detection
+        setTouchStartPosition({ x: touch.clientX, y: touch.clientY });
+
+        setIsDragging(true);
+        setDragStart({
+          x: touch.clientX - transform.x,
+          y: touch.clientY - transform.y,
+        });
+      } else if (e.touches.length === 2) {
+        setLastTouchDistance(getTouchDistance(e.touches));
+      }
+    },
+    [isZoomEnabled, transform, isQRSelected, isShareMenuOpen]
+  );
+
+  const handleTouchMove = useCallback(
+    (e) => {
+      // if (!isZoomEnabled) return;
+      e.preventDefault();
+
+      if (e.touches.length === 1 && isDragging) {
+        setTransform((prev) => ({
+          ...prev,
+          x: e.touches[0].clientX - dragStart.x,
+          y: e.touches[0].clientY - dragStart.y,
+        }));
+      } else if (e.touches.length === 2) {
+        const distance = getTouchDistance(e.touches);
+        const delta = (distance - lastTouchDistance) * 0.01;
+        const newScale = Math.min(Math.max(0.25, transform.scale + delta), 15);
+
+        setTransform((prev) => ({
+          ...prev,
+          scale: newScale,
+        }));
+        setLastTouchDistance(distance);
+      }
+    },
+    [isZoomEnabled, isDragging, dragStart, lastTouchDistance, transform.scale]
+  );
+
+  const handleTouchEnd = useCallback(
+    (e) => {
+      // Skip pan/zoom if QR is selected (user is interacting with QR)
+      if (isQRSelected || isShareMenuOpen) {
+        setIsDragging(false);
+        setLastTouchDistance(0);
+        return;
+      }
+
+      const currentTime = Date.now();
+      const timeDiff = currentTime - lastTapTime;
+
+      // Only check for double tap if this was a single touch that just ended
+      if (e.changedTouches.length === 1) {
+        const touch = e.changedTouches[0];
+
+        // Calculate how much the finger moved during this touch
+        const movementDistance = Math.sqrt(
+          Math.pow(touch.clientX - touchStartPosition.x, 2) +
+            Math.pow(touch.clientY - touchStartPosition.y, 2)
         );
-        
-        // Double tap detected: time within 500ms and touch within 50px of last tap
-        if (timeDiff < 500 && touchDistance < 50) {
-          console.log('🎯 Double tap detected - resetting view');
-          
-          // Use the centerInVisibleArea method for mobile-optimized centering
-          if (ref.current?.resetView) {
-            ref.current.resetView(); // Reset to scale 1
+
+        // Only consider it a tap if finger didn't move much (< 10px)
+        const wasTap = movementDistance < 10;
+
+        if (wasTap) {
+          const touchDistance = Math.sqrt(
+            Math.pow(touch.clientX - lastTapPosition.x, 2) +
+              Math.pow(touch.clientY - lastTapPosition.y, 2)
+          );
+
+          // Double tap detected: time within 500ms and touch within 50px of last tap
+          if (timeDiff < 500 && touchDistance < 50) {
+            console.log("🎯 Double tap detected - resetting view");
+
+            // Use the centerInVisibleArea method for mobile-optimized centering
+            if (ref.current?.resetView) {
+              ref.current.resetView(); // Reset to scale 1
+            } else {
+              // Fallback to direct transform reset
+              setTransform({ x: 0, y: 0, scale: 1 });
+            }
+
+            // Reset tap tracking to prevent triple-tap issues
+            setLastTapTime(0);
+            setLastTapPosition({ x: 0, y: 0 });
           } else {
-            // Fallback to direct transform reset
-            setTransform({ x: 0, y: 0, scale: 1 });
+            // Store this tap for potential future double tap
+            setLastTapTime(currentTime);
+            setLastTapPosition({ x: touch.clientX, y: touch.clientY });
           }
-          
-          // Reset tap tracking to prevent triple-tap issues
-          setLastTapTime(0);
-          setLastTapPosition({ x: 0, y: 0 });
-        } else {
-          // Store this tap for potential future double tap
-          setLastTapTime(currentTime);
-          setLastTapPosition({ x: touch.clientX, y: touch.clientY });
         }
       }
-    }
-    
-    setIsDragging(false);
-    setLastTouchDistance(0);
-  }, [isQRSelected, isShareMenuOpen, lastTapTime, lastTapPosition, touchStartPosition, ref]);
+
+      setIsDragging(false);
+      setLastTouchDistance(0);
+    },
+    [
+      isQRSelected,
+      isShareMenuOpen,
+      lastTapTime,
+      lastTapPosition,
+      touchStartPosition,
+      ref,
+    ]
+  );
   const handleResize = useCallback(() => {
     updatePanelSize();
     // Reset zoom on resize
@@ -389,17 +453,21 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
     canvasElement.addEventListener("mouseup", handleMouseUp);
     canvasElement.addEventListener("wheel", handleWheel, { passive: false });
     canvasElement.addEventListener("dblclick", handleDoubleClick);
-    
-    canvasElement.addEventListener("touchstart", handleTouchStart, { passive: false });
-    canvasElement.addEventListener("touchmove", handleTouchMove, { passive: false });
+
+    canvasElement.addEventListener("touchstart", handleTouchStart, {
+      passive: false,
+    });
+    canvasElement.addEventListener("touchmove", handleTouchMove, {
+      passive: false,
+    });
     canvasElement.addEventListener("touchend", handleTouchEnd);
-    
+
     window.addEventListener("resize", handleResize);
     updatePanelSize();
-    
+
     return () => {
       window.removeEventListener("resize", handleResize);
-      
+
       canvasElement.removeEventListener("mousedown", handleMouseDown);
       canvasElement.removeEventListener("mousemove", handleMouseMove);
       canvasElement.removeEventListener("mouseup", handleMouseUp);
@@ -409,7 +477,18 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
       canvasElement.removeEventListener("touchmove", handleTouchMove);
       canvasElement.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [handleMouseDown, handleMouseMove, handleMouseUp, handleWheel, handleDoubleClick, handleTouchStart, handleTouchMove, handleTouchEnd, handleResize, updatePanelSize]);
+  }, [
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    handleWheel,
+    handleDoubleClick,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+    handleResize,
+    updatePanelSize,
+  ]);
   useEffect(() => {
     if (previewRef.current) {
       document.addEventListener("click", handleOutsideClick);
@@ -431,9 +510,10 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
   );
   const previewStyles = useMemo(
     () => ({
-      transition: transform.scale === 1 && transform.x === 0 && transform.y === 0 
-        ? "all 0.75s ease-in-out" // Smooth transition when resetting
-        : "none", // No transition during drag/zoom for responsiveness
+      transition: "transform 350ms ease-in-out",
+        // transform.scale === 1 && transform.x === 0 && transform.y === 0
+        //   ? "all 0.75s ease-in-out" // Smooth transition when resetting
+        //   : "none", // No transition during drag/zoom for responsiveness
       outline: isZoomEnabled ? "2px solid #7ED03B" : "none",
       outlineOffset: "30px",
       transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
@@ -443,12 +523,12 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
   );
 
   const figureRef = useRef(null);
-  const [dynamicBorderRadius, setDynamicBorderRadius] = useState('20px');
-  const [dynamicOutlineWidth, setDynamicOutlineWidth] = useState('1px');
+  const [dynamicBorderRadius, setDynamicBorderRadius] = useState("20px");
+  const [dynamicOutlineWidth, setDynamicOutlineWidth] = useState("1px");
 
   useEffect(() => {
     if (figureRef.current) {
-      const updateStyles = () => { 
+      const updateStyles = () => {
         if (figureRef.current) {
           const width = figureRef.current.offsetWidth;
           const radius = width * 0.1;
@@ -457,11 +537,11 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
           setDynamicOutlineWidth(`${outlineWidth}px`);
         }
       };
-      
+
       updateStyles();
       const resizeObserver = new ResizeObserver(updateStyles);
       resizeObserver.observe(figureRef.current);
-      
+
       return () => resizeObserver.disconnect();
     }
   }, []);
@@ -476,13 +556,19 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
       borderRadius: dynamicBorderRadius,
       backgroundColor: "rgba(0,0,0,0)",
       overflow: "hidden",
+      height: `${previewSize.y}px`,
+      width: `${previewSize.x}px`,
     }),
     [previewSize.x, previewSize.y, dynamicBorderRadius, dynamicOutlineWidth]
   );
   return (
     <div
       className={`
-        ${!isMobile ? "h-[calc(100%-60px)] bottom-0 w-[calc(100%-64px)] right-0" : "h-[calc(100%-90px)] bottom-[50px] w-screen"} 
+        ${
+          !isMobile
+            ? "h-[calc(100%-60px)] bottom-0 w-[calc(100%-64px)] right-0"
+            : "h-[calc(100%-90px)] bottom-[50px] w-screen"
+        } 
       absolute
       overflow-y-hidden
           bg-[var(--bg-main)]
@@ -514,15 +600,15 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
         <UndoRedoButton />
         <Suspense fallback={<LoadingSpinner size="small" variant="logo" />}>
           <ShareButton
-                wallpaperRef={wallpaperRef}
-                getBackgroundImage={getBackgroundImage}
-                backgroundLayerRef={backgroundLayerRef}
-                onMenuStateChange={setIsShareMenuOpen}
+            wallpaperRef={wallpaperRef}
+            getBackgroundImage={getBackgroundImage}
+            backgroundLayerRef={backgroundLayerRef}
+            onMenuStateChange={setIsShareMenuOpen}
           />
         </Suspense>
         <span
           ref={previewRef}
-          className="transition-all duration-150 ease-linear"
+          className={`${isDragging ? "!transition-none" : "transition-[scale] duration-250 ease-in-out"}`}
           style={previewStyles}
         >
           <figure
@@ -530,32 +616,18 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
             className="flex items-center justify-center pointer-events-auto z-1"
             style={figureStyles}
           >
-            {isLoading ? (
-              <div
-                className="bg-[var(--bg-secondary)] rounded-[1.25rem] flex"
-                style={{
-                  height: `${previewSize.y}px`,
-                  width: `${previewSize.x}px`,
-                }}
-              >
-                <div
-                  className="animate-spin m-auto size-12 border-[4px] border-current border-t-transparent text-[var(--accent)] rounded-full "
-                  role="status"
-                  aria-label="loading"
-                ></div>
-              </div>
-            ) : (
-              <Suspense fallback={<WallpaperSkeleton previewSize={previewSize} />}>
-                <Wallpaper
-                  ref={wallpaperRef}
-                  panelSize={panelSize}
-                  isOpen={isOpen}
-                  locked={!isZoomEnabled}
-                  setIsZoomEnabled={memoizedSetIsZoomEnabled}
-                  backgroundLayerRef={backgroundLayerRef}
-                />
-              </Suspense>
-            )}
+            <Suspense
+              fallback={<WallpaperSkeleton previewSize={previewSize} />}
+            >
+              <Wallpaper
+                ref={wallpaperRef}
+                panelSize={panelSize}
+                isOpen={isOpen}
+                locked={!isZoomEnabled}
+                setIsZoomEnabled={memoizedSetIsZoomEnabled}
+                backgroundLayerRef={backgroundLayerRef}
+              />
+            </Suspense>
           </figure>
         </span>
       </div>
@@ -563,6 +635,6 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
   );
 });
 
-Canvas.displayName = 'Canvas';
+Canvas.displayName = "Canvas";
 
 export default Canvas;

@@ -21,7 +21,6 @@ function Panel({
   const [maxHeight, setMaxHeight] = useState(0);
   const resizableRef = useRef(null);
 
-
   const [activeTab, setActiveTab] = useState("1");
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -50,27 +49,25 @@ function Panel({
     !isOpen && togglePanel();
 
     let panelHeight = panelSize.height;
-    
-    if (key === "1" ) {
+
+    if (key === "1") {
       panelHeight = 275;
-    }
-      else if ( key === "2") {
-        panelHeight = 275;
+    } else if (key === "2") {
+      panelHeight = 275;
     } else if (key === "3") {
       panelHeight = 355;
     } else if (key === "4") {
       panelHeight = 300;
     }
 
-    setPanelSize(prev => ({ ...prev, height: panelHeight }));
+    setPanelSize((prev) => ({ ...prev, height: panelHeight }));
 
     if (isMobile && canvasRef?.current) {
       if (key === "1") {
         setTimeout(() => {
           canvasRef.current.centerTopInCanvas(0.55, panelHeight);
         }, 50);
-
-    } else if (key === "2") {
+      } else if (key === "2") {
         let deviceScale = 1.0;
         if (qrConfig.scale < 0.3) {
           deviceScale = 1.3;
@@ -103,10 +100,9 @@ function Panel({
 
   useEffect(() => {
     if (!isOpen) {
-        setActiveTab(null);
-      }
+      setActiveTab(null);
+    }
   }, [isOpen]);
-
 
   const items = [
     {
@@ -217,9 +213,12 @@ function Panel({
       </div>
 
       <div
-        className={`fixed bottom-0 w-full ${!isMobile ? "hidden" : ""} z-100`}
+        className={`fixed bottom-0 w-full ${!isMobile ? "hidden" : ""} z-100 bottom-[50px]`}
         style={{
-          bottom: isOpen ? 50 : `${(panelSize.height + 50) * -1}px`,
+          transform: isOpen
+            ? "translateY(0)"
+            : `translateY(${panelSize.height + 50}px)`,
+          transition: `transform 500ms ease-in-out`,
         }}
       >
         <CustomResizable
@@ -234,7 +233,7 @@ function Panel({
         >
           <div
             id="bottom-panel"
-            className="transition-[bottom] duration-350 transform bg-[var(--bg-main)] shadow-[0_0_10px_0_rgba(0,0,0,0.225)] h-full w-full rounded-t-2xl"
+            className="h bg-[var(--bg-main)] shadow-[0_0_10px_0_rgba(0,0,0,0.225)] h-full w-full rounded-t-2xl"
             role="dialog"
             aria-labelledby="hs-offcanvas-example-label"
           >

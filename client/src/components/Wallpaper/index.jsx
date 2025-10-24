@@ -8,7 +8,6 @@ import {
   Rectangle,
 } from "pixi.js";
 import { useDevice } from "../../contexts/DeviceContext";
-import { usePreview } from "../../contexts/PreviewContext";
 import { useStageCalculations } from "../../hooks/useStageCalculations";
 import { QRCodeSVG } from "qrcode.react";
 import { Transformer } from "./QRTransformer";
@@ -309,7 +308,6 @@ const Wallpaper = forwardRef(
         hideGuides();
       }
 
-      // Always show transformer after any interaction (drag or click)
       if (transformerRef.current) {
         transformerRef.current.attachTo(
           qrContainer,
@@ -358,7 +356,6 @@ const Wallpaper = forwardRef(
         );
       }
 
-      // Only attach drag handlers if not already attached and locked
       if (locked && !qrContainer.isDragHandlersAttached) {
         attachDragHandlers();
         qrContainer.isDragHandlersAttached = true;
@@ -444,7 +441,6 @@ const Wallpaper = forwardRef(
         qrContainer.eventMode = "static";
         qrContainer.cursor = "pointer";
 
-        // Attach drag handlers immediately if locked
         if (locked) {
           qrContainer.on("pointermove", handlePointerMove);
           qrContainer.on("pointerup", handlePointerUp);
@@ -455,12 +451,10 @@ const Wallpaper = forwardRef(
         qrContainer.on("pointerdown", (event) => {
           event.stopPropagation();
 
-          // Always select QR on click/drag start
           if (!isQRSelected) {
             selectQR();
           }
           
-          // Start drag immediately if locked
           if (locked) {
             handlePointerDown(event);
           }
@@ -706,6 +700,9 @@ const Wallpaper = forwardRef(
             transform: `scale(${stageScale})`,
             transformOrigin: "center center",
             pointerEvents: "auto",
+            // transitionDuration: "500ms",
+            // transition: "ease-in-out",
+            // transitionProperty: "all"
           }}
           ref={containerRef}
         >

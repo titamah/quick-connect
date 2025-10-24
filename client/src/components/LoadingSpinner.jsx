@@ -19,7 +19,7 @@ const LoadingSpinner = ({
   const logoSrc = variant === "quacki" ? "/QRkiCode.svg" : "/LOGO.svg";
   
   return (
-    <div className={`flex flex-col items-center justify-center ${className}`}>
+    <div className={`flex flex-col h-full items-center justify-center ${className}`}>
       <div className={`${sizeClasses[size]} relative`}>
         {/* Logo with subtle pulse animation */}
         <img 
