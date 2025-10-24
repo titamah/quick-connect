@@ -26,6 +26,7 @@ const Slider = ({
   const sliderRef = useRef(null);
   const colorPickerRef = useRef(null);
   const rafRef = useRef(null);
+  const isChangingRef = useRef(false);
   
   const updateThumbPosition = () => {
     if (!sliderRef.current) return;
@@ -89,17 +90,23 @@ const Slider = ({
       }
     };
   }, []);
-  const handleColorChange = (color) => {
-    if (needsSnapshot) {
-      takeSnapshot();
-      setNeedsSnapshot(false);
-    }
-    changeColor(color);
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      setNeedsSnapshot(true);
-    }, 500);
-  };
+
+  
+const handleColorChange = (color) => {
+  isChangingRef.current = true; 
+  
+  if (needsSnapshot) {
+    takeSnapshot();
+    setNeedsSnapshot(false);
+  }
+  changeColor(color);
+  clearTimeout(timeoutRef.current);
+  timeoutRef.current = setTimeout(() => {
+    setNeedsSnapshot(true);
+    isChangingRef.current = false;
+  }, 500);
+};
+
   const handleOpenChange = (open) => {
     if (open) {
       setNeedsSnapshot(true);
@@ -200,6 +207,7 @@ const Slider = ({
                 }}
                 isGradient={isGradient}
                 onDelete={deleteStop}
+                isChanging={isChangingRef}
               />
             </div>
           </div>

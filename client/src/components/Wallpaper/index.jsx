@@ -499,7 +499,7 @@ const Wallpaper = forwardRef(
         await app.init({
           width: deviceInfo.size.x + 2,
           height: deviceInfo.size.y + 2,
-          backgroundAlpha: 0, // Transparent background
+          backgroundAlpha: 0, 
           antialias: true,
         });
 
@@ -693,18 +693,15 @@ const Wallpaper = forwardRef(
             level="M"
           />
         </div>
-        
-        {/* CSS Underlay - shows in preview but not in exports */}
         <div
           className="pointer-events-none absolute top-0 left-0 w-full h-full z-[0]"
           style={{
             backgroundImage: "url('/transparent.png')",
-            backgroundSize: "auto",
+            backgroundSize: "172px",
             backgroundRepeat: "repeat",
             backgroundPosition: "top left",
           }}
         />
-        
         <PhoneUI />
         <div
           id="preview"
@@ -718,9 +715,6 @@ const Wallpaper = forwardRef(
             transform: `scale(${stageScale})`,
             transformOrigin: "center center",
             pointerEvents: "auto",
-            // transitionDuration: "500ms",
-            // transition: "ease-in-out",
-            // transitionProperty: "all"
           }}
           ref={containerRef}
         >
