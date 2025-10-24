@@ -72,23 +72,24 @@ const Wallpaper = forwardRef(
               const originalWidth = pixiApp.renderer.width;
               const originalHeight = pixiApp.renderer.height;
               
-              // pixiApp.renderer.resize(exportWidth, exportHeight);
+              // Resize to export dimensions for high-quality export
+              pixiApp.renderer.resize(exportWidth, exportHeight);
               
               pixiApp.render();
               
               const canvas = pixiApp.renderer.extract.canvas({
                 target: pixiApp.stage,
-                format: 'png',
-                resolution: 2,
-                frame: new Rectangle(0, 0, exportWidth, originalHeight),
+                format: format,
+                resolution: 1, // Use 1 for exact dimensions, 2 for retina
+                frame: new Rectangle(0, 0, exportWidth, exportHeight),
                 clearColor: '#00000000'
             });
               
               const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
               canvas.toBlob((blob) => {
                 try {
+                  // Restore original dimensions
                   pixiApp.renderer.resize(originalWidth, originalHeight);
-
                   pixiApp.render();
                   
                   if (!blob) {
@@ -98,8 +99,8 @@ const Wallpaper = forwardRef(
                   
                   resolve(blob);
                 } catch (error) {
+                  // Ensure we restore dimensions even on error
                   pixiApp.renderer.resize(originalWidth, originalHeight);
-               
                   pixiApp.render();
                   reject(error);
                 }
