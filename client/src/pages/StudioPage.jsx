@@ -19,18 +19,35 @@ const StudioPage = () => {
   });
 
   useEffect(() => {
-    const currentBreakpoint = isMobile ? "mobile" : "desktop";
-
-    if (currentBreakpoint !== breakpoint) {
-      if (currentBreakpoint === "mobile" && panelSize.width > 0) {
-        setPanelSize((prev) => ({ ...prev, width: 0 }));
-      } else if (currentBreakpoint === "desktop" && panelSize.width === 0) {
-        setPanelSize((prev) => ({ ...prev, width: 350 }));
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+  
+    // define what we consider current
+    const checkBreakpoint = () => {
+      const currentBreakpoint = mediaQuery.matches ? "mobile" : "desktop";
+  
+      if (currentBreakpoint !== breakpoint) {
+        if (currentBreakpoint === "mobile" && panelSize.width > 0) {
+          setPanelSize((prev) => ({ ...prev, width: 0 }));
+        } else if (currentBreakpoint === "desktop" && panelSize.width === 0) {
+          setPanelSize((prev) => ({ ...prev, width: 350 }));
+        }
+  
+        setBreakpoint(currentBreakpoint);
       }
-
-      setBreakpoint(currentBreakpoint);
-    }
-  }, [windowSize.width, breakpoint]);
+    };
+  
+    // run once immediately
+    checkBreakpoint();
+  
+    // listen for media query changes
+    mediaQuery.addEventListener("change", checkBreakpoint);
+  
+    return () => {
+      mediaQuery.removeEventListener("change", checkBreakpoint);
+    };
+    // we only depend on breakpoint and panelSize
+  }, [breakpoint, panelSize.width]);
+  
 
   useEffect(() => {
     const handleKeyDown = (event) => {

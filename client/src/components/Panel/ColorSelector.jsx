@@ -124,7 +124,6 @@ const ColorSelector = ({ panelSize }) => {
       }
       setInputText(newColor.toUpperCase());
       
-      // Use rAF to coalesce rapid color updates
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
       }
@@ -194,9 +193,9 @@ const ColorSelector = ({ panelSize }) => {
           maxLength={7}
         />
         <Grip
-              className={`hover:opacity-75 cursor-pointer 
-                ${device.grain ? `text-[var(--accent)]${ device.grain == 1 ? "" : "/50"}` 
-                  : "text-[var(--text-secondary)]"}`}
+              className={` cursor-pointer 
+                ${device.grain ? `text-[var(--accent)] ${ device.grain == 1 ? "opacity-100 hover:opacity-75" : "opacity-66 hover:opacity-50"}` 
+                  : "text-[var(--text-secondary)] opacity-100 hover:opacity-75"}`}
               size={20}
               onClick={() => {
                 takeSnapshot("Toggle grain");
