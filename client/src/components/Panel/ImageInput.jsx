@@ -187,31 +187,44 @@ function ImageInput() {
   return (
     <>
       <Modal
-        open={modalOpen}
-        maskClosable={false}
-        onOk={cropImage}
-        onCancel={closeModal}
-        okText="Crop"
-        cancelText="Cancel"
-      >
-        <ReactCrop
-          style={{
-            maxHeight: "85%",
-          }}
-          crop={crop}
-          unit="%"
-          onChange={(_, percentCrop) => setCrop(percentCrop)}
-          aspect={device.size.x / device.size.y}
-          keepSelection
-          ruleOfThirds
-        >
-          <img
-            src={activeInfo.originalImageData || undefined}
-            onLoad={initCrop}
-            alt="Crop preview"
-          />
-        </ReactCrop>
-      </Modal>
+  open={modalOpen}
+  maskClosable={false}
+  onOk={cropImage}
+  onCancel={closeModal}
+  okText="Crop"
+  cancelText="Cancel"
+>
+  <ReactCrop
+    crop={crop}
+    unit="%"
+    onChange={(_, percentCrop) => setCrop(percentCrop)}
+    aspect={device.size.x / device.size.y}
+    keepSelection
+    ruleOfThirds
+    style={{
+      maxWidth: '100%',
+      maxHeight: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}
+  >
+    <img
+      src={activeInfo.originalImageData || undefined}
+      onLoad={initCrop}
+      alt="Crop preview"
+      style={{
+        maxWidth: '100%',
+        maxHeight: 'calc(90vh - 180px)',
+        width: 'auto',
+        height: 'auto',
+        display: 'block',
+        objectFit: 'contain'
+      }}
+    />
+  </ReactCrop>
+</Modal>
+
       <div className="dark:text-white">
         <div className="flex flex-row items-center justify-between w-full mb-2">
           <Dropdown
@@ -313,6 +326,7 @@ function ImageInput() {
   );
 }
 export default ImageInput;
+
 function getCroppedImg(imageSrc, crop) {
   return new Promise((resolve) => {
     const image = new Image();

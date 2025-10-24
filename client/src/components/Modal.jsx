@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useDevice } from "../contexts/DeviceContext";
 import { createPortal } from 'react-dom';
 
 const Modal = ({ 
@@ -12,6 +13,7 @@ const Modal = ({
   style = {},
   width = '520px'
 }) => {
+    const {isMobile} = useDevice();
   // Handle ESC key
   useEffect(() => {
     const handleEsc = (e) => {
@@ -42,32 +44,34 @@ const Modal = ({
 
   const modalContent = (
     <div 
-      className="fixed inset-0 z-[1000] flex items-center justify-center"
+      className={`fixed inset-0 z-[1000] w-[100vw] flex items-center justify-center ${isMobile ? "mt-[40px] h-[calc(100vh-40px)]" : "mt-[60px] h-[calc(100vh-60px)]"}`}
       onClick={handleBackdropClick}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      
-      {/* Modal Content - Just a container for ReactCrop */}
       <div 
-        className="relative flex flex-col items-center justify-center"
-        style={{ 
-          paddingLeft: "5vw",
-          paddingRight: "5vw", 
-          paddingTop: "5vh",
-          paddingBottom: "5vh",
-          maxWidth: "90vw",
-          maxHeight: "90vh",
-          ...style 
-        }}
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm pointer-events-auto"
+        onClick={onCancel}
+      />
+      
+      {/* Modal Content */}
+      <div 
+        className="relative flex flex-col items-center justify-center max-w-[80vw] max-h-[80vh] p-8"
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ maxHeight: "85%" }}>
-          {children}
+        <div className="max-w-full max-h-[90vh] flex items-center justify-center mb-6">
+          <div style={{ 
+            maxWidth: '100%',
+            maxHeight: 'calc(100% - 120px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            {children}
+          </div>
         </div>
         
-        {/* Action Buttons - Positioned at bottom */}
-        <div className="flex justify-center gap-4 mt-6">
+        {/* Action Buttons */}
+        <div className="flex justify-center gap-4">
           <button
             onClick={onCancel}
             className="cursor-pointer px-6 py-2 text-sm font-medium text-[var(--text-secondary)] bg-[var(--bg-main)] border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-secondary)] transition-colors shadow-lg"
