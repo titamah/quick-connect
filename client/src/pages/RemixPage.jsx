@@ -201,7 +201,7 @@ const RemixPage = () => {
           </div>
           <div className="space-y-3">
             <button
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/start-design")}
               className="w-full bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-white px-6 py-3 rounded-lg font-medium transition-colors"
             >
               Create Your Own Design
