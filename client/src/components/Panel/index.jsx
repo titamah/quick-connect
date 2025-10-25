@@ -74,7 +74,7 @@ function Panel({
     } else if (key === "4") {
       panelHeight = 300;
       newBaselineMode = 'centerTop';
-      newBaselineScale = 0.66;
+      newBaselineScale = 0.55;
     }
   
     setPanelSize((prev) => ({ ...prev, height: panelHeight }));
