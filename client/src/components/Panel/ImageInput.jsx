@@ -8,6 +8,7 @@ import ColorThief from "colorthief";
 import Dropdown from "../Panel/Dropdown";
 import ImageGenerator from "../Panel/ImageGenerator";
 import ImageUploader from "../Panel/ImageUploader";
+
 function ImageInput() {
   const {
     device,
@@ -24,6 +25,7 @@ function ImageInput() {
     setActiveImageSource,
     isMobile,
   } = useDevice();
+
   const activeSource = activeImageSource;
   const setActiveSource = setActiveImageSource;
   const activeInfo = activeSource === "Upload" ? uploadInfo : generatedInfo;
@@ -31,8 +33,27 @@ function ImageInput() {
   const [modalOpen, setModalOpen] = useState(false);
   const [crop, setCrop] = useState();
   const fileTypes = ["JPEG", "PNG", "GIF", "SVG", "JPG", "WEBP"];
-  const openModal = () => setModalOpen(true);
-  const closeModal = () => setModalOpen(false);
+
+  const openModal = () => {
+    // When opening modal, sync crop with the saved activeInfo.crop
+    if (activeInfo.crop) {
+      setCrop(activeInfo.crop);
+    }
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    // Reset crop to the saved crop value when canceling
+    if (activeInfo.crop) {
+      setCrop(activeInfo.crop);
+    } else {
+      // If no saved crop, clear the temporary crop
+      setCrop(undefined);
+    }
+    setModalOpen(false);
+  };
+
+  // KEEPING YOUR ORIGINAL handleChange - it works perfectly!
   function handleChange(file) {
     file.preventDefault();
     if (file.dataTransfer.items.length > 1) return;
@@ -42,9 +63,13 @@ function ImageInput() {
       if (currFile) {
         const reader = new FileReader();
         reader.onload = () => {
+          // Clear crop when uploading new image
+          setCrop(undefined);
           updateUploadInfo({
             originalImageData: reader.result,
             filename: currFile.name,
+            crop: null,
+            croppedImageData: null,
           });
         };
         reader.readAsDataURL(currFile);
@@ -52,26 +77,83 @@ function ImageInput() {
       }
     }
   }
+
+  function handleClick() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = fileTypes.map((t) => `.${t.toLowerCase()}`).join(",");
+    input.style.display = "none";
+    document.body.appendChild(input);
+
+    input.onchange = (event) => {
+      console.log("onchange fired!");
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          setCrop(undefined);
+          updateUploadInfo({
+            originalImageData: reader.result,
+            filename: file.name,
+            crop: null,
+            croppedImageData: null,
+          });
+        };
+        reader.readAsDataURL(file);
+        openModal();
+      }
+      document.body.removeChild(input);
+    };
+
+    input.click();
+  }
+
   const initCrop = (e) => {
-    if (!crop) {
-      setTimeout(() => {
-        const { naturalWidth: width, naturalHeight: height } = e.currentTarget;
+    // Only initialize if there's no crop AND no saved crop
+    if (!crop && !activeInfo.crop) {
+      const { naturalWidth: width, naturalHeight: height } = e.currentTarget;
+      if (width && height) {
+        const aspectRatio = device.size.x / device.size.y;
+
+        // Calculate maximum size that maintains aspect ratio
+        let cropWidth = 100;
+        let cropHeight = 100;
+
+        const imageAspect = width / height;
+
+        if (imageAspect > aspectRatio) {
+          // Image is wider than needed, limit by height
+          cropHeight = 100;
+          cropWidth = ((aspectRatio * height) / width) * 100;
+        } else {
+          // Image is taller than needed, limit by width
+          cropWidth = 100;
+          cropHeight = (width / (aspectRatio * height)) * 100;
+        }
+
+        // Create and center the crop
         const initialCrop = centerCrop(
           makeAspectCrop(
-            { unit: "%", width: 90 },
-            device.size.x / device.size.y,
+            {
+              unit: "%",
+              width: cropWidth,
+            },
+            aspectRatio,
             width,
             height
           ),
           width,
           height
         );
+
         setCrop(initialCrop);
-      }, 100);
+      }
     }
   };
+
   const [height, setHeight] = useState(236);
   const [minMax, setMinMax] = useState([236, Infinity]);
+
   const changeSource = (e) => {
     setActiveSource(e);
     takeSnapshot("Change source");
@@ -81,6 +163,7 @@ function ImageInput() {
       bg: newActiveInfo.croppedImageData,
     });
   };
+
   useEffect(() => {
     if (activeInfo.originalImageData) {
       const newMinMax = [180.5, 180.5];
@@ -93,6 +176,7 @@ function ImageInput() {
       setHeight(newMinMax[0]);
     }
   }, [activeInfo.originalImageData, activeSource]);
+
   const cropImage = async () => {
     takeSnapshot("Crop image");
     const croppedBlob = await getCroppedImg(activeInfo.originalImageData, crop);
@@ -101,6 +185,7 @@ function ImageInput() {
       reader.onload = () => resolve(reader.result);
       reader.readAsDataURL(croppedBlob);
     });
+
     if (activeSource === "Upload") {
       updateUploadInfo({
         crop: crop,
@@ -112,38 +197,43 @@ function ImageInput() {
         croppedImageData: croppedDataUrl,
       });
     }
+
     updateBackground({
       style: "image",
       bg: croppedDataUrl,
     });
     closeModal();
   };
+
+  // Remove the problematic useEffect that was interfering
+  // Don't need it since openModal handles the sync
+
   useEffect(() => {
-    if (activeInfo.crop && !crop) {
-      setCrop(activeInfo.crop);
+    if (activeInfo.originalImageData) {
+      const img = new Image();
+      img.crossOrigin = "Anonymous";
+      img.src = activeInfo.originalImageData;
+      img.onload = () => {
+        const colorThiefInstance = new ColorThief();
+        const paletteArray = colorThiefInstance.getPalette(img, 4);
+        const rgbPalette = paletteArray.map((color) => {
+          const hex =
+            "#" + color.map((v) => v.toString(16).padStart(2, "0")).join("");
+          return hex;
+        });
+        updateImagePalette(rgbPalette);
+        console.log("New color palette:", rgbPalette);
+        console.log("device palette:", device.palette);
+      };
     }
-  }, [activeInfo.crop, crop]);
-  useEffect(() => {
-    const img = new Image();
-    img.crossOrigin = "Anonymous";
-    img.src = activeInfo.originalImageData;
-    img.onload = () => {
-      const colorThiefInstance = new ColorThief();
-      const paletteArray = colorThiefInstance.getPalette(img, 4);
-      const rgbPalette = paletteArray.map((color) => {
-        const hex =
-          "#" + color.map((v) => v.toString(16).padStart(2, "0")).join("");
-        return hex;
-      });
-      updateImagePalette(rgbPalette);
-      console.log("New color palette:", rgbPalette);
-      console.log("device palette:", device.palette);
-    };
   }, [activeInfo.originalImageData]);
+
   const deleteFile = () => {
     takeSnapshot("Delete image");
     updateBackground({ bg: "" });
     updateImagePalette([]);
+    // Clear crop when deleting
+    setCrop(undefined);
     if (activeSource === "Upload") {
       updateUploadInfo({
         originalImageData: null,
@@ -161,29 +251,35 @@ function ImageInput() {
     }
     closeModal();
   };
+
   const setOriginalFile = (file) => {
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
+        // Clear crop for new generated images
+        setCrop(undefined);
         updateGeneratedInfo({
-          filename: `${new Date().toLocaleString('en-US', { 
-            month: '2-digit', 
-            day: '2-digit', 
-            year: 'numeric', 
-            hour: '2-digit', 
-            minute: '2-digit',
-            hour12: false 
-          }).replace(/[\/\s,:]/g, '-')}.png`,
+          filename: `${new Date()
+            .toLocaleString("en-US", {
+              month: "2-digit",
+              day: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
+            })
+            .replace(/[\/\s,:]/g, "-")}.png`,
           originalImageData: reader.result,
-          croppedImageData: null, 
+          croppedImageData: null,
           crop: null,
         });
-        openModal(); 
+        openModal();
       };
       reader.readAsDataURL(file);
     }
     console.log(generatedInfo);
   };
+
   return (
     <>
       <Modal
@@ -195,24 +291,37 @@ function ImageInput() {
         cancelText="Cancel"
       >
         <ReactCrop
-          style={{
-            maxHeight: "85%",
-          }}
           crop={crop}
           unit="%"
           onChange={(_, percentCrop) => setCrop(percentCrop)}
           aspect={device.size.x / device.size.y}
           keepSelection
           ruleOfThirds
+          style={{
+            maxWidth: "100%",
+            maxHeight: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
         >
           <img
             src={activeInfo.originalImageData || undefined}
             onLoad={initCrop}
             alt="Crop preview"
+            style={{
+              maxWidth: "100%",
+              maxHeight: "calc(90vh - 180px)",
+              width: "auto",
+              height: "auto",
+              display: "block",
+              objectFit: "contain",
+            }}
           />
         </ReactCrop>
       </Modal>
-      <div className="dark:text-white w-full">
+
+      <div className="dark:text-white">
         <div className="flex flex-row items-center justify-between w-full mb-2">
           <Dropdown
             options={menuOptions}
@@ -221,11 +330,10 @@ function ImageInput() {
           />
           <span className="flex items-center gap-2 pointer-events-auto">
             <Grip
-              className={`hover:opacity-75 cursor-pointer 
-                ${device.grain ? `text-[var(--accent)]${ device.grain == 1 ? "" : "/50"}` 
-                  : "text-[var(--text-secondary)]"}`}
+              className={` cursor-pointer 
+                ${device.grain ? `text-[var(--accent)] ${ device.grain == 1 ? "opacity-100 hover:opacity-75" : "opacity-66 hover:opacity-50"}` 
+                  : "text-[var(--text-secondary)] opacity-100 hover:opacity-75"}`}
               size={20}
-              // color={device.grain ? ( device.grain == 0.5 ? "var(--accent)/50" : "var(--text-secondary)") : "var(--text-secondary)"}
               onClick={() => {
                 takeSnapshot("Toggle grain");
                 updateGrain();
@@ -233,18 +341,18 @@ function ImageInput() {
             />
           </span>
         </div>
-        {}
+
         {activeInfo.originalImageData ? (
           <div
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => e.preventDefault()}
             className={`${
-              isMobile ? "h-[200px]" : "h-[200px]"
-            } w-fill mb-[1.5px] rounded-sm border border-[5px] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)]`}
+              isMobile ? "h-[150px]" : "h-[200px]"
+            } w-full mb-[1.5px] rounded-sm border border-[5px] border-[var(--bg-main)] !shadow-[0_0_0_.95px_var(--border-color)]`}
           >
             <div
               onDrop={handleChange}
-              className="w-full h-full flex items-center justify-center relative"
+              className="w-full min-w-0 h-full flex items-center justify-center relative"
             >
               <div className="hover absolute inset-0 bg-black/50 flex items-center justify-center transition-opacity">
                 <Pencil
@@ -278,22 +386,20 @@ function ImageInput() {
         ) : (
           <ImageUploader
             handleChange={handleChange}
+            handleClick={handleClick}
             fileTypes={fileTypes}
-            updateUploadInfo={updateUploadInfo}
-            openModal={openModal}
           />
         )}
       </div>
+
       {activeInfo.originalImageData && (
         <div className=" mt-4 space-y-2">
           <h4 className=""> File Name </h4>
-          <div className="w-fill h-[24px]  px-1.5 py-[2.5px] border border-[var(--border-color)]/50 rounded-sm bg-black/5 dark:bg-black/15 flex items-center justify-between">
-            <span>
-              {activeInfo.crop
-                ? activeInfo.filename
-                : "No image selected"}
+          <div className=" max-w-full h-[24px] text-[var(--text-primary)] px-1.5 py-[2.5px] border border-[var(--border-color)]/50 rounded-sm bg-black/5 dark:bg-black/15 flex items-center justify-between">
+            <span className="truncate flex-1 min-w-0 max-w-[75%]">
+              {activeInfo.crop ? activeInfo.filename : "No image selected"}
             </span>
-            <span className="flex items-center gap-2">
+            <span className="flex-none flex items-center gap-2">
               <Pencil
                 onClick={openModal}
                 size={16}
@@ -305,14 +411,15 @@ function ImageInput() {
                 className="cursor-pointer hover:opacity-50"
               />
             </span>
-          </div>{" "}
+          </div>
         </div>
       )}
-      {}
     </>
   );
 }
+
 export default ImageInput;
+
 function getCroppedImg(imageSrc, crop) {
   return new Promise((resolve) => {
     const image = new Image();

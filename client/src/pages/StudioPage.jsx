@@ -11,7 +11,6 @@ const StudioPage = () => {
   const canvasRef = React.useRef(null);
 
   const [isOpen, setIsOpen] = React.useState(true);
-  const windowSize = useWindowSize();
   const [breakpoint, setBreakpoint] = React.useState(null);
   const [panelSize, setPanelSize] = React.useState({
     width: isMobile ? 0 : 450,
@@ -19,18 +18,29 @@ const StudioPage = () => {
   });
 
   useEffect(() => {
-    const currentBreakpoint = isMobile ? "mobile" : "desktop";
-
-    if (currentBreakpoint !== breakpoint) {
-      if (currentBreakpoint === "mobile" && panelSize.width > 0) {
-        setPanelSize((prev) => ({ ...prev, width: 0 }));
-      } else if (currentBreakpoint === "desktop" && panelSize.width === 0) {
-        setPanelSize((prev) => ({ ...prev, width: 350 }));
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+  
+    const checkBreakpoint = () => {
+      const currentBreakpoint = mediaQuery.matches ? "mobile" : "desktop";
+  
+      if (currentBreakpoint !== breakpoint) {
+        if (currentBreakpoint === "mobile" && panelSize.width > 0) {
+          setPanelSize((prev) => ({ ...prev, width: 0 }));
+        } else if (currentBreakpoint === "desktop" && panelSize.width === 0) {
+          setPanelSize((prev) => ({ ...prev, width: 350 }));
+        }
+  
+        setBreakpoint(currentBreakpoint);
       }
-
-      setBreakpoint(currentBreakpoint);
-    }
-  }, [windowSize.width, breakpoint]);
+    };
+      checkBreakpoint();
+      mediaQuery.addEventListener("change", checkBreakpoint);
+  
+    return () => {
+      mediaQuery.removeEventListener("change", checkBreakpoint);
+    };
+  }, [breakpoint, panelSize.width]);
+  
 
   useEffect(() => {
     const handleKeyDown = (event) => {

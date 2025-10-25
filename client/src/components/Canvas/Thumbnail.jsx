@@ -3,6 +3,7 @@ import React, {
   forwardRef,
   useImperativeHandle,
   useEffect,
+  useState, // ADDED
 } from "react";
 import {
   Application,
@@ -26,9 +27,25 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
   const { qrConfig, deviceInfo } = useDevice();
   const containerRef = useRef(null);
   const appRef = useRef(null);
+  const [isRenderComplete, setIsRenderComplete] = useState(false); // ADDED
 
   const exportAsBlob = async (options = {}) => {
     const { quality = 0.8, format = "image/webp" } = options;
+
+    // ADDED: Wait for rendering to complete
+    console.log("🖼️ Waiting for thumbnail render to complete...");
+    let waitAttempts = 0;
+    while (!isRenderComplete && waitAttempts < 50) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      waitAttempts++;
+    }
+    
+    if (!isRenderComplete) {
+      console.warn("⚠️ Thumbnail render timeout, exporting anyway");
+    } else {
+      console.log("✅ Thumbnail render complete, exporting...");
+    }
+    // END ADDED
 
     // Wait for app to be fully ready
     let attempts = 0;
@@ -96,6 +113,8 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
 
   const createThumbnail = async () => {
     console.log("🖼️ createThumbnail called");
+    setIsRenderComplete(false); // ADDED: Reset on new render
+    
     if (!wallpaperRef.current.exportImage) {
       console.log("🖼️ exportImage not ready, using fallback");
       setupBasicScene(null);
@@ -262,7 +281,7 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
       THUMBNAIL_HEIGHT * 0.075
     );
     phoneFrame.stroke({ color: 0x000000, width: strokeWidth });
-    phoneFrame.fill(0x000000);
+    phoneFrame.fill({alpha:0});
     app.stage.addChild(phoneFrame);
 
     // Phone screen content
@@ -317,6 +336,10 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
     // Add stage mask to stage so it's rendered
     app.stage.addChild(stageMask);
     app.render();
+    
+    // ADDED: Mark render as complete
+    setIsRenderComplete(true);
+    console.log("✅ Thumbnail render marked as complete");
   };
 
   useEffect(() => {

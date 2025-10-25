@@ -148,11 +148,12 @@ function GradientSelector() {
         />
         <span className="flex items-center gap-2 pointer-events-auto">
         <Grip
-              className={`hover:opacity-75 cursor-pointer 
-                ${device.grain ? `text-[var(--accent)]${ device.grain == 1 ? "" : "/50"}` 
-                  : "text-[var(--text-secondary)]"}`}
+              className={` cursor-pointer 
+                ${device.grain ? `text-[var(--accent)] ${ device.grain == 1 ? "opacity-100 hover:opacity-75" : "opacity-66 hover:opacity-50"}` 
+                  : "text-[var(--text-secondary)] opacity-100 hover:opacity-75"}`}
               size={20}
               onClick={() => {
+                console.log(device.grain)
                 takeSnapshot("Toggle grain");
                 updateGrain();
               }}

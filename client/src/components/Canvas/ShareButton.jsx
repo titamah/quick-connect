@@ -241,12 +241,12 @@ const ShareButton = ({
       }
     }
     setIsMenuOpen(false);
-    const shareText = "Check out my QReation! Remix it yourself";
+    const shareText = "Check out my QRKI creation! Remix it yourself or create your own custom QR code wallpaper at QRKI.xyz.";
     const fullShareText = `${shareText} ${link}`;
     switch (platform) {
       case "copy-link":
         try {
-          await navigator.clipboard.writeText(fullShareText);
+          await navigator.clipboard.writeText(link);
           toast.success("Link copied to clipboard!", {
             position: "bottom-right",
             autoClose: 2000,
@@ -339,7 +339,7 @@ const ShareButton = ({
                 type="text"
                 readOnly
                 value={
-                  isGeneratingLink ? "" : remixLink || "Generating link..."
+                  remixLink ? remixLink : ""
                 }
                 placeholder={isGeneratingLink ? "Generating link..." : ""}
                 className="flex-1 px-2 py-1 text-xs bg-[var(--bg-main)] border border-[var(--border-color)]/50 rounded-xl focus:outline-none text-[var(--text-primary)] cursor-pointer select-all"

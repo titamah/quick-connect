@@ -12,6 +12,14 @@
       ]
     },
     {
+      "source": "/api/generate-image",
+      "destination": "/api/generate-image"
+    },
+    {
+      "source": "/api/supabase-proxy",
+      "destination": "/api/supabase-proxy"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

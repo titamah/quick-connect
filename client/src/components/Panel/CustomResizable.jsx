@@ -188,7 +188,7 @@ const CustomResizable = forwardRef(
         {children}
 
         {toggleButton && direction === "bottom" && (
-          <div className="absolute z-50 left-1/2 top-0 cursor-pointer transform -translate-x-1/2 h-[10px] w-[50px] flex items-center justify-center">
+          <div className="absolute z-275 left-1/2 top-0 cursor-pointer transform -translate-x-1/2 h-[10px] w-[50px] flex items-center justify-center">
             <div className="cursor-pointer" onClick={toggleButton}>
               <span className="absolute start-1/2 -translate-x-1/2 -translate-y-1/2 block w-7 h-5 flex justify-center items-center bg-white border border-gray-200 text-gray-400 rounded-md hover:bg-gray-100 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-600 dark:hover:bg-neutral-900">
                 <svg

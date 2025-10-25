@@ -201,7 +201,7 @@ const RemixPage = () => {
           </div>
           <div className="space-y-3">
             <button
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/start-design")}
               className="w-full bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-white px-6 py-3 rounded-lg font-medium transition-colors"
             >
               Create Your Own Design
@@ -223,7 +223,7 @@ const RemixPage = () => {
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 bg-[url('/Pattern%20Tile.png')] bg-repeat opacity-10 dark:opacity-25" />
       <section className=" w-full px-7 py-10 sm:p-20 flex flex-col items-center justify-center gap-8 sm:gap-10 relative z-10 self-stretch max-w-[850px] w-fit m-auto my-auto top-[45%] bg-[var(--bg-main)] rounded-[30px] sm:rounded-[45px] border-[0.5px] border-solid border-[var(--border-color)] ">
       <p className="relative w-full rubik font-black text-4xl sm:text-5xl text-[var(--text-primary)] text-center leading-[0.75] tracking-wider [font-variant:all-small-caps] ">
-          Remix This Qreation
+          Remix This Wallpaper
         </p>
         <div className="  w-full bg-[var(--accent)] rounded-lg overflow-hidden flex items-center justify-center">
           {remixData.thumbnail_url ? (

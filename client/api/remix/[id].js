@@ -129,8 +129,8 @@ export default async function handler(request) {
   <!-- Dynamic Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.qrki.xyz/remix/${id}">
-  <meta property="og:title" content="Check out this QReation!">
-  <meta property="og:description" content="Someone made this custom QR wallpaper and wants to share it with you. Remix it yourself on QRKI!">
+  <meta property="og:title" content="QRKI - Custom QR Code Wallpapers">
+  <meta property="og:description" content="Someone made this custom QR wallpaper and wants to share it with you. Remix it yourself on QRKI.xyz!">
   <meta property="og:image" content="${thumbnailUrl}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -138,7 +138,7 @@ export default async function handler(request) {
   <!-- Dynamic Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://www.qrki.xyz/remix/${id}">
-  <meta name="twitter:title" content="Check out this QReation!">
+  <meta name="twitter:title" content="QRKI - Custom QR Code Wallpapers">
   <meta name="twitter:description" content="Someone made this custom QR wallpaper and wants to share it with you. Remix it yourself on QRKI!">
   <meta name="twitter:image" content="${thumbnailUrl}">`;
         

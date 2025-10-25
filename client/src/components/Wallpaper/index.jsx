@@ -8,7 +8,6 @@ import {
   Rectangle,
 } from "pixi.js";
 import { useDevice } from "../../contexts/DeviceContext";
-import { usePreview } from "../../contexts/PreviewContext";
 import { useStageCalculations } from "../../hooks/useStageCalculations";
 import { QRCodeSVG } from "qrcode.react";
 import { Transformer } from "./QRTransformer";
@@ -73,17 +72,24 @@ const Wallpaper = forwardRef(
               const originalWidth = pixiApp.renderer.width;
               const originalHeight = pixiApp.renderer.height;
               
+              // Resize to export dimensions for high-quality export
               pixiApp.renderer.resize(exportWidth, exportHeight);
               
               pixiApp.render();
               
-              const canvas = pixiApp.renderer.extract.canvas(pixiApp.stage);
+              const canvas = pixiApp.renderer.extract.canvas({
+                target: pixiApp.stage,
+                format: format,
+                resolution: 1, // Use 1 for exact dimensions, 2 for retina
+                frame: new Rectangle(0, 0, exportWidth, exportHeight),
+                clearColor: '#00000000'
+            });
               
               const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
               canvas.toBlob((blob) => {
                 try {
+                  // Restore original dimensions
                   pixiApp.renderer.resize(originalWidth, originalHeight);
-
                   pixiApp.render();
                   
                   if (!blob) {
@@ -93,8 +99,8 @@ const Wallpaper = forwardRef(
                   
                   resolve(blob);
                 } catch (error) {
+                  // Ensure we restore dimensions even on error
                   pixiApp.renderer.resize(originalWidth, originalHeight);
-               
                   pixiApp.render();
                   reject(error);
                 }
@@ -309,7 +315,6 @@ const Wallpaper = forwardRef(
         hideGuides();
       }
 
-      // Always show transformer after any interaction (drag or click)
       if (transformerRef.current) {
         transformerRef.current.attachTo(
           qrContainer,
@@ -358,7 +363,6 @@ const Wallpaper = forwardRef(
         );
       }
 
-      // Only attach drag handlers if not already attached and locked
       if (locked && !qrContainer.isDragHandlersAttached) {
         attachDragHandlers();
         qrContainer.isDragHandlersAttached = true;
@@ -444,7 +448,6 @@ const Wallpaper = forwardRef(
         qrContainer.eventMode = "static";
         qrContainer.cursor = "pointer";
 
-        // Attach drag handlers immediately if locked
         if (locked) {
           qrContainer.on("pointermove", handlePointerMove);
           qrContainer.on("pointerup", handlePointerUp);
@@ -455,12 +458,10 @@ const Wallpaper = forwardRef(
         qrContainer.on("pointerdown", (event) => {
           event.stopPropagation();
 
-          // Always select QR on click/drag start
           if (!isQRSelected) {
             selectQR();
           }
           
-          // Start drag immediately if locked
           if (locked) {
             handlePointerDown(event);
           }
@@ -498,7 +499,7 @@ const Wallpaper = forwardRef(
         await app.init({
           width: deviceInfo.size.x + 2,
           height: deviceInfo.size.y + 2,
-          backgroundColor: 0x000000,
+          backgroundAlpha: 0, 
           antialias: true,
         });
 
@@ -692,7 +693,15 @@ const Wallpaper = forwardRef(
             level="M"
           />
         </div>
- 
+        <div
+          className="pointer-events-none absolute top-0 left-0 w-full h-full z-[0]"
+          style={{
+            backgroundImage: "url('/transparent.png')",
+            backgroundSize: "172px",
+            backgroundRepeat: "repeat",
+            backgroundPosition: "top left",
+          }}
+        />
         <PhoneUI />
         <div
           id="preview"

@@ -20,8 +20,15 @@ function useWindowSize() {
     };
     const debouncedHandleResize = debounce(handleResize, 1);
     window.addEventListener("resize", debouncedHandleResize);
+    window.addEventListener('orientationchange', handleResize);
+    document.addEventListener('fullscreenchange', handleResize);
+    
+    handleResize();
+
     return () => {
       window.removeEventListener("resize", debouncedHandleResize);
+      window.removeEventListener('orientationchange', handleResize);
+      document.removeEventListener('fullscreenchange', handleResize);
     };
   }, []);
   return windowSize;
