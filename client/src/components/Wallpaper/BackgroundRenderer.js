@@ -10,7 +10,8 @@ export class BackgroundRenderer {
     this.ctx = null;
     this.canvas = document.createElement("canvas");
     this.ctx = this.canvas.getContext("2d");
-    this.objectUrls = new Set(); // Track object URLs for cleanup
+    this.objectUrls = new Set();
+    this.currentTexture = null; 
   }
 
   async renderBackground(background) {
@@ -73,6 +74,8 @@ export class BackgroundRenderer {
 
     texture.source.resource = this.canvas;
     texture.source.update();
+    
+    this.currentTexture = texture; 
     this.backgroundSprite = new Sprite(texture);
     this.app.stage.addChildAt(this.backgroundSprite, 0);
   }
@@ -134,6 +137,7 @@ export class BackgroundRenderer {
       }
   
       const texture = await Assets.load(imageUrl);
+      this.currentTexture = texture; 
       this.backgroundSprite = new Sprite(texture);
   
       const scaleX = this.deviceSize.x / texture.width;
@@ -145,10 +149,10 @@ export class BackgroundRenderer {
       this.backgroundSprite.y = (this.deviceSize.y - texture.height * scale) / 2;
   
       this.app.stage.addChildAt(this.backgroundSprite, 0);
+      
     } catch (error) {
       console.error("Failed to load background image:", error);
       this.renderSolidBackground("#FFFFFF");
-    } finally {
       if (isObjectUrl && imageUrl) {
         URL.revokeObjectURL(imageUrl);
         this.objectUrls.delete(imageUrl);
@@ -173,7 +177,17 @@ export class BackgroundRenderer {
   clearBackground() {
     if (this.backgroundSprite) {
       this.app.stage.removeChild(this.backgroundSprite);
-      this.backgroundSprite.destroy();
+      
+      if (this.currentTexture) {
+        this.currentTexture.destroy(true); 
+        this.currentTexture = null;
+      }
+      
+      this.backgroundSprite.destroy({
+        children: true,
+        texture: false, 
+        baseTexture: false
+      });
       this.backgroundSprite = null;
     }
 
@@ -188,7 +202,6 @@ export class BackgroundRenderer {
     this.deviceSize = newSize;
   }
 
-  // Clean up all object URLs
   cleanupObjectUrls() {
     this.objectUrls.forEach(url => {
       URL.revokeObjectURL(url);
@@ -197,7 +210,6 @@ export class BackgroundRenderer {
   }
 
   destroy() {
-    // Clean up object URLs first
     this.cleanupObjectUrls();
     
     this.clearBackground();
