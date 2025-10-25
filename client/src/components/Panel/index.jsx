@@ -168,7 +168,7 @@ function Panel({
       <div
         className={`fixed left-0 top-[52px] z-110 ${isMobile ? "hidden" : ""}`}
       >
-        <div className="mt-1.5 p-1.5 w-[64px] items-center flex flex-col gap-2 border-r border-[var(--border-color)] text-[var(--text-primary)] bg-[var(--bg-main)] h-[calc(100vh-52px)] shadow-[2px_0_10px_0_rgba(0,0,0,0.075)]">
+        <div className="mt-1.5 p-1.5 w-[64px] items-center flex flex-col gap-2 border-r border-[var(--border-color)]/33 text-[var(--text-primary)] bg-[var(--bg-main)] h-[calc(100vh-52px)] shadow-[2px_0_10px_0_rgba(0,0,0,0.075)]">
           {items.map((item) => item.label)}
         </div>
       </div>
@@ -190,7 +190,7 @@ function Panel({
         <div
           id="side-panel"
           ref={panelRef}
-          className="[--body-scroll:true] transition-[left] duration-350 transform bg-[var(--bg-main)] shadow-[0_0_10px_0_rgba(0,0,0,0.075)] h-full w-full"
+          className="[--body-scroll:true] transition-[left] duration-350 transform bg-[var(--bg-main)] shadow-[0_0_10px_0_rgba(0,0,0,0.075)] h-full w-full  border-r border-[var(--border-color)]/33 "
           role="dialog"
           aria-labelledby="hs-offcanvas-example-label"
         >
@@ -233,7 +233,7 @@ function Panel({
         >
           <div
             id="bottom-panel"
-            className="h bg-[var(--bg-main)] shadow-[0_0_10px_0_rgba(0,0,0,0.225)] h-full w-full rounded-t-2xl"
+            className="h bg-[var(--bg-main)] shadow-[0_0_10px_0_rgba(0,0,0,0.225)] h-full w-full rounded-t-2xl outline outline-1 outline-[var(--border-color)]/33 "
             role="dialog"
             aria-labelledby="hs-offcanvas-example-label"
           >
