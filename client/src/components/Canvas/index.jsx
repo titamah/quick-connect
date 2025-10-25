@@ -35,6 +35,10 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [lastTouchDistance, setLastTouchDistance] = useState(0);
 
+  // Refs for tracking actual drag movement (not just touch start)
+  const isDraggingRef = useRef(false);
+  const hasMoved = useRef(false);
+
   // Double tap detection for mobile
   const [lastTapTime, setLastTapTime] = useState(0);
   const [lastTapPosition, setLastTapPosition] = useState({ x: 0, y: 0 });
@@ -156,6 +160,8 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
 
       // if (!isZoomEnabled) return;
       setIsDragging(true);
+      isDraggingRef.current = false; // Not actually dragging yet
+      hasMoved.current = false;
       setDragStart({ x: e.clientX - transform.x, y: e.clientY - transform.y });
     },
     [isZoomEnabled, transform, isQRSelected, isShareMenuOpen]
@@ -164,6 +170,10 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
   const handleMouseMove = useCallback(
     (e) => {
       if (!isDragging) return;
+      
+      hasMoved.current = true;
+      isDraggingRef.current = true; // NOW we're actually dragging
+      
       setTransform((prev) => ({
         ...prev,
         x: e.clientX - dragStart.x,
@@ -175,6 +185,8 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
+    isDraggingRef.current = false;
+    hasMoved.current = false;
   }, []);
 
   const handleWheel = useCallback(
@@ -219,6 +231,8 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
         setTouchStartPosition({ x: touch.clientX, y: touch.clientY });
 
         setIsDragging(true);
+        isDraggingRef.current = false; // Not actually dragging yet
+        hasMoved.current = false;
         setDragStart({
           x: touch.clientX - transform.x,
           y: touch.clientY - transform.y,
@@ -236,6 +250,9 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
       e.preventDefault();
 
       if (e.touches.length === 1 && isDragging) {
+        hasMoved.current = true;
+        isDraggingRef.current = true; // NOW we're actually dragging
+        
         setTransform((prev) => ({
           ...prev,
           x: e.touches[0].clientX - dragStart.x,
@@ -258,63 +275,48 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
 
   const handleTouchEnd = useCallback(
     (e) => {
-      // Skip pan/zoom if QR is selected (user is interacting with QR)
-      if (isQRSelected || isShareMenuOpen) {
-        setIsDragging(false);
-        setLastTouchDistance(0);
-        return;
-      }
+      // Skip if QR is selected or share menu is open
+      if (isQRSelected || isShareMenuOpen) return;
 
-      const currentTime = Date.now();
-      const timeDiff = currentTime - lastTapTime;
+      // if (!isZoomEnabled) return;
+      const now = Date.now();
+      const timeSinceLastTap = now - lastTapTime;
 
-      // Only check for double tap if this was a single touch that just ended
-      if (e.changedTouches.length === 1) {
+      // Only detect double tap if the user didn't actually drag
+      if (!hasMoved.current && e.changedTouches.length === 1) {
         const touch = e.changedTouches[0];
-
-        // Calculate how much the finger moved during this touch
-        const movementDistance = Math.sqrt(
-          Math.pow(touch.clientX - touchStartPosition.x, 2) +
-            Math.pow(touch.clientY - touchStartPosition.y, 2)
+        const distance = Math.sqrt(
+          Math.pow(touch.clientX - lastTapPosition.x, 2) +
+            Math.pow(touch.clientY - lastTapPosition.y, 2)
         );
 
-        // Only consider it a tap if finger didn't move much (< 10px)
-        const wasTap = movementDistance < 10;
-
-        if (wasTap) {
-          const touchDistance = Math.sqrt(
-            Math.pow(touch.clientX - lastTapPosition.x, 2) +
-              Math.pow(touch.clientY - lastTapPosition.y, 2)
-          );
-
-          // Double tap detected: time within 500ms and touch within 50px of last tap
-          if (timeDiff < 500 && touchDistance < 50) {
-            console.log("🎯 Double tap detected - returning to baseline");
-
-            // Return to the current baseline
-            animateToTransform(baseline, 450);
-
-            // Reset tap tracking to prevent triple-tap issues
-            setLastTapTime(0);
-            setLastTapPosition({ x: 0, y: 0 });
-          } else {
-            // Store this tap for potential future double tap
-            setLastTapTime(currentTime);
-            setLastTapPosition({ x: touch.clientX, y: touch.clientY });
-          }
+        // Double tap detected: close enough in time and space
+        if (timeSinceLastTap < 300 && distance < 50) {
+          // Reset to baseline with animation
+          animateToTransform(baseline, 450);
+          
+          // Reset tap tracking
+          setLastTapTime(0);
+          setLastTapPosition({ x: 0, y: 0 });
+        } else {
+          // Single tap: update tracking
+          setLastTapTime(now);
+          setLastTapPosition({ x: touch.clientX, y: touch.clientY });
         }
       }
 
       setIsDragging(false);
-      setLastTouchDistance(0);
+      isDraggingRef.current = false;
+      hasMoved.current = false;
     },
     [
-      isQRSelected,
-      isShareMenuOpen,
+      isZoomEnabled,
       lastTapTime,
       lastTapPosition,
       touchStartPosition,
       baseline,
+      isQRSelected,
+      isShareMenuOpen,
       animateToTransform,
     ]
   );
@@ -543,7 +545,7 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
         </Suspense>
         <span
           ref={previewRef}
-          className={`${isDragging ? "!transition-none" : "transition-[scale] duration-250 ease-in-out"}`}
+          className={`${isDraggingRef.current ? "!transition-none" : "transition-[scale] duration-250 ease-in-out"}`}
           style={previewStyles}
         >
           <figure
