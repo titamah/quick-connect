@@ -706,8 +706,8 @@ const Wallpaper = forwardRef(
         <div
           id="preview"
           style={{
-            width: `${deviceInfo.size.x * stageScale}px`,
-            height: `${deviceInfo.size.y * stageScale}px`,
+            width: `${(deviceInfo.size.x * stageScale)}px`,
+            height: `${(deviceInfo.size.y * stageScale)}px`,
             position: "relative",
             display: "flex",
             justifyContent: "center",

@@ -10,7 +10,7 @@ import {
   forwardRef,
 } from "react";
 import { useDevice } from "../../contexts/DeviceContext";
-import FullscreenPreview from "../Wallpaper/FullscreenPreview";
+// import FullscreenPreview from "../Wallpaper/FullscreenPreview";
 import PreviewButton from "./PreviewButton";
 import UndoRedoButton from "./UndoRedoButton";
 import { useStageCalculations } from "../../hooks/useStageCalculations";
@@ -511,11 +511,6 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
   const previewStyles = useMemo(
     () => ({
       transition: "transform 350ms ease-in-out",
-        // transform.scale === 1 && transform.x === 0 && transform.y === 0
-        //   ? "all 0.75s ease-in-out" // Smooth transition when resetting
-        //   : "none", // No transition during drag/zoom for responsiveness
-      outline: isZoomEnabled ? "2px solid #7ED03B" : "none",
-      outlineOffset: "30px",
       transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
       transformOrigin: "center center",
     }),
@@ -556,8 +551,8 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
       borderRadius: dynamicBorderRadius,
       backgroundColor: "rgba(0,0,0,0)",
       overflow: "hidden",
-      height: `${previewSize.y}px`,
-      width: `${previewSize.x}px`,
+      height: `${Math.floor(previewSize.y)}px`,
+      width: `${Math.floor(previewSize.x)}px`,
     }),
     [previewSize.x, previewSize.y, dynamicBorderRadius, dynamicOutlineWidth]
   );

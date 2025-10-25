@@ -17,7 +17,7 @@ const ColorPicker = forwardRef(
       value,
       onChange,
       onOpenChange,
-      mode = "popover", // 'popover', 'inline', 'trigger'
+      mode = "popover", 
       trigger,
       presets = [],
       hasAlpha = false,
@@ -26,7 +26,7 @@ const ColorPicker = forwardRef(
       disabled = false,
       className = "",
       children,
-      customPosition = null, // { x, y } for custom positioning
+      customPosition = null, 
       isGradient = false,
       onDelete = null,
       isChanging,
@@ -39,7 +39,6 @@ const ColorPicker = forwardRef(
     const [needsSnapshot, setNeedsSnapshot] = useState(false);
     const [triggerRect, setTriggerRect] = useState(null);
 
-    // Local state for hex input typing
     const [localHex, setLocalHex] = useState(value.slice(0, 7).toUpperCase());
     const [localAlpha, setLocalAlpha] = useState(
       Math.round(chroma(value).alpha() * 100)
@@ -53,36 +52,27 @@ const ColorPicker = forwardRef(
     const isPressing = useRef(false);
     const rafRef = useRef(null);
 
-    // Parse color value
     const colorObj = chroma.valid(value) ? chroma(value) : chroma("#ffffff");
     const hexValue = colorObj.hex();
     const alphaValue = Math.round(colorObj.alpha() * 100);
+    
+    const onChangeRaf = useRef(null);
 
-    //   useEffect(() => {
-    //     setLocalValue(value);
-    //     setLocalHex(value.slice(0, 7).toUpperCase());
-    //     setLocalAlpha(Math.round(chroma(value).alpha() * 100));
-    //   }, [value]);
+      useEffect(() => {
+        onChangeRaf.current = (newColor) => {
+          if (rafRef.current) {
+            cancelAnimationFrame(rafRef.current);
+          }
+          rafRef.current = requestAnimationFrame(() => {
+            onChange?.(newColor);
+            rafRef.current = null;
+          });
+        };
+      }, [onChange]);
 
-    // rAF onChange to prevent color picker stuttering
-    const onChangeRaf = useCallback(
-      (newColor) => {
-        if (rafRef.current) {
-          cancelAnimationFrame(rafRef.current);
-        }
-        rafRef.current = requestAnimationFrame(() => {
-          onChange?.(newColor);
-          rafRef.current = null;
-        });
-      },
-      [onChange]
-    );
-
-    // Handle color change with snapshot system (matching ColorSelector pattern)
     const isChangingRef = useRef(false);
 
     useEffect(() => {
-      // Only sync from parent if we're not actively changing the color
       if (!isChangingRef.current && !isChanging?.current) {
         setLocalValue(value);
         setLocalHex(value.slice(0, 7).toUpperCase());
@@ -90,12 +80,11 @@ const ColorPicker = forwardRef(
       }
     }, [value, isChanging]);
 
-    // Handle color change with snapshot system (matching ColorSelector pattern)
     const handleColorChange = useCallback(
       (newColor) => {
         if (!chroma.valid(newColor)) return;
 
-        isChangingRef.current = true; // Block the useEffect
+        isChangingRef.current = true;
 
         if (needsSnapshot) {
           takeSnapshot("Change color");
@@ -108,16 +97,15 @@ const ColorPicker = forwardRef(
           setLocalAlpha(Math.round(chroma(newColor).alpha() * 100));
         }
 
-        // Use rAF onChange to prevent stuttering
-        onChangeRaf(newColor);
+        onChangeRaf.current(newColor);
 
         clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(() => {
           setNeedsSnapshot(true);
-          isChangingRef.current = false; // Re-enable useEffect after dragging stops
+          isChangingRef.current = false;
         }, 500);
       },
-      [needsSnapshot, takeSnapshot, hasAlpha, onChangeRaf]
+      [needsSnapshot, takeSnapshot, hasAlpha]
     );
 
     // Hex input handlers
