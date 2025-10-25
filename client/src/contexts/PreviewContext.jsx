@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import useWindowSize from '../hooks/useWindowSize';
 
 const PreviewContext = createContext();
 
@@ -16,19 +17,7 @@ export const PreviewProvider = ({ children }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.innerWidth <= 768 || 'ontouchstart' in window;
-  });
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768 || 'ontouchstart' in window);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const { isMobile } = useWindowSize();
 
   useEffect(() => {
     const handleFullscreenChange = () => {

@@ -1,36 +1,52 @@
 import { useState, useEffect } from "react";
+
 function useWindowSize() {
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
+    isMobile: window.matchMedia("(max-width: 768px)").matches,
   });
+
   useEffect(() => {
+    // Use matchMedia for mobile detection - much more reliable! ✨
+    const mobileQuery = window.matchMedia("(max-width: 768px)");
+    
     const handleResize = () => {
       setWindowSize({
         width: window.innerWidth,
         height: window.innerHeight,
+        isMobile: mobileQuery.matches,
       });
     };
-    const debounce = (func, delay) => {
-      let timeout;
-      return (...args) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), delay);
-      };
+
+    // matchMedia listener for breakpoint changes
+    const handleMediaChange = (e) => {
+      setWindowSize(prev => ({
+        ...prev,
+        isMobile: e.matches,
+      }));
     };
-    const debouncedHandleResize = debounce(handleResize, 1);
-    window.addEventListener("resize", debouncedHandleResize);
+
+    // Add matchMedia listener (this is the magic!)
+    mobileQuery.addEventListener('change', handleMediaChange);
+    
+    // Still listen to resize for dimension changes
+    window.addEventListener("resize", handleResize);
     window.addEventListener('orientationchange', handleResize);
     document.addEventListener('fullscreenchange', handleResize);
     
+    // Initial check
     handleResize();
 
     return () => {
-      window.removeEventListener("resize", debouncedHandleResize);
+      mobileQuery.removeEventListener('change', handleMediaChange);
+      window.removeEventListener("resize", handleResize);
       window.removeEventListener('orientationchange', handleResize);
       document.removeEventListener('fullscreenchange', handleResize);
     };
   }, []);
+
   return windowSize;
 }
+
 export default useWindowSize;

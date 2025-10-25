@@ -50,11 +50,7 @@ function Panel({
 
     let panelHeight = panelSize.height;
 
-    if (key === "1") {
-      panelHeight = 275;
-    } else if (key === "2") {
-      panelHeight = 275;
-    } else if (key === "3") {
+    if (key === "3") {
       panelHeight = 355;
     } else if (key === "4") {
       panelHeight = 300;
