@@ -96,8 +96,10 @@ const Thumbnail = forwardRef(({ wallpaperRef, dark = true }, ref) => {
               reject(new Error("Failed to export thumbnail"));
               return;
             }
+            const stableBlob = new Blob([blob], { type: blob.type });
+            
             console.log("🖼️ Thumbnail blob size:", blob.size, "bytes");
-            resolve(blob);
+            resolve(stableBlob);
           },
           format === "png" ? "image/png" : "image/webp",
           quality
