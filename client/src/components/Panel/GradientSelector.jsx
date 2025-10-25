@@ -292,6 +292,17 @@ function GradientSelector() {
                       },
                     });
                   }}
+                  onPresetClick={(preset) => {
+                    takeSnapshot("Select preset color");
+                    const newStops = [...device.gradient.stops];
+                    newStops[index * 2 + 1] = preset;
+                    updateBackground({
+                      gradient: {
+                        ...device.gradient,
+                        stops: newStops,
+                      },
+                    });
+                  }}
                   onColorBlur={() => {
                     // Remove redundant blur update - debounced updates handle this
                   }}

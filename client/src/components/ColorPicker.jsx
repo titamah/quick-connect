@@ -31,6 +31,7 @@ import React, {
         isGradient = false,
         onDelete = null,
         isChanging,
+        onPresetClick,
       },
       ref
     ) => {
@@ -221,9 +222,15 @@ import React, {
       }, []);
   
       const handlePresetClick = useCallback((preset) => {
-        takeSnapshot("Select preset color");
-        onChange?.(preset);
-      }, [onChange, takeSnapshot]);
+        // If parent provides custom handler, use it (for gradient stops)
+        if (onPresetClick) {
+          onPresetClick(preset);
+        } else {
+          // Default behavior
+          takeSnapshot("Select preset color");
+          onChange?.(preset);
+        }
+      }, [onPresetClick, onChange, takeSnapshot]);
   
       const getPopoverStyle = () => {
         const popoverHeight = 325;
