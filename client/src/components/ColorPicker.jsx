@@ -17,7 +17,7 @@ const ColorPicker = forwardRef(
       value,
       onChange,
       onOpenChange,
-      mode = "popover", 
+      mode = "popover",
       trigger,
       presets = [],
       hasAlpha = false,
@@ -26,7 +26,7 @@ const ColorPicker = forwardRef(
       disabled = false,
       className = "",
       children,
-      customPosition = null, 
+      customPosition = null,
       isGradient = false,
       onDelete = null,
       isChanging,
@@ -55,20 +55,6 @@ const ColorPicker = forwardRef(
     const colorObj = chroma.valid(value) ? chroma(value) : chroma("#ffffff");
     const hexValue = colorObj.hex();
     const alphaValue = Math.round(colorObj.alpha() * 100);
-    
-    const onChangeRaf = useRef(null);
-
-      useEffect(() => {
-        onChangeRaf.current = (newColor) => {
-          if (rafRef.current) {
-            cancelAnimationFrame(rafRef.current);
-          }
-          rafRef.current = requestAnimationFrame(() => {
-            onChange?.(newColor);
-            rafRef.current = null;
-          });
-        };
-      }, [onChange]);
 
     const isChangingRef = useRef(false);
 
@@ -97,7 +83,14 @@ const ColorPicker = forwardRef(
           setLocalAlpha(Math.round(chroma(newColor).alpha() * 100));
         }
 
-        onChangeRaf.current(newColor);
+        if (rafRef.current) {
+          cancelAnimationFrame(rafRef.current);
+        }
+
+        rafRef.current = requestAnimationFrame(() => {
+          onChange?.(newColor);
+          rafRef.current = null;
+        });
 
         clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(() => {
@@ -105,7 +98,7 @@ const ColorPicker = forwardRef(
           isChangingRef.current = false;
         }, 500);
       },
-      [needsSnapshot, takeSnapshot, hasAlpha]
+      [needsSnapshot, takeSnapshot, hasAlpha, onChange]
     );
 
     // Hex input handlers
