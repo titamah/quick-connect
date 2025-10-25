@@ -248,6 +248,7 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
     (e) => {
       // if (!isZoomEnabled) return;
       e.preventDefault();
+      e.stopPropagation() 
 
       if (e.touches.length === 1 && isDragging) {
         hasMoved.current = true;
