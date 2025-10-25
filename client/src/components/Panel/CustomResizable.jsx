@@ -258,6 +258,7 @@ const CustomResizable = forwardRef(
                       left: 0,
                       width: "100%",
                       height: "20px",
+                      zIndex: "100"
                     }),
               }}
               onMouseDown={handleMouseDown}

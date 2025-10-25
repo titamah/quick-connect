@@ -14,17 +14,10 @@ export const useDevice = () => {
 
 export const DeviceProvider = ({ children }) => {
   const deviceState = useDeviceState();
-  const windowSize = useWindowSize();
-  const [isMobile, setIsMobile] = useState(false);
+  const { isMobile } = useWindowSize(); 
   
-  // SIMPLE: Just track if QR is selected
   const [isQRSelected, setIsQRSelected] = useState(false);
 
-  useEffect(() => {
-    setIsMobile(windowSize.width < 768);
-  }, [windowSize.width]);
-
-  // SIMPLE: Just two functions
   const selectQR = useCallback(() => {
     console.log('🟢 SELECTING QR - called from:', new Error().stack);
     setIsQRSelected(true);
@@ -38,7 +31,6 @@ export const DeviceProvider = ({ children }) => {
   const value = {
     ...deviceState,
     isMobile,
-    // Selection state
     isQRSelected,
     selectQR,
     deselectAll,

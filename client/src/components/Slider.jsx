@@ -17,6 +17,7 @@ const Slider = ({
   onColorPickerClose,
   onBlur,
   isGradient = false,
+  onPresetClick,
 }) => {
   const { takeSnapshot } = useDevice();
   const [showTooltip, setShowTooltip] = useState(false);
@@ -123,29 +124,15 @@ const handleColorChange = (color) => {
       colorPickerRef.current.open();
     }
   };
-  // const formatTooltipValue = (val) => {
-  //   if (max <= 1) {
-  //     return `${Math.round(val * 100)}%`;
-  //   } else {
-  //     return `${Math.round(val)}%`;
-  //   }
-  // };
 
   return (
     <div
       className={`${
         stacked ? "absolute pointer-events-none" : "pointer-events-auto"
       } w-full h-full`}
-      // onMouseDown={() => setShowTooltip(true)}
-      // onMouseUp={(e) => {
-      //   setShowTooltip(false);
-      // }}
-      // onTouchStart={() => setShowTooltip(true)}
-      // onTouchEnd={(e) => {
-      //   setShowTooltip(false);
-      // }}
       onKeyDownCapture={(e) => {
-        if (e.key === "Backspace") {
+        // Only allow backspace to delete stop if not typing in an input field
+        if (e.key === "Backspace" && e.target.tagName !== "INPUT") {
           deleteStop?.();
         }
       }}
@@ -208,6 +195,7 @@ const handleColorChange = (color) => {
                 isGradient={isGradient}
                 onDelete={deleteStop}
                 isChanging={isChangingRef}
+                onPresetClick={onPresetClick}
               />
             </div>
           </div>

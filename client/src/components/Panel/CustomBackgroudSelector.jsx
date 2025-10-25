@@ -51,9 +51,6 @@ function CustomBackgroundSelector({ panelSize }) {
       </h5>
     </button>
   );
-  const ActiveComponent = BACKGROUND_TYPES.find(
-    (type) => type.id === activeTab
-  )?.component;
   return (
     <div
       role="tabpanel"
@@ -82,7 +79,8 @@ function CustomBackgroundSelector({ panelSize }) {
       <h2 className={`${isMobile ? "hidden" : "p-3.5"}`}>Set Background</h2>
       
       <div className="px-3.5 pb-2.5">
-        {ActiveComponent && (
+        {/* Solid Color Tab */}
+        <div style={{ display: activeTab === 1 ? 'block' : 'none' }}>
           <Suspense
             fallback={
               <div className="flex items-center justify-center h-32">
@@ -90,9 +88,35 @@ function CustomBackgroundSelector({ panelSize }) {
               </div>
             }
           >
-            <ActiveComponent panelSize={panelSize} />
+            <ColorSelector panelSize={panelSize} />
           </Suspense>
-        )}
+        </div>
+
+        {/* Gradient Tab */}
+        <div style={{ display: activeTab === 2 ? 'block' : 'none' }}>
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center h-32">
+                <LoadingSpinner size="medium" variant="logo" />
+              </div>
+            }
+          >
+            <GradientSelector panelSize={panelSize} />
+          </Suspense>
+        </div>
+
+        {/* Image Tab */}
+        <div style={{ display: activeTab === 3 ? 'block' : 'none' }}>
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center h-32">
+                <LoadingSpinner size="medium" variant="logo" />
+              </div>
+            }
+          >
+            <ImageInput panelSize={panelSize} />
+          </Suspense>
+        </div>
       </div>
     </div>
   );
