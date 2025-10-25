@@ -22,6 +22,9 @@ function Panel({
   const resizableRef = useRef(null);
 
   const [activeTab, setActiveTab] = useState("1");
+  const [baselineMode, setBaselineMode] = useState('centerTop');
+  const [baselineScale, setBaselineScale] = useState(0.55);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       const panelElement = panelRef.current;
@@ -47,48 +50,50 @@ function Panel({
   const handleTabClick = (key) => {
     setActiveTab(key);
     !isOpen && togglePanel();
-
+  
     let panelHeight = panelSize.height;
-
-    if (key === "3") {
+    let newBaselineMode = 'centerTop';
+    let newBaselineScale = 0.55;
+  
+    if (key === "1") {
+      newBaselineMode = 'centerTop';
+      newBaselineScale = 0.55;
+    } else if (key === "2") {
+      newBaselineMode = 'centerInVisible';
+      if (qrConfig.scale < 0.3) {
+        newBaselineScale = 1.3;
+      } else if (qrConfig.scale > 0.7) {
+        newBaselineScale = 0.9;
+      } else {
+        newBaselineScale = 1.0;
+      }
+    } else if (key === "3") {
       panelHeight = 355;
+      newBaselineMode = 'centerTop';
+      newBaselineScale = 0.5;
     } else if (key === "4") {
       panelHeight = 300;
+      newBaselineMode = 'centerTop';
+      newBaselineScale = 0.66;
     }
-
+  
     setPanelSize((prev) => ({ ...prev, height: panelHeight }));
-
+    setBaselineMode(newBaselineMode);
+    setBaselineScale(newBaselineScale);
+  
     if (isMobile && canvasRef?.current) {
-      if (key === "1") {
-        setTimeout(() => {
-          canvasRef.current.centerTopInCanvas(0.55, panelHeight);
-        }, 50);
-      } else if (key === "2") {
-        let deviceScale = 1.0;
-        if (qrConfig.scale < 0.3) {
-          deviceScale = 1.3;
-        } else if (qrConfig.scale > 0.7) {
-          deviceScale = 0.9;
-        }
-        setTimeout(() => {
-          canvasRef.current.centerInVisibleArea(deviceScale, panelHeight);
-        }, 50);
-      } else if (key === "3") {
-        setTimeout(() => {
-          canvasRef.current.centerTopInCanvas(0.5, panelHeight);
-        }, 50);
-      } else if (key === "4") {
-        setTimeout(() => {
-          canvasRef.current.centerTopInCanvas(0.66, panelHeight);
-        }, 50);
-      }
+      setTimeout(() => {
+        canvasRef.current.setBaseline(newBaselineMode, panelHeight, newBaselineScale);
+      }, 50);
     }
   };
 
+  // Update baseline when panel closes
   useEffect(() => {
     const timer = setTimeout(() => {
       if (isMobile && canvasRef?.current && !isOpen) {
-        canvasRef.current.resetView();
+        // When panel closes, set baseline back to default centered view
+        canvasRef.current.setBaseline('closed', 0, 1);
       }
     }, 350);
     return () => clearTimeout(timer);
@@ -99,6 +104,12 @@ function Panel({
       setActiveTab(null);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (isMobile && canvasRef?.current && isOpen && activeTab) {
+      canvasRef.current.setBaseline(baselineMode, panelSize.height, baselineScale);
+    }
+  }, [panelSize.height, isMobile, isOpen, activeTab, baselineMode, baselineScale]);
 
   const items = [
     {

@@ -41,134 +41,89 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
   const [touchStartPosition, setTouchStartPosition] = useState({ x: 0, y: 0 });
   const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
 
+  // Baseline transform - the "home" position that double-tap returns to
+  const [baseline, setBaseline] = useState({ x: 0, y: 0, scale: 1 });
+
   const memoizedSetIsZoomEnabled = useCallback(setIsZoomEnabled, []);
   const scale = useStageCalculations(device.size, panelSize, isOpen);
+
+  // Helper function to calculate transform for different view modes
+  const calculateTransform = useCallback((mode, panelHeight, scaleValue) => {
+    if (!isMobile) {
+      return { x: 0, y: 0, scale: scaleValue };
+    }
+
+    const canvasElement = canvasRef.current;
+    if (!canvasElement) return { x: 0, y: 0, scale: scaleValue };
+
+    const canvasRect = canvasElement.getBoundingClientRect();
+    const visibleCanvasHeight = canvasRect.height - panelHeight;
+    const visibleCenter = visibleCanvasHeight / 2;
+
+    switch (mode) {
+      case 'closed':
+        return { x: 0, y: 0, scale: 1 };
+      
+      case 'centerTop':
+        return {
+          x: 0,
+          y: canvasRect.height / 2 - visibleCenter - panelHeight,
+          scale: scaleValue,
+        };
+      
+      case 'centerInVisible':
+        return {
+          x: 0,
+          y: canvasRect.height / 2 -
+            visibleCenter -
+            panelHeight +
+            device.size.y * scale * (0.5 - qrConfig.positionPercentages.y),
+          scale: scaleValue,
+        };
+      
+      default:
+        return { x: 0, y: 0, scale: scaleValue };
+    }
+  }, [isMobile, canvasRef, device.size.y, scale, qrConfig.positionPercentages.y]);
+
+  // Animate to a specific transform
+  const animateToTransform = useCallback((targetTransform, duration = 750) => {
+    if (previewRef.current) {
+      previewRef.current.style.transition = `all ${duration}ms ease-in-out`;
+    }
+
+    setTransform(targetTransform);
+
+    setTimeout(() => {
+      if (previewRef.current) {
+        previewRef.current.style.transition = "none";
+      }
+    }, duration);
+  }, []);
 
   // Add the imperative handle for programmatic control
   useImperativeHandle(
     ref,
-    () => {
-      const api = {
-        // Method to programmatically set canvas transform
-        setTransform: (x, y, scaleValue, animate = true) => {
-          setTransform({
-            x: x || 0,
-            y: y || 0,
-            scale: scaleValue || 1,
-          });
-        },
+    () => ({
+      // Set the baseline transform that double-tap returns to
+      setBaseline: (mode, panelHeight, scaleValue) => {
+        const newBaseline = calculateTransform(mode, panelHeight, scaleValue);
+        setBaseline(newBaseline);
+        animateToTransform(newBaseline);
+      },
 
-        // Method to animate to a specific position (smoother for mobile)
-        animateToTransform: (x, y, scaleValue, duration = 750) => {
-          // Enable transition for smooth animation
-          if (previewRef.current) {
-            previewRef.current.style.transition = `all ${duration}ms ease-in-out`;
-          }
+      // Return to the current baseline
+      returnToBaseline: () => {
+        animateToTransform(baseline);
+      },
 
-          setTransform({
-            x: x || 0,
-            y: y || 0,
-            scale: scaleValue || 1,
-          });
-
-          // Remove transition after animation completes
-          setTimeout(() => {
-            if (previewRef.current) {
-              previewRef.current.style.transition =
-                transform.scale === 1 && transform.x === 0 && transform.y === 0
-                  ? "all 0.75s ease-in-out"
-                  : "none";
-            }
-          }, duration);
-        },
-
-        // Helper method to center device in visible area above panel (mobile)
-        centerInVisibleArea: (
-          scaleValue = 1,
-          panelHeight = panelSize.height
-        ) => {
-          if (!isMobile) {
-            // On desktop, just center normally
-            api.animateToTransform(0, 0, scaleValue);
-            return;
-          }
-
-          const canvasElement = canvasRef.current;
-          if (!canvasElement) return;
-
-          const canvasRect = canvasElement.getBoundingClientRect();
-
-          const visibleCanvasHeight = canvasRect.height - panelHeight;
-          const visibleCenter = visibleCanvasHeight / 2;
-
-          const offsetY =
-            canvasRect.height / 2 -
-            visibleCenter -
-            panelHeight +
-            device.size.y * scale * (0.5 - qrConfig.positionPercentages.y);
-
-          api.animateToTransform(0, offsetY, scaleValue);
-        },
-
-        centerTopInCanvas: (
-          scaleValue = 0.5,
-          panelHeight = panelSize.height
-        ) => {
-          if (!isMobile) {
-            // On desktop, just center normally
-            api.animateToTransform(0, 0, scaleValue);
-            return;
-          }
-
-          const canvasElement = canvasRef.current;
-          if (!canvasElement) return;
-
-          const canvasRect = canvasElement.getBoundingClientRect();
-
-          const visibleCanvasHeight = canvasRect.height - panelHeight;
-          const visibleCenter = visibleCanvasHeight / 2;
-
-          const offsetY = canvasRect.height / 2 - visibleCenter - panelHeight;
-
-          api.animateToTransform(0, offsetY, scaleValue);
-        },
-
-        // Helper method to center QR in viewport
-        centerQRInViewport: (qrPosition, deviceSize, scaleValue = 1.2) => {
-          const canvasElement = canvasRef.current;
-          if (!canvasElement) return;
-
-          const canvasRect = canvasElement.getBoundingClientRect();
-          const canvasCenter = {
-            x: canvasRect.width / 2,
-            y: canvasRect.height / 2,
-          };
-
-          // Calculate where QR currently is in canvas coordinates
-          const currentQRScreenPos = {
-            x: deviceSize.x * qrPosition.x * scale,
-            y: deviceSize.y * qrPosition.y * scale,
-          };
-
-          // Calculate offset needed to center QR
-          const offsetX = canvasCenter.x - currentQRScreenPos.x;
-          const offsetY = canvasCenter.y - currentQRScreenPos.y;
-
-          api.animateToTransform(offsetX, offsetY, scaleValue);
-        },
-
-        // Reset to default view
-        resetView: () => {
-          api.animateToTransform(0, 0, 1);
-        },
-
-        // Get current transform (useful for debugging)
-        getCurrentTransform: () => transform,
-      };
-
-      return api;
-    },
-    [transform, scale, previewRef, canvasRef]
+      // Get current transform (useful for debugging)
+      getCurrentTransform: () => transform,
+      
+      // Get current baseline
+      getBaseline: () => baseline,
+    }),
+    [calculateTransform, animateToTransform, baseline, transform]
   );
 
   const previewSize = useMemo(
@@ -242,19 +197,8 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
   );
 
   const handleDoubleClick = useCallback(() => {
-
-    if (previewRef.current) {
-      previewRef.current.style.transition = `all 450ms ease-in-out`;
-    }
-    setTransform({ x: 0, y: 0, scale: 1 });
-
-    setTimeout(() => {
-      if (previewRef.current) {
-        previewRef.current.style.transition = "none";
-      }
-    }, 450);
-
-  }, []);
+    animateToTransform(baseline, 450);
+  }, [animateToTransform, baseline]);
 
   const getTouchDistance = (touches) => {
     const dx = touches[0].clientX - touches[1].clientX;
@@ -345,15 +289,10 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
 
           // Double tap detected: time within 500ms and touch within 50px of last tap
           if (timeDiff < 500 && touchDistance < 50) {
-            console.log("🎯 Double tap detected - resetting view");
+            console.log("🎯 Double tap detected - returning to baseline");
 
-            // Use the centerInVisibleArea method for mobile-optimized centering
-            if (ref.current?.resetView) {
-              ref.current.resetView(); // Reset to scale 1
-            } else {
-              // Fallback to direct transform reset
-              setTransform({ x: 0, y: 0, scale: 1 });
-            }
+            // Return to the current baseline
+            animateToTransform(baseline, 450);
 
             // Reset tap tracking to prevent triple-tap issues
             setLastTapTime(0);
@@ -375,7 +314,8 @@ const Canvas = forwardRef(({ isOpen, panelSize, wallpaperRef }, ref) => {
       lastTapTime,
       lastTapPosition,
       touchStartPosition,
-      ref,
+      baseline,
+      animateToTransform,
     ]
   );
   const handleResize = useCallback(() => {
