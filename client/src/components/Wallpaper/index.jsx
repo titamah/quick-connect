@@ -40,7 +40,6 @@ const Wallpaper = forwardRef(
     const guidesRef = useRef(null);
     const backgroundRendererRef = useRef(null);
 
-
     const currentConfigRef = useRef(qrConfig);
     const currentDeviceRef = useRef(deviceInfo);
     const currentLockedRef = useRef(locked);
@@ -72,7 +71,6 @@ const Wallpaper = forwardRef(
               const originalWidth = pixiApp.renderer.width;
               const originalHeight = pixiApp.renderer.height;
               
-              // Resize to export dimensions for high-quality export
               pixiApp.renderer.resize(exportWidth, exportHeight);
               
               pixiApp.render();
@@ -80,7 +78,7 @@ const Wallpaper = forwardRef(
               const canvas = pixiApp.renderer.extract.canvas({
                 target: pixiApp.stage,
                 format: format,
-                resolution: 1, // Use 1 for exact dimensions, 2 for retina
+                resolution: 1,
                 frame: new Rectangle(0, 0, exportWidth, exportHeight),
                 clearColor: '#00000000'
             });
@@ -88,7 +86,6 @@ const Wallpaper = forwardRef(
               const mimeType = format === 'png' ? 'image/png' : 'image/jpeg';
               canvas.toBlob((blob) => {
                 try {
-                  // Restore original dimensions
                   pixiApp.renderer.resize(originalWidth, originalHeight);
                   pixiApp.render();
                   
@@ -99,7 +96,6 @@ const Wallpaper = forwardRef(
                   
                   resolve(blob);
                 } catch (error) {
-                  // Ensure we restore dimensions even on error
                   pixiApp.renderer.resize(originalWidth, originalHeight);
                   pixiApp.render();
                   reject(error);
@@ -380,7 +376,7 @@ const Wallpaper = forwardRef(
       [deselectAll]
     );
 
-    const generateQRCode = useCallback(() => {
+    const generateQRCodeImmediate = useCallback(() => {
       if (!appRef.current || !qrRef.current) return;
 
       const app = appRef.current;
@@ -483,10 +479,72 @@ const Wallpaper = forwardRef(
       isQRSelected,
     ]);
 
+    const qrRafRef = useRef(null);
+
+    const generateQRCode = useCallback(() => {
+      if (qrRafRef.current) {
+        cancelAnimationFrame(qrRafRef.current);
+      }
+      
+      qrRafRef.current = requestAnimationFrame(() => {
+        generateQRCodeImmediate();
+        qrRafRef.current = null;
+      });
+    }, [generateQRCodeImmediate]);
+
+    const updateBorderOnlyImmediate = useCallback(() => {
+      const qrContainer = qrContainerRef.current;
+      if (!qrContainer || qrContainer.children.length === 0) return;
+
+      const borderGraphics = qrContainer.children[0];
+      if (!(borderGraphics instanceof Graphics)) return;
+
+      const qrSize = Math.min(deviceInfo.size.x, deviceInfo.size.y);
+      const borderSize = qrSize * (qrConfig.custom.borderSizeRatio / 100);
+      const cornerRadius = (qrSize + borderSize) * (qrConfig.custom.cornerRadiusRatio / 100);
+
+      borderGraphics.clear();
+      if (borderSize > 0) {
+        const totalSize = qrSize + borderSize;
+        borderGraphics.roundRect(
+          -totalSize / 2,
+          -totalSize / 2,
+          totalSize,
+          totalSize,
+          cornerRadius
+        );
+        borderGraphics.fill(qrConfig.custom.borderColor);
+      }
+    }, [
+      qrConfig.custom.borderColor,
+      qrConfig.custom.borderSizeRatio,
+      qrConfig.custom.cornerRadiusRatio,
+      deviceInfo.size,
+    ]);
+
+    const borderRafRef = useRef(null);
+
+    const updateBorderOnly = useCallback(() => {
+      if (borderRafRef.current) {
+        cancelAnimationFrame(borderRafRef.current);
+      }
+      
+      borderRafRef.current = requestAnimationFrame(() => {
+        updateBorderOnlyImmediate();
+        borderRafRef.current = null;
+      });
+    }, [updateBorderOnlyImmediate]);
+
     useEffect(() => {
       return () => {
         if (transformerRef.current) {
           transformerRef.current.forceCleanup();
+        }
+        if (qrRafRef.current) {
+          cancelAnimationFrame(qrRafRef.current);
+        }
+        if (borderRafRef.current) {
+          cancelAnimationFrame(borderRafRef.current);
         }
       };
     }, []);
@@ -514,7 +572,6 @@ const Wallpaper = forwardRef(
           app,
           deviceInfo.size
         );
-
 
         const transformer = new Transformer();
         app.stage.addChild(transformer);
@@ -639,7 +696,41 @@ const Wallpaper = forwardRef(
 
     useEffect(() => {
       generateQRCode();
-    }, [generateQRCode]);
+    }, [
+      qrConfig.url,
+      qrConfig.custom.primaryColor,
+      qrConfig.custom.secondaryColor,
+      deviceInfo.size,
+    ]);
+
+    useEffect(() => {
+      updateBorderOnly();
+    }, [
+      qrConfig.custom.borderColor,
+      qrConfig.custom.borderSizeRatio,
+      qrConfig.custom.cornerRadiusRatio,
+    ]);
+
+    useEffect(() => {
+      const qrContainer = qrContainerRef.current;
+      if (!qrContainer) return;
+      
+      qrContainer.scale.set(qrConfig.scale);
+      qrContainer.x = deviceInfo.size.x * qrConfig.positionPercentages.x;
+      qrContainer.y = deviceInfo.size.y * qrConfig.positionPercentages.y;
+      qrContainer.rotation = (qrConfig.rotation * Math.PI) / 180;
+      
+      if (transformerRef.current && transformerRef.current.visible) {
+        transformerRef.current.updateBorder();
+      }
+    }, [
+      qrConfig.scale,
+      qrConfig.rotation,
+      qrConfig.positionPercentages.x,
+      qrConfig.positionPercentages.y,
+      deviceInfo.size.x,
+      deviceInfo.size.y,
+    ]);
 
     useEffect(() => {
       if (backgroundRendererRef.current) {
@@ -651,26 +742,6 @@ const Wallpaper = forwardRef(
       background.bg,
       background.gradient,
       background.grain,
-    ]);
-
-    useEffect(() => {
-      if (
-        transformerRef.current &&
-        transformerRef.current.visible &&
-        qrContainerRef.current
-      ) {
-        transformerRef.current.updateBorder();
-      }
-    }, [
-      qrConfig.scale,
-      qrConfig.rotation,
-      qrConfig.positionPercentages.x,
-      qrConfig.positionPercentages.y,
-      qrConfig.custom.primaryColor,
-      qrConfig.custom.secondaryColor,
-      qrConfig.custom.borderColor,
-      qrConfig.custom.cornerRadiusRatio,
-      qrConfig.custom.borderSizeRatio,
     ]);
 
     return (
