@@ -267,9 +267,7 @@ export const useDeviceState = () => {
 
   const updateBackground = (updates) => {
     console.log("🔧 updateBackground:", updates);
-    requestAnimationFrame(() => {
       setBackground((prev) => deepMerge(prev, updates));
-    });
   };
 
   const updateQRConfig = useCallback((updates) => {
@@ -292,28 +290,22 @@ export const useDeviceState = () => {
     if (updates.custom?.cornerRadiusRatio !== undefined) {
       updates.custom.cornerRadiusRatio = Math.max(0, Math.min(100, updates.custom.cornerRadiusRatio));
     }
-    requestAnimationFrame(() => {
     setQRConfig((prev) => deepMerge(prev, updates));
-    });
   }, []);
 
   const updateQRPositionPercentages = useCallback((percentages) => {
     console.log("🔧 updateQRPositionPercentages:", percentages);
     const validatedPercentages = validatePosition(percentages);
-    requestAnimationFrame(() => {
       setQRConfig((prev) =>
       deepMerge(prev, {
         positionPercentages: validatedPercentages,
       })
     );
-    });
   }, []);
 
   const updateImagePalette = (colors) => {
     console.log("🔧 updateImagePalette:", colors.length, "colors");
-    requestAnimationFrame(() => {
       setImagePalette(colors);
-    });
   };
   const updateUploadInfo = (updates) => {
     console.log("🔧 updateUploadInfo:", updates);
