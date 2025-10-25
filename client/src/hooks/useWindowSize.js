@@ -35,7 +35,6 @@ function useWindowSize() {
     window.addEventListener('orientationchange', handleResize);
     document.addEventListener('fullscreenchange', handleResize);
     
-    // Initial check
     handleResize();
 
     return () => {
